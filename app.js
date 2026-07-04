@@ -2016,6 +2016,38 @@ function renderCeoLog() {
 function openCeoActivityModal() {
   document.getElementById('ceo-activity-form').reset();
   document.getElementById('ceo-act-date').value = new Date().toISOString().split('T')[0];
+  
+  // Reset focus cards to default (Strategy active)
+  document.querySelectorAll('.focus-card').forEach((card, idx) => {
+    if (idx === 0) {
+      card.style.border = '2px solid var(--color-primary)';
+      card.style.backgroundColor = 'var(--color-accent-light)';
+    } else {
+      card.style.border = '1px solid var(--color-border)';
+      card.style.backgroundColor = 'var(--color-surface)';
+    }
+  });
+  document.getElementById('ceo-act-focus').value = 'Strategy';
+
+  // Reset emoji options to default (High active)
+  document.querySelectorAll('.emoji-option').forEach((opt, idx) => {
+    if (idx === 0) {
+      opt.style.borderColor = 'var(--color-primary)';
+      opt.style.backgroundColor = 'var(--color-surface)';
+      opt.querySelector('span:last-child').style.color = 'var(--color-success)';
+      opt.querySelector('span:last-child').style.fontWeight = '700';
+    } else {
+      opt.style.borderColor = 'transparent';
+      opt.style.backgroundColor = 'transparent';
+      opt.querySelector('span:last-child').style.color = 'var(--color-text-secondary)';
+      opt.querySelector('span:last-child').style.fontWeight = '600';
+    }
+  });
+  document.getElementById('ceo-act-productivity').value = 'High';
+
+  document.getElementById('ceo-act-hours').value = '8.0';
+  document.getElementById('ceo-act-critical').checked = false;
+
   document.getElementById('ceo-activity-modal').classList.add('active');
 }
 
@@ -2195,5 +2227,50 @@ function triggerMobileTab(tabId) {
     document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
     const moreBtn = document.querySelector('.mobile-only-nav');
     if (moreBtn) moreBtn.classList.add('active');
+  }
+}
+
+// Interactive CEO form helpers
+function selectCeoFocus(focusArea, element) {
+  document.getElementById('ceo-act-focus').value = focusArea;
+  // Reset all focus cards styling
+  document.querySelectorAll('.focus-card').forEach(card => {
+    card.style.border = '1px solid var(--color-border)';
+    card.style.backgroundColor = 'var(--color-surface)';
+  });
+  // Highlight active
+  element.style.border = '2px solid var(--color-primary)';
+  element.style.backgroundColor = 'var(--color-accent-light)';
+}
+
+function adjustCeoHours(delta) {
+  const input = document.getElementById('ceo-act-hours');
+  let val = parseFloat(input.value) || 0;
+  val = Math.max(0.5, Math.min(24, val + delta));
+  input.value = val.toFixed(1);
+}
+
+function setCeoHours(hours) {
+  document.getElementById('ceo-act-hours').value = hours.toFixed(1);
+}
+
+function selectCeoProductivity(level, element) {
+  document.getElementById('ceo-act-productivity').value = level;
+  // Reset all emoji options
+  document.querySelectorAll('.emoji-option').forEach(opt => {
+    opt.style.borderColor = 'transparent';
+    opt.style.backgroundColor = 'transparent';
+    opt.querySelector('span:last-child').style.color = 'var(--color-text-secondary)';
+    opt.querySelector('span:last-child').style.fontWeight = '600';
+  });
+  // Highlight active
+  element.style.borderColor = 'var(--color-primary)';
+  element.style.backgroundColor = 'var(--color-surface)';
+  const label = element.querySelector('span:last-child');
+  label.style.fontWeight = '700';
+  if (level === 'High') {
+    label.style.color = 'var(--color-success)';
+  } else {
+    label.style.color = 'var(--color-primary)';
   }
 }
