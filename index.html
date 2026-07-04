@@ -53,6 +53,14 @@
         <i class="ph ph-receipt"></i>
         <span>Bills & Invoices</span>
       </button>
+      <button class="nav-item" data-tab="employees">
+        <i class="ph ph-identification-card"></i>
+        <span>Employees</span>
+      </button>
+      <button class="nav-item" data-tab="fabrics">
+        <i class="ph ph-scissors"></i>
+        <span>Fabrics</span>
+      </button>
       <button class="nav-item" data-tab="ai-advisor">
         <i class="ph ph-sparkle"></i>
         <span>AI Advisor</span>
@@ -381,6 +389,122 @@
               <input type="text" id="ai-chat-input" placeholder="Ask about your financial status..." required>
               <button type="submit" class="btn btn-accent btn-icon-square"><i class="ph-fill ph-paper-plane-right"></i></button>
             </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EMPLOYEES VIEW -->
+    <section id="employees-view" class="tab-view">
+      <header class="view-header">
+        <div>
+          <h1>Employee Management</h1>
+          <p class="subtitle">Manage stitching crew details, wage rates per piece, and basic staff information.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openEmployeeModal()">
+          <i class="ph ph-user-plus"></i> Register Employee
+        </button>
+      </header>
+
+      <div class="search-filter-row">
+        <div class="search-input-wrapper">
+          <i class="ph ph-magnifying-glass"></i>
+          <input type="text" id="employee-search" placeholder="Search employees by name or role..." oninput="filterEmployees()">
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Employee Name</th>
+                <th>Role</th>
+                <th>Phone Number</th>
+                <th>Stitch Rate (₹/Piece)</th>
+                <th>Base Salary (₹)</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="employees-table-body">
+              <tr>
+                <td colspan="6" class="text-center text-muted">No employees registered. Click "Register Employee" to begin.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- FABRICS VIEW -->
+    <section id="fabrics-view" class="tab-view">
+      <header class="view-header">
+        <div>
+          <h1>Fabrics & Production</h1>
+          <p class="subtitle">Track incoming fabric consignments and stitching assignments to employees.</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-primary" onclick="openFabricModal()">
+            <i class="ph ph-plus-circle"></i> Record Fabric
+          </button>
+          <button class="btn btn-accent" onclick="openStitchingModal()">
+            <i class="ph ph-scissors"></i> Assign Stitching
+          </button>
+        </div>
+      </header>
+
+      <div class="charts-grid">
+        <!-- Incoming Fabric List -->
+        <div class="table-card" style="margin-bottom: 0;">
+          <div class="card-header" style="padding: 20px 24px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="font-size: 16px; font-weight:600;">Incoming Fabric Log</h3>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Fabric Type</th>
+                  <th class="text-right">Qty (Meters)</th>
+                  <th>Color</th>
+                  <th class="col-hide-mobile">Date Recd</th>
+                  <th class="col-hide-tablet">Supplier</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="fabrics-table-body">
+                <tr>
+                  <td colspan="7" class="text-center text-muted">No fabrics logged. Click "Record Fabric" to log stock.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Stitching Assignments List -->
+        <div class="table-card" style="margin-bottom: 0;">
+          <div class="card-header" style="padding: 20px 24px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="font-size: 16px; font-weight:600;">Stitching Assignments</h3>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Employee</th>
+                  <th>Fabric Type</th>
+                  <th class="text-right">Pieces</th>
+                  <th class="text-right col-hide-tablet">Rate (₹)</th>
+                  <th class="text-right">Payout (₹)</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="stitching-table-body">
+                <tr>
+                  <td colspan="7" class="text-center text-muted">No stitching jobs assigned. Click "Assign Stitching" to start.</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -714,6 +838,179 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- EMPLOYEE MODAL (Add / Edit Employee) -->
+  <div id="employee-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="employee-modal-title">Register New Employee</h3>
+        <button class="btn-close" onclick="closeEmployeeModal()"><i class="ph ph-x"></i></button>
+      </div>
+      <form id="employee-form" onsubmit="saveEmployee(event)">
+        <input type="hidden" id="employee-id-field">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="employee-name">Employee Name *</label>
+              <input type="text" id="employee-name" required placeholder="e.g. Ramesh Kumar">
+            </div>
+            <div class="form-group">
+              <label for="employee-role">Designation / Role *</label>
+              <select id="employee-role" required>
+                <option value="Stitcher">Stitcher</option>
+                <option value="Tailor">Tailor / Master Cutter</option>
+                <option value="Quality Checker">Quality Checker</option>
+                <option value="Helper">General Helper</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="employee-phone">Phone Number *</label>
+              <input type="tel" id="employee-phone" required placeholder="e.g. +91 99887 76655">
+            </div>
+            <div class="form-group">
+              <label for="employee-stitch-rate">Stitch Rate (₹ per Piece)</label>
+              <input type="number" id="employee-stitch-rate" min="0" step="any" value="50" placeholder="wage paid per finished piece">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="employee-salary">Monthly Base Salary (₹) - if applicable</label>
+            <input type="number" id="employee-salary" min="0" value="0" placeholder="e.g. 15000">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeEmployeeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Employee</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- FABRIC MODAL (Record Incoming Fabric) -->
+  <div id="fabric-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="fabric-modal-title">Record Incoming Fabric Roll</h3>
+        <button class="btn-close" onclick="closeFabricModal()"><i class="ph ph-x"></i></button>
+      </div>
+      <form id="fabric-form" onsubmit="saveFabric(event)">
+        <input type="hidden" id="fabric-id-field">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fabric-type">Fabric Material / Type *</label>
+              <input type="text" id="fabric-type" required placeholder="e.g. Premium Cotton, Raw Silk, Denim">
+            </div>
+            <div class="form-group">
+              <label for="fabric-qty">Quantity Received (Meters) *</label>
+              <input type="number" id="fabric-qty" min="1" step="any" required placeholder="e.g. 250">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fabric-color">Color / Shade *</label>
+              <input type="text" id="fabric-color" required placeholder="e.g. Royal Blue, Indigo">
+            </div>
+            <div class="form-group">
+              <label for="fabric-date">Received Date *</label>
+              <input type="date" id="fabric-date" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="fabric-supplier">Supplier / Client Name</label>
+            <input type="text" id="fabric-supplier" placeholder="e.g. Vardhman Textiles">
+          </div>
+
+          <div class="form-group">
+            <label for="fabric-status">Current Inventory Status</label>
+            <select id="fabric-status">
+              <option value="Stored">Stored in Warehouse</option>
+              <option value="Stitching">In Stitching Line</option>
+              <option value="Completed">Completed / Dispatched</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeFabricModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Fabric Log</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- STITCHING ASSIGNMENT MODAL -->
+  <div id="stitching-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="stitching-modal-title">Assign Stitching Job</h3>
+        <button class="btn-close" onclick="closeStitchingModal()"><i class="ph ph-x"></i></button>
+      </div>
+      <form id="stitching-form" onsubmit="saveStitching(event)">
+        <input type="hidden" id="stitching-id-field">
+        <div class="modal-body">
+          
+          <div class="form-group">
+            <label for="stitching-employee">Select Stitching Employee *</label>
+            <select id="stitching-employee" required onchange="autofillStitchRate()">
+              <option value="">-- Choose Employee --</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="stitching-fabric">Select Fabric Roll *</label>
+            <select id="stitching-fabric" required>
+              <option value="">-- Choose Fabric roll --</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="stitching-pieces">Pieces to Stitch *</label>
+              <input type="number" id="stitching-pieces" min="1" required placeholder="e.g. 50" oninput="calculateStitchPayout()">
+            </div>
+            <div class="form-group">
+              <label for="stitching-rate">Stitch Rate (₹ per Piece) *</label>
+              <input type="number" id="stitching-rate" min="0" step="any" required placeholder="₹ 50.00" oninput="calculateStitchPayout()">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="stitching-date">Assignment Date *</label>
+              <input type="date" id="stitching-date" required>
+            </div>
+            <div class="form-group">
+              <label for="stitching-status">Job Status</label>
+              <select id="stitching-status">
+                <option value="Stitching">Active / Stitching</option>
+                <option value="Finished">Finished / Complete</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Estimated Job Payout</label>
+            <h3 id="stitching-payout-display" style="color: var(--color-primary); font-family: var(--font-heading); margin-top:4px;">₹0.00</h3>
+          </div>
+
+          <div class="form-group">
+            <label for="stitching-notes">Additional Notes / Instructions</label>
+            <textarea id="stitching-notes" rows="2" placeholder="e.g. Double stitch borders, add brand tag"></textarea>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeStitchingModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Assign Job</button>
+        </div>
+      </form>
     </div>
   </div>
 

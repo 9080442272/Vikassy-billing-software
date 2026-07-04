@@ -5,6 +5,9 @@
 // Global State
 let allClients = [];
 let allBills = [];
+let allEmployees = [];
+let allFabrics = [];
+let allStitching = [];
 let incomeChart = null;
 let gstChart = null;
 
@@ -66,6 +69,11 @@ function setupTabNavigation() {
       } else if (targetTab === 'bills') {
         renderBills();
         populateClientsDropdowns();
+      } else if (targetTab === 'employees') {
+        renderEmployees();
+      } else if (targetTab === 'fabrics') {
+        renderFabrics();
+        populateProductionDropdowns();
       } else if (targetTab === 'ai-advisor') {
         initAIAdvisorTab();
       }
@@ -87,7 +95,12 @@ function setupTabNavigation() {
 async function refreshData() {
   allClients = await window.db.clients.getAll();
   allBills = await window.db.bills.getAll();
+  allEmployees = await window.db.employees.getAll();
+  allFabrics = await window.db.fabrics.getAll();
+  allStitching = await window.db.stitching.getAll();
+  
   populateClientsDropdowns();
+  populateProductionDropdowns();
 }
 
 function populateClientsDropdowns() {
@@ -1148,6 +1161,408 @@ function formatDate(dateStr) {
 
 function truncateText(str, n) {
   return (str.length > n) ? str.substr(0, n - 1) + '...' : str;
+}
+
+/**
+ * ==========================================
+ * EMPLOYEE MANAGEMENT MODULE
+ * ==========================================
+ */
+function renderEmployees() {
+  const tbody = document.getElementById('employees-table-body');
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+
+  if (allEmployees.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No employees registered. Click "Register Employee" to begin.</td></tr>`;
+    return;
+  }
+
+  allEmployees.forEach(emp => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><div class="font-medium">${emp.name}</div></td>
+      <td><span class="badge badge-nogst">${emp.role}</span></td>
+      <td>${emp.phone}</td>
+      <td class="text-right font-medium">₹${emp.stitchRate.toFixed(2)}</td>
+      <td class="text-right font-medium">${emp.salary > 0 ? formatCurrency(emp.salary) : '<span class="text-muted">Piece-rate only</span>'}</td>
+      <td>
+        <button class="btn btn-secondary btn-sm" onclick="editEmployee(${emp.id})">
+          <i class="ph ph-pencil-simple"></i> Edit
+        </button>
+        <button class="btn btn-secondary btn-sm btn-icon text-red" onclick="deleteEmployee(${emp.id})" title="Delete Employee">
+          <i class="ph ph-trash"></i>
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function openEmployeeModal() {
+  document.getElementById('employee-form').reset();
+  document.getElementById('employee-id-field').value = '';
+  document.getElementById('employee-modal-title').textContent = 'Register New Employee';
+  document.getElementById('employee-modal').classList.add('active');
+}
+
+function closeEmployeeModal() {
+  document.getElementById('employee-modal').classList.remove('active');
+}
+
+async function saveEmployee(event) {
+  event.preventDefault();
+
+  const id = document.getElementById('employee-id-field').value;
+  const name = document.getElementById('employee-name').value.trim();
+  const role = document.getElementById('employee-role').value;
+  const phone = document.getElementById('employee-phone').value.trim();
+  const stitchRate = Number(document.getElementById('employee-stitch-rate').value) || 0;
+  const salary = Number(document.getElementById('employee-salary').value) || 0;
+
+  const empData = { name, role, phone, stitchRate, salary };
+
+  try {
+    if (id) {
+      empData.id = Number(id);
+      const original = allEmployees.find(e => e.id === empData.id);
+      empData.createdAt = original.createdAt;
+      await window.db.employees.update(empData);
+    } else {
+      await window.db.employees.add(empData);
+    }
+
+    closeEmployeeModal();
+    await refreshData();
+    renderEmployees();
+  } catch (error) {
+    alert('Error saving employee: ' + error.message);
+  }
+}
+
+async function editEmployee(id) {
+  const emp = allEmployees.find(e => e.id === id);
+  if (!emp) return;
+
+  document.getElementById('employee-id-field').value = emp.id;
+  document.getElementById('employee-name').value = emp.name;
+  document.getElementById('employee-role').value = emp.role;
+  document.getElementById('employee-phone').value = emp.phone;
+  document.getElementById('employee-stitch-rate').value = emp.stitchRate;
+  document.getElementById('employee-salary').value = emp.salary;
+
+  document.getElementById('employee-modal-title').textContent = 'Modify Employee Details';
+  document.getElementById('employee-modal').classList.add('active');
+}
+
+async function deleteEmployee(id) {
+  const emp = allEmployees.find(e => e.id === id);
+  if (!emp) return;
+
+  const linkedJobs = allStitching.filter(s => s.employeeId === id);
+  if (linkedJobs.length > 0) {
+    alert(`Cannot delete employee "${emp.name}" because they have ${linkedJobs.length} stitching assignments recorded. Delete or close those jobs first.`);
+    return;
+  }
+
+  if (confirm(`Are you sure you want to delete employee "${emp.name}"?`)) {
+    await window.db.employees.delete(id);
+    await refreshData();
+    renderEmployees();
+  }
+}
+
+function filterEmployees() {
+  const query = document.getElementById('employee-search').value.toLowerCase();
+  const rows = document.querySelectorAll('#employees-table-body tr');
+
+  if (rows.length === 0 || rows[0].cells.length === 1) return;
+
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(query) ? '' : 'none';
+  });
+}
+
+/**
+ * ==========================================
+ * FABRICS & PRODUCTION MODULE
+ * ==========================================
+ */
+function renderFabrics() {
+  const fabBody = document.getElementById('fabrics-table-body');
+  const stitchBody = document.getElementById('stitching-table-body');
+  
+  if (fabBody) renderIncomingFabrics(fabBody);
+  if (stitchBody) renderStitchingAssignments(stitchBody);
+}
+
+function renderIncomingFabrics(tbody) {
+  tbody.innerHTML = '';
+
+  if (allFabrics.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No fabrics logged. Click "Record Fabric" to log stock.</td></tr>`;
+    return;
+  }
+
+  allFabrics.forEach(fab => {
+    let badgeClass = 'badge-nogst';
+    if (fab.status === 'Stitching') badgeClass = 'badge-gst';
+    if (fab.status === 'Completed') badgeClass = 'badge-gst';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><div class="font-medium">${fab.fabricType}</div></td>
+      <td class="text-right font-medium">${fab.quantityReceived} m</td>
+      <td>${fab.color}</td>
+      <td class="col-hide-mobile">${formatDate(fab.receivedDate)}</td>
+      <td class="col-hide-tablet">${fab.supplier || '<span class="text-muted">N/A</span>'}</td>
+      <td><span class="badge ${badgeClass}">${fab.status}</span></td>
+      <td>
+        <select class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size:11px;" onchange="updateFabricStatus(${fab.id}, this.value)">
+          <option value="Stored" ${fab.status === 'Stored' ? 'selected' : ''}>Stored</option>
+          <option value="Stitching" ${fab.status === 'Stitching' ? 'selected' : ''}>Stitching</option>
+          <option value="Completed" ${fab.status === 'Completed' ? 'selected' : ''}>Completed</option>
+        </select>
+        <button class="btn btn-secondary btn-sm btn-icon text-red" onclick="deleteFabric(${fab.id})" title="Delete Fabric">
+          <i class="ph ph-trash"></i>
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function updateFabricStatus(id, newStatus) {
+  const fab = allFabrics.find(f => f.id === id);
+  if (!fab) return;
+  
+  fab.status = newStatus;
+  await window.db.fabrics.update(fab);
+  await refreshData();
+  renderFabrics();
+}
+
+function renderStitchingAssignments(tbody) {
+  tbody.innerHTML = '';
+
+  if (allStitching.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No stitching jobs assigned. Click "Assign Stitching" to start.</td></tr>`;
+    return;
+  }
+
+  allStitching.forEach(job => {
+    const emp = allEmployees.find(e => e.id === job.employeeId);
+    const fab = allFabrics.find(f => f.id === job.fabricId);
+
+    const empName = emp ? emp.name : 'Unknown Employee';
+    const fabricDesc = fab ? `${fab.fabricType} (${fab.color})` : 'Unknown Fabric';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><div class="font-medium">${empName}</div></td>
+      <td>${fabricDesc}</td>
+      <td class="text-right font-medium">${job.piecesStitched} pcs</td>
+      <td class="text-right col-hide-tablet">₹${job.ratePerPiece.toFixed(2)}</td>
+      <td class="text-right font-medium">${formatCurrency(job.totalPayment)}</td>
+      <td><span class="badge ${job.status === 'Finished' ? 'badge-gst' : 'badge-nogst'}">${job.status}</span></td>
+      <td>
+        ${job.status === 'Stitching' ? `
+          <button class="btn btn-primary btn-sm" onclick="completeStitchingJob(${job.id})" title="Mark job as finished">
+            <i class="ph ph-check-bold"></i> Finish
+          </button>
+        ` : ''}
+        <button class="btn btn-secondary btn-sm btn-icon text-red" onclick="deleteStitching(${job.id})" title="Delete Assignment">
+          <i class="ph ph-trash"></i>
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function openFabricModal() {
+  document.getElementById('fabric-form').reset();
+  document.getElementById('fabric-id-field').value = '';
+  document.getElementById('fabric-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('fabric-modal').classList.add('active');
+}
+
+function closeFabricModal() {
+  document.getElementById('fabric-modal').classList.remove('active');
+}
+
+async function saveFabric(event) {
+  event.preventDefault();
+
+  const fabricType = document.getElementById('fabric-type').value.trim();
+  const quantityReceived = Number(document.getElementById('fabric-qty').value) || 0;
+  const color = document.getElementById('fabric-color').value.trim();
+  const receivedDate = document.getElementById('fabric-date').value;
+  const supplier = document.getElementById('fabric-supplier').value.trim();
+  const status = document.getElementById('fabric-status').value;
+
+  const fabData = { fabricType, quantityReceived, color, receivedDate, supplier, status };
+
+  try {
+    await window.db.fabrics.add(fabData);
+    closeFabricModal();
+    await refreshData();
+    renderFabrics();
+  } catch (error) {
+    alert('Error saving fabric roll: ' + error.message);
+  }
+}
+
+async function deleteFabric(id) {
+  const linkedJobs = allStitching.filter(s => s.fabricId === id);
+  if (linkedJobs.length > 0) {
+    alert(`Cannot delete this fabric roll because it has ${linkedJobs.length} active stitching assignments.`);
+    return;
+  }
+
+  if (confirm('Are you sure you want to delete this fabric log entry?')) {
+    await window.db.fabrics.delete(id);
+    await refreshData();
+    renderFabrics();
+  }
+}
+
+function openStitchingModal() {
+  document.getElementById('stitching-form').reset();
+  document.getElementById('stitching-id-field').value = '';
+  document.getElementById('stitching-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('stitching-payout-display').textContent = '₹0.00';
+  
+  populateProductionDropdowns();
+  document.getElementById('stitching-modal').classList.add('active');
+}
+
+function closeStitchingModal() {
+  document.getElementById('stitching-modal').classList.remove('active');
+}
+
+function populateProductionDropdowns() {
+  const empSelect = document.getElementById('stitching-employee');
+  const fabSelect = document.getElementById('stitching-fabric');
+
+  if (!empSelect || !fabSelect) return;
+
+  empSelect.innerHTML = '<option value="">-- Choose Employee --</option>';
+  fabSelect.innerHTML = '<option value="">-- Choose Fabric roll --</option>';
+
+  allEmployees.filter(e => e.role === 'Stitcher' || e.role === 'Tailor').forEach(emp => {
+    const opt = document.createElement('option');
+    opt.value = emp.id;
+    opt.textContent = `${emp.name} (${emp.role})`;
+    empSelect.appendChild(opt);
+  });
+
+  allFabrics.filter(f => f.status !== 'Completed').forEach(fab => {
+    const opt = document.createElement('option');
+    opt.value = fab.id;
+    opt.textContent = `${fab.fabricType} - ${fab.color} (${fab.quantityReceived}m)`;
+    fabSelect.appendChild(opt);
+  });
+}
+
+function autofillStitchRate() {
+  const empId = document.getElementById('stitching-employee').value;
+  if (!empId) return;
+
+  const emp = allEmployees.find(e => e.id === Number(empId));
+  if (emp) {
+    document.getElementById('stitching-rate').value = emp.stitchRate;
+    calculateStitchPayout();
+  }
+}
+
+function calculateStitchPayout() {
+  const pieces = Number(document.getElementById('stitching-pieces').value) || 0;
+  const rate = Number(document.getElementById('stitching-rate').value) || 0;
+  const payout = pieces * rate;
+  document.getElementById('stitching-payout-display').textContent = formatCurrency(payout);
+}
+
+async function saveStitching(event) {
+  event.preventDefault();
+
+  const employeeId = document.getElementById('stitching-employee').value;
+  const fabricId = document.getElementById('stitching-fabric').value;
+  const piecesStitched = Number(document.getElementById('stitching-pieces').value) || 0;
+  const ratePerPiece = Number(document.getElementById('stitching-rate').value) || 0;
+  const assignedDate = document.getElementById('stitching-date').value;
+  const status = document.getElementById('stitching-status').value;
+  const notes = document.getElementById('stitching-notes').value.trim();
+
+  if (!employeeId || !fabricId) {
+    alert('Please select an employee and fabric consignment.');
+    return;
+  }
+
+  const totalPayment = piecesStitched * ratePerPiece;
+
+  const stitchData = {
+    employeeId: Number(employeeId),
+    fabricId: Number(fabricId),
+    piecesStitched,
+    ratePerPiece,
+    totalPayment,
+    assignedDate,
+    status,
+    notes
+  };
+
+  try {
+    await window.db.stitching.add(stitchData);
+
+    const fabric = allFabrics.find(f => f.id === Number(fabricId));
+    if (fabric && fabric.status === 'Stored') {
+      fabric.status = 'Stitching';
+      await window.db.fabrics.update(fabric);
+    }
+
+    closeStitchingModal();
+    await refreshData();
+    renderFabrics();
+  } catch (error) {
+    alert('Error saving stitching job: ' + error.message);
+  }
+}
+
+async function completeStitchingJob(id) {
+  const job = allStitching.find(j => j.id === id);
+  if (!job) return;
+
+  if (confirm('Mark this stitching assignment as complete? This will finalize wages calculations.')) {
+    job.status = 'Finished';
+    await window.db.stitching.update(job);
+
+    const fab = allFabrics.find(f => f.id === job.fabricId);
+    if (fab && fab.status === 'Stitching') {
+      const allFabJobs = allStitching.filter(s => s.fabricId === fab.id);
+      const activeJobs = allFabJobs.filter(s => s.id !== id && s.status === 'Stitching');
+      
+      if (activeJobs.length === 0) {
+        if (confirm(`No other active stitching assignments found for fabric roll "${fab.fabricType}". Update fabric inventory status to "Completed" too?`)) {
+          fab.status = 'Completed';
+          await window.db.fabrics.update(fab);
+        }
+      }
+    }
+
+    await refreshData();
+    renderFabrics();
+  }
+}
+
+async function deleteStitching(id) {
+  if (confirm('Are you sure you want to delete this stitching assignment?')) {
+    await window.db.stitching.delete(id);
+    await refreshData();
+    renderFabrics();
+  }
 }
 
 /**
