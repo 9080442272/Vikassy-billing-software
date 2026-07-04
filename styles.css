@@ -1944,9 +1944,22 @@ input:checked + .slider:before {
     overflow-x: auto;
   }
 
+  .modal-overlay {
+    padding: 0 !important;
+    align-items: flex-end !important;
+  }
+
   .modal-card {
-    margin: 10px;
-    max-height: calc(100vh - 20px);
+    margin: 0 !important;
+    max-width: 100% !important;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
+    max-height: 85vh !important;
+    transform: translateY(100%) !important;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  .modal-overlay.active .modal-card {
+    transform: translateY(0) !important;
   }
 
   .modal-body {
