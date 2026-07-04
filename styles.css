@@ -2041,3 +2041,57 @@ input:checked + .slider:before {
   transform: translateX(20px);
 }
 
+/* ==========================================
+   PREMIUM CASCADING ENTRY ANIMATIONS
+   ========================================== */
+@keyframes rowFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.data-table tbody tr {
+  animation: rowFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Staggered delay for list entries (Up to 10 rows) */
+.data-table tbody tr:nth-child(1) { animation-delay: 0.04s; }
+.data-table tbody tr:nth-child(2) { animation-delay: 0.08s; }
+.data-table tbody tr:nth-child(3) { animation-delay: 0.12s; }
+.data-table tbody tr:nth-child(4) { animation-delay: 0.16s; }
+.data-table tbody tr:nth-child(5) { animation-delay: 0.20s; }
+.data-table tbody tr:nth-child(6) { animation-delay: 0.24s; }
+.data-table tbody tr:nth-child(7) { animation-delay: 0.28s; }
+.data-table tbody tr:nth-child(8) { animation-delay: 0.32s; }
+.data-table tbody tr:nth-child(9) { animation-delay: 0.36s; }
+.data-table tbody tr:nth-child(10) { animation-delay: 0.40s; }
+
+/* Cards slide up entry effect on active tabs */
+@keyframes cardSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-view.active .ai-card,
+.tab-view.active .table-card,
+.tab-view.active .summary-card,
+.tab-view.active .stat-card,
+.tab-view.active .chat-card {
+  animation: cardSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Stagger card load */
+.tab-view.active .ai-card { animation-delay: 0.02s; }
+.tab-view.active .table-card { animation-delay: 0.08s; }
+
