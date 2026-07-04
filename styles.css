@@ -1890,71 +1890,7 @@ input:checked + .slider:before {
     color: var(--color-primary);
   }
 
-  /* Mobile Top Header Display */
-  .mobile-top-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 16px;
-    background-color: var(--color-surface);
-    border-bottom: 1px solid var(--color-border);
-    position: sticky;
-    top: 0;
-    z-index: 99;
-    height: 48px; /* Standard unified mobile app bar height */
-  }
 
-  .mobile-top-header .brand {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    height: 100%;
-  }
-
-  .mobile-top-header .brand-logo {
-    width: 26px;
-    height: 26px;
-    background-color: var(--color-accent-light);
-    border: 1px solid var(--color-accent);
-    border-radius: var(--radius-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--color-primary);
-    font-size: 13px;
-  }
-
-  .mobile-top-header .brand-logo i {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-  }
-
-  .mobile-top-header .brand-name {
-    font-family: var(--font-heading);
-    font-size: 16px;
-    font-weight: bold;
-    color: var(--color-text-primary);
-    line-height: 1;
-    margin-top: -1px; /* Serif visual correction offset */
-    display: flex;
-    align-items: center;
-  }
-
-  .mobile-top-header .avatar {
-    width: 26px;
-    height: 26px;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-    color: var(--color-on-primary);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 10px;
-    line-height: 1;
-  }
 
   /* Content Padding & Gutter Adjustments */
   .main-content {
