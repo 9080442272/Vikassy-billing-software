@@ -435,6 +435,15 @@ const db = {
       });
     },
 
+    async update(act) {
+      const store = await getStore('ceo_activities', 'readwrite');
+      return new Promise((resolve, reject) => {
+        const request = store.put(act);
+        request.onsuccess = (e) => resolve(e.target.result);
+        request.onerror = (e) => reject(e.target.error);
+      });
+    },
+
     async delete(id) {
       const store = await getStore('ceo_activities', 'readwrite');
       return new Promise((resolve, reject) => {

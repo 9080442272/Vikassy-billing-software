@@ -1227,6 +1227,55 @@
     </div>
   </div>
 
+  <!-- CEO ACTIVITY DETAILS VIEW MODAL -->
+  <div id="ceo-details-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>CEO Activity Record Details</h3>
+        <button class="btn-close" onclick="closeCeoDetailsModal()"><i class="ph ph-x"></i></button>
+      </div>
+      <div class="modal-body" style="padding: 24px; display:flex; flex-direction:column; gap:16px;">
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div>
+            <div class="text-muted" style="font-size:10px; font-weight:700; text-transform:uppercase;">Date logged</div>
+            <div id="ceo-detail-date" style="font-weight:600; font-size:14px; margin-top:2px;">-</div>
+          </div>
+          <div>
+            <div class="text-muted" style="font-size:10px; font-weight:700; text-transform:uppercase;">Primary focus</div>
+            <div style="margin-top:2px;"><span id="ceo-detail-focus" class="badge badge-gst" style="background-color:var(--color-accent-light); color:var(--color-primary);">-</span></div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div>
+            <div class="text-muted" style="font-size:10px; font-weight:700; text-transform:uppercase;">Hours spent</div>
+            <div id="ceo-detail-hours" style="font-weight:600; font-size:14px; margin-top:2px;">-</div>
+          </div>
+          <div>
+            <div class="text-muted" style="font-size:10px; font-weight:700; text-transform:uppercase;">Productivity level</div>
+            <div id="ceo-detail-productivity" style="margin-top:2px;">-</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="text-muted" style="font-size:10px; font-weight:700; text-transform:uppercase;">Accomplishment type</div>
+          <div id="ceo-detail-type" style="margin-top:2px;">-</div>
+        </div>
+
+        <div>
+          <div class="text-muted" style="font-size:10px; font-weight:700; text-transform:uppercase;">Work description</div>
+          <div id="ceo-detail-desc" style="font-size:13px; line-height:1.6; color:var(--color-text-secondary); background-color:var(--color-muted); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:12px; margin-top:4px; max-height:150px; overflow-y:auto; white-space:pre-wrap;">-</div>
+        </div>
+
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; padding:16px 20px; border-top:1px solid var(--color-border);">
+        <button type="button" class="btn btn-secondary" onclick="closeCeoDetailsModal()">Close</button>
+        <button type="button" class="btn btn-primary" id="ceo-detail-edit-btn" style="padding:10px 20px;">Edit Entry</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MOBILE MORE MENU DRAWER -->
   <div id="mobile-more-modal" class="modal-overlay">
     <div class="modal-card" style="padding-bottom: 20px;">

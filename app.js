@@ -12,6 +12,7 @@ let allCeoActivities = [];
 let incomeChart = null;
 let gstChart = null;
 let ceoFocusChart = null;
+let editingCeoActivityId = null;
 
 // Temporary state for uploads/scans
 let uploadedFileData = null;
@@ -1982,7 +1983,7 @@ function renderCeoLog() {
     tr.innerHTML = `
       <td>${formatDate(act.date)}</td>
       <td><span class="badge badge-gst" style="background-color:var(--color-accent-light); color:var(--color-primary);">${act.focusArea}</span></td>
-      <td title="${act.description}">${truncateText(act.description, 35)}</td>
+      <td style="cursor:pointer; color:var(--color-primary); font-weight:500;" onclick="viewCeoActivity(${act.id})" title="Click to view details">${truncateText(act.description, 35)}</td>
       <td class="text-right font-medium">${act.hoursSpent} hrs</td>
       <td>
         <span class="badge ${act.productivityLevel === 'High' ? 'badge-gst' : (act.productivityLevel === 'Medium' ? 'badge-nogst' : 'badge-nogst')}" 
@@ -1994,6 +1995,12 @@ function renderCeoLog() {
         ${act.isCritical ? '<span class="badge" style="background-color:rgba(239,68,68,0.08); color:var(--color-destructive); border:1px solid rgba(239,68,68,0.2);">Critical</span>' : '<span class="text-muted" style="font-size:11px;">Regular</span>'}
       </td>
       <td>
+        <button class="btn btn-secondary btn-sm btn-icon" onclick="viewCeoActivity(${act.id})" title="View details">
+          <i class="ph ph-eye"></i>
+        </button>
+        <button class="btn btn-secondary btn-sm btn-icon" onclick="editCeoActivity(${act.id})" title="Edit entry">
+          <i class="ph ph-pencil"></i>
+        </button>
         <button class="btn btn-secondary btn-sm btn-icon text-red" onclick="deleteCeoActivity(${act.id})" title="Delete entry">
           <i class="ph ph-trash"></i>
         </button>
@@ -2013,40 +2020,81 @@ function renderCeoLog() {
   generateCeoBehaviorReport(totalHours, criticalCount, focusTime);
 }
 
-function openCeoActivityModal() {
+function openCeoActivityModal(id = null) {
   document.getElementById('ceo-activity-form').reset();
-  document.getElementById('ceo-act-date').value = new Date().toISOString().split('T')[0];
   
-  // Reset focus cards to default (Strategy active)
-  document.querySelectorAll('.focus-card').forEach((card, idx) => {
-    if (idx === 0) {
-      card.style.border = '2px solid var(--color-primary)';
-      card.style.backgroundColor = 'var(--color-accent-light)';
-    } else {
-      card.style.border = '1px solid var(--color-border)';
-      card.style.backgroundColor = 'var(--color-surface)';
-    }
-  });
-  document.getElementById('ceo-act-focus').value = 'Strategy';
+  if (id) {
+    // Edit mode
+    editingCeoActivityId = id;
+    const act = allCeoActivities.find(a => a.id === id);
+    if (!act) return;
 
-  // Reset emoji options to default (High active)
-  document.querySelectorAll('.emoji-option').forEach((opt, idx) => {
-    if (idx === 0) {
-      opt.style.borderColor = 'var(--color-primary)';
-      opt.style.backgroundColor = 'var(--color-surface)';
-      opt.querySelector('span:last-child').style.color = 'var(--color-success)';
-      opt.querySelector('span:last-child').style.fontWeight = '700';
-    } else {
-      opt.style.borderColor = 'transparent';
-      opt.style.backgroundColor = 'transparent';
-      opt.querySelector('span:last-child').style.color = 'var(--color-text-secondary)';
-      opt.querySelector('span:last-child').style.fontWeight = '600';
-    }
-  });
-  document.getElementById('ceo-act-productivity').value = 'High';
+    document.getElementById('ceo-act-date').value = act.date;
+    document.getElementById('ceo-act-hours').value = act.hoursSpent;
+    document.getElementById('ceo-act-desc').value = act.description;
+    document.getElementById('ceo-act-critical').checked = act.isCritical;
+    
+    // Select the focus card programmatically
+    const cards = document.querySelectorAll('.focus-card');
+    cards.forEach(card => {
+      if (card.getAttribute('onclick').includes(act.focusArea)) {
+        selectCeoFocus(act.focusArea, card);
+      }
+    });
+    document.getElementById('ceo-act-focus').value = act.focusArea;
 
-  document.getElementById('ceo-act-hours').value = '8.0';
-  document.getElementById('ceo-act-critical').checked = false;
+    // Select the emoji card programmatically
+    const emojis = document.querySelectorAll('.emoji-option');
+    emojis.forEach(opt => {
+      if (opt.getAttribute('onclick').includes(act.productivityLevel)) {
+        selectCeoProductivity(act.productivityLevel, opt);
+      }
+    });
+    document.getElementById('ceo-act-productivity').value = act.productivityLevel;
+
+    // Update texts
+    document.querySelector('#ceo-activity-modal h3').textContent = 'Edit CEO Daily Activity';
+    document.querySelector('#ceo-activity-form button[type="submit"]').textContent = 'Update Log Entry 🚀';
+  } else {
+    // Add mode
+    editingCeoActivityId = null;
+    document.getElementById('ceo-act-date').value = new Date().toISOString().split('T')[0];
+    
+    // Reset focus cards to default (Strategy active)
+    document.querySelectorAll('.focus-card').forEach((card, idx) => {
+      if (idx === 0) {
+        card.style.border = '2px solid var(--color-primary)';
+        card.style.backgroundColor = 'var(--color-accent-light)';
+      } else {
+        card.style.border = '1px solid var(--color-border)';
+        card.style.backgroundColor = 'var(--color-surface)';
+      }
+    });
+    document.getElementById('ceo-act-focus').value = 'Strategy';
+
+    // Reset emoji options to default (High active)
+    document.querySelectorAll('.emoji-option').forEach((opt, idx) => {
+      if (idx === 0) {
+        opt.style.borderColor = 'var(--color-primary)';
+        opt.style.backgroundColor = 'var(--color-surface)';
+        opt.querySelector('span:last-child').style.color = 'var(--color-success)';
+        opt.querySelector('span:last-child').style.fontWeight = '700';
+      } else {
+        opt.style.borderColor = 'transparent';
+        opt.style.backgroundColor = 'transparent';
+        opt.querySelector('span:last-child').style.color = 'var(--color-text-secondary)';
+        opt.querySelector('span:last-child').style.fontWeight = '600';
+      }
+    });
+    document.getElementById('ceo-act-productivity').value = 'High';
+
+    document.getElementById('ceo-act-hours').value = '8.0';
+    document.getElementById('ceo-act-critical').checked = false;
+
+    // Update texts
+    document.querySelector('#ceo-activity-modal h3').textContent = 'Log Daily CEO Activity';
+    document.querySelector('#ceo-activity-form button[type="submit"]').textContent = 'Log Entry 🚀';
+  }
 
   document.getElementById('ceo-activity-modal').classList.add('active');
 }
@@ -2065,10 +2113,24 @@ async function saveCeoActivity(event) {
   const description = document.getElementById('ceo-act-desc').value.trim();
   const isCritical = document.getElementById('ceo-act-critical').checked;
 
-  const actData = { date, focusArea, hoursSpent, productivityLevel, description, isCritical };
-
   try {
-    await window.db.ceoActivities.add(actData);
+    if (editingCeoActivityId) {
+      const originalAct = allCeoActivities.find(a => a.id === editingCeoActivityId);
+      if (originalAct) {
+        originalAct.date = date;
+        originalAct.focusArea = focusArea;
+        originalAct.hoursSpent = hoursSpent;
+        originalAct.productivityLevel = productivityLevel;
+        originalAct.description = description;
+        originalAct.isCritical = isCritical;
+        
+        await window.db.ceoActivities.update(originalAct);
+      }
+    } else {
+      const actData = { date, focusArea, hoursSpent, productivityLevel, description, isCritical };
+      await window.db.ceoActivities.add(actData);
+    }
+    
     closeCeoActivityModal();
     await refreshData();
     renderCeoLog();
@@ -2273,4 +2335,50 @@ function selectCeoProductivity(level, element) {
   } else {
     label.style.color = 'var(--color-primary)';
   }
+}
+
+// CEO Details Drawer Helpers
+function viewCeoActivity(id) {
+  const act = allCeoActivities.find(a => a.id === id);
+  if (!act) return;
+
+  document.getElementById('ceo-detail-date').textContent = formatDate(act.date);
+  document.getElementById('ceo-detail-focus').textContent = act.focusArea;
+  document.getElementById('ceo-detail-hours').textContent = `${act.hoursSpent} hrs`;
+  
+  // Set productivity rating text with emoji
+  const prodSpan = document.getElementById('ceo-detail-productivity');
+  if (act.productivityLevel === 'High') {
+    prodSpan.innerHTML = '<span class="badge" style="background-color:rgba(16,185,129,0.08); color:var(--color-success); border:1px solid rgba(16,185,129,0.2);">😄 Peak Focus</span>';
+  } else if (act.productivityLevel === 'Medium') {
+    prodSpan.innerHTML = '<span class="badge" style="background-color:rgba(59,130,246,0.08); color:var(--color-primary); border:1px solid rgba(59,130,246,0.2);">🙂 Steady</span>';
+  } else {
+    prodSpan.innerHTML = '<span class="badge" style="background-color:rgba(245,158,11,0.08); color:#D97706; border:1px solid rgba(245,158,11,0.2);">🥱 Distracted</span>';
+  }
+
+  // Type highlight
+  const typeSpan = document.getElementById('ceo-detail-type');
+  typeSpan.innerHTML = act.isCritical 
+    ? '<span class="badge" style="background-color:rgba(239,68,68,0.08); color:var(--color-destructive); border:1px solid rgba(239,68,68,0.2); font-weight:700;">Critical Accomplishment ⭐</span>' 
+    : '<span class="text-muted" style="font-size:13px;">Regular Work Activity</span>';
+
+  // Description
+  document.getElementById('ceo-detail-desc').textContent = act.description;
+
+  // Bind the edit button click handler
+  const editBtn = document.getElementById('ceo-detail-edit-btn');
+  editBtn.onclick = () => {
+    closeCeoDetailsModal();
+    editCeoActivity(act.id);
+  };
+
+  document.getElementById('ceo-details-modal').classList.add('active');
+}
+
+function closeCeoDetailsModal() {
+  document.getElementById('ceo-details-modal').classList.remove('active');
+}
+
+function editCeoActivity(id) {
+  openCeoActivityModal(id);
 }
