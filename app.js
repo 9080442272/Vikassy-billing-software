@@ -258,16 +258,16 @@ function initTrendChart() {
         {
           label: 'Base Revenue (₹)',
           data: subtotalData,
-          backgroundColor: '#8B5CF6', // Accent color
-          borderColor: '#8B5CF6',
+          backgroundColor: '#7C3AED', // Tailwind Purple-600
+          borderColor: '#7C3AED',
           borderRadius: 6,
           stack: 'combined'
         },
         {
           label: 'GST Collected (₹)',
           data: gstData,
-          backgroundColor: '#F59E0B', // Primary Gold
-          borderColor: '#F59E0B',
+          backgroundColor: '#A78BFA', // Tailwind Purple-400
+          borderColor: '#A78BFA',
           borderRadius: 6,
           stack: 'combined'
         }
@@ -279,19 +279,19 @@ function initTrendChart() {
       plugins: {
         legend: {
           labels: {
-            color: '#94A3B8',
+            color: '#4B5563',
             font: { family: 'Inter', size: 12 }
           }
         }
       },
       scales: {
         x: {
-          ticks: { color: '#94A3B8' },
-          grid: { color: 'rgba(255,255,255,0.05)' }
+          ticks: { color: '#4B5563' },
+          grid: { color: 'rgba(0,0,0,0.04)' }
         },
         y: {
-          ticks: { color: '#94A3B8' },
-          grid: { color: 'rgba(255,255,255,0.05)' }
+          ticks: { color: '#4B5563' },
+          grid: { color: 'rgba(0,0,0,0.04)' }
         }
       }
     }
@@ -322,7 +322,7 @@ function initGstRatioChart() {
   const hasData = gstTotalAmt > 0 || nonGstTotalAmt > 0;
   const chartData = hasData ? [gstTotalAmt, nonGstTotalAmt] : [1, 1];
   const chartLabels = hasData ? ['Bills with GST (₹)', 'Bills without GST (₹)'] : ['No Data (GST)', 'No Data (Non-GST)'];
-  const colors = hasData ? ['#F59E0B', '#272F42'] : ['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)'];
+  const colors = hasData ? ['#7C3AED', '#E5E7EB'] : ['rgba(0,0,0,0.04)', 'rgba(0,0,0,0.02)'];
 
   gstChart = new Chart(ctx, {
     type: 'doughnut',
@@ -332,7 +332,7 @@ function initGstRatioChart() {
         data: chartData,
         backgroundColor: colors,
         borderWidth: 1,
-        borderColor: '#131A2E'
+        borderColor: '#FFFFFF'
       }]
     },
     options: {
@@ -343,7 +343,7 @@ function initGstRatioChart() {
         legend: {
           position: 'bottom',
           labels: {
-            color: '#94A3B8',
+            color: '#4B5563',
             font: { family: 'Inter', size: 11 }
           }
         }

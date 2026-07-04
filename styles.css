@@ -4,21 +4,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Calistoga&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
-  --color-primary: #F59E0B;       /* Warm Gold / Amber */
-  --color-secondary: #FBBF24;     /* Secondary Gold */
-  --color-accent: #8B5CF6;        /* Electric Violet / Purple */
-  --color-accent-light: rgba(139, 92, 246, 0.15);
+  --color-primary: #7C3AED;       /* Tailwind Purple-600 */
+  --color-secondary: #6D28D9;     /* Tailwind Purple-700 */
+  --color-accent: #4F46E5;        /* Tailwind Indigo-600 */
+  --color-accent-light: rgba(124, 58, 237, 0.08);
   
-  /* Slate Theme */
-  --color-background: #0B0F19;    /* Extra Deep Slate */
-  --color-surface: #131A2E;       /* Card Deep Slate */
-  --color-surface-hover: #1D263B;
-  --color-foreground: #F8FAFC;    /* Slate-50 */
-  --color-text-primary: #F8FAFC;
-  --color-text-secondary: #94A3B8;  /* Slate-400 */
-  --color-muted: #1E293B;         /* Slate-800 */
-  --color-border: #2E3B52;        /* Slate border */
-  --color-border-focus: #F59E0B;
+  /* Light Theme (White Background) */
+  --color-background: #F9FAFB;    /* Tailwind Gray-50 */
+  --color-surface: #FFFFFF;       /* Pure White Cards */
+  --color-surface-hover: #F3F4F6; /* Gray-100 */
+  --color-foreground: #111827;    /* Gray-900 */
+  --color-text-primary: #111827;  /* Gray-900 */
+  --color-text-secondary: #4B5563; /* Gray-600 */
+  --color-muted: #F3F4F6;         /* Gray-100 */
+  --color-border: #E5E7EB;        /* Gray-200 */
+  --color-border-focus: #7C3AED;  /* Purple-600 */
+  --color-on-primary: #FFFFFF;
   
   --color-destructive: #EF4444;   /* Red */
   --color-success: #10B981;       /* Emerald Green */
@@ -30,10 +31,10 @@
   
   /* Effects */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
-  --glass-bg: rgba(19, 26, 46, 0.8);
-  --glass-border: rgba(255, 255, 255, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(229, 231, 235, 0.6);
   --glass-blur: blur(12px);
   
   --radius-sm: 6px;
@@ -121,7 +122,7 @@ button, input, select, textarea {
   justify-content: center;
   color: var(--color-primary);
   font-size: 20px;
-  box-shadow: 0 0 15px rgba(245, 158, 11, 0.1);
+  box-shadow: 0 0 15px rgba(124, 58, 237, 0.1);
 }
 
 .brand-name {
@@ -174,9 +175,9 @@ button, input, select, textarea {
 .nav-item.active {
   color: var(--color-on-primary);
   background-color: var(--color-primary);
-  border-color: var(--color-secondary);
+  border-color: var(--color-on-primary);
   font-weight: 600;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.2);
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.2);
 }
 
 .nav-item.active i {
@@ -290,7 +291,7 @@ button, input, select, textarea {
   background-color: var(--color-primary);
   color: var(--color-on-primary);
   border-color: var(--color-secondary);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
 }
 
 .btn-primary:hover {
@@ -300,8 +301,8 @@ button, input, select, textarea {
 
 .btn-accent {
   background-color: var(--color-accent);
-  color: var(--color-foreground);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
 }
 
 .btn-accent:hover {
@@ -652,14 +653,14 @@ button, input, select, textarea {
 
 .badge-gst {
   background-color: var(--color-accent-light);
-  color: #c084fc;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: var(--color-primary);
+  border: 1px solid rgba(124, 58, 237, 0.2);
 }
 
 .badge-nogst {
-  background-color: rgba(148, 163, 184, 0.1);
-  color: #cbd5e1;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background-color: rgba(75, 85, 99, 0.08);
+  color: var(--color-text-secondary);
+  border: 1px solid rgba(75, 85, 99, 0.15);
 }
 
 /* ==========================================
@@ -882,7 +883,7 @@ select:focus, input[type="date"]:focus, input[type="text"]:focus, input[type="em
 
 .drop-zone:hover, .drop-zone.dragover {
   border-color: var(--color-primary);
-  background-color: rgba(245, 158, 11, 0.02);
+  background-color: var(--color-accent-light);
 }
 
 .drop-zone i {
@@ -1517,7 +1518,7 @@ input:checked + .slider:before {
 
 .health-score-gauge.warning {
   border-color: var(--color-primary) !important;
-  box-shadow: 0 0 30px rgba(245, 158, 11, 0.2) !important;
+  box-shadow: 0 0 30px rgba(124, 58, 237, 0.2) !important;
 }
 
 .gauge-center {
@@ -1577,8 +1578,7 @@ input:checked + .slider:before {
 .recommendation-item {
   display: flex;
   gap: 16px;
-  padding: 18px;
-  background-color: rgba(255, 255, 255, 0.015);
+  background-color: rgba(0, 0, 0, 0.015);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   transition: all var(--transition-fast);
@@ -1586,7 +1586,7 @@ input:checked + .slider:before {
 
 .recommendation-item:hover {
   border-color: var(--color-primary);
-  background-color: rgba(245, 158, 11, 0.02);
+  background-color: rgba(124, 58, 237, 0.02);
   transform: translateX(4px);
 }
 
@@ -1733,7 +1733,7 @@ input:checked + .slider:before {
 
 .chat-message.user {
   background-color: var(--color-accent);
-  color: var(--color-foreground);
+  color: #ffffff;
   align-self: flex-end;
   border-bottom-right-radius: 2px;
 }
@@ -1770,7 +1770,7 @@ input:checked + .slider:before {
 
 .chip:hover {
   border-color: var(--color-primary);
-  background-color: rgba(245, 158, 11, 0.05);
+  background-color: rgba(124, 58, 237, 0.05);
   color: var(--color-text-primary);
 }
 
