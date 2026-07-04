@@ -31,7 +31,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initial Render
     renderClients();
     renderBills();
-    updateDashboard();
+    
+    // Restore last active tab to prevent defaulting to Dashboard on reload/actions
+    const lastActiveTab = localStorage.getItem('lastActiveTab') || 'dashboard';
+    const activeNavItem = document.querySelector(`.nav-item[data-tab="${lastActiveTab}"]`);
+    if (activeNavItem) {
+      activeNavItem.click();
+    } else {
+      updateDashboard();
+    }
     
     console.log('App initialized successfully');
   } catch (error) {
@@ -52,6 +60,9 @@ function setupTabNavigation() {
     item.addEventListener('click', () => {
       const targetTab = item.getAttribute('data-tab');
       if (!targetTab) return;
+      
+      // Save state to localStorage to persist user tab context
+      localStorage.setItem('lastActiveTab', targetTab);
       
       // Update nav active classes
       navItems.forEach(i => i.classList.remove('active'));
