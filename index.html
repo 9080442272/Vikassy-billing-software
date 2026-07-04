@@ -724,62 +724,63 @@
       <form id="bill-form" onsubmit="saveBill(event)">
         <div class="modal-body" style="padding: 20px; display:flex; flex-direction:column; gap:16px;">
           
-          <div class="form-row">
-            <div class="form-group">
-              <label for="bill-client">Select Client *</label>
-              <div class="client-select-wrapper">
-                <select id="bill-client" required>
-                  <option value="">-- Choose Client --</option>
-                </select>
-                <button type="button" class="btn-icon-square btn-accent" onclick="openClientModal(true)" title="Quick register new client">
-                  <i class="ph ph-user-plus"></i>
-                </button>
-              </div>
+          <!-- Client Selector (Full-Width for long vendor names) -->
+          <div class="form-group">
+            <label for="bill-client">Select Client *</label>
+            <div class="client-select-wrapper">
+              <select id="bill-client" required>
+                <option value="">-- Choose Client --</option>
+              </select>
+              <button type="button" class="btn-icon-square btn-accent" onclick="openClientModal(true)" title="Quick register new client">
+                <i class="ph ph-user-plus"></i>
+              </button>
             </div>
+          </div>
+
+          <div class="form-row">
             <div class="form-group">
               <label for="bill-number">Bill/Invoice Number *</label>
               <input type="text" id="bill-number" required placeholder="e.g. INV-2026-001">
             </div>
-          </div>
-
-          <div class="form-row">
             <div class="form-group">
               <label for="bill-date">Invoice Date *</label>
               <input type="date" id="bill-date" required>
             </div>
-            <div class="form-group">
-              <label for="bill-tax-type">Tax Scheme</label>
-              <div class="toggle-switch-wrapper" style="display:flex; align-items:center; gap:10px; margin-top:8px;">
-                <span class="toggle-label text-muted" style="font-size:12px;">Without GST</span>
-                <label class="toggle-switch" style="position:relative; display:inline-block; width:34px; height:18px; margin:0;">
-                  <input type="checkbox" id="bill-tax-type" checked onchange="toggleTaxLayout()" style="opacity:0; width:0; height:0;">
-                  <span class="slider" style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#ccc; transition:.4s; border-radius:18px;"></span>
-                </label>
-                <span class="toggle-label font-medium text-primary" style="font-size:12px; font-weight:600;">With GST</span>
-              </div>
+          </div>
+
+          <!-- Tax Scheme Toggle (Centered in clean container block) -->
+          <div class="form-group" style="background-color: var(--color-muted); padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+            <label for="bill-tax-type" style="margin-bottom: 6px; display:block; font-weight:700; font-size:12px; text-transform:uppercase; color:var(--color-primary);">Tax Scheme</label>
+            <div class="toggle-switch-wrapper" style="height: auto; padding: 4px 0;">
+              <span class="toggle-label text-muted" style="font-size:12px;">Without GST</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="bill-tax-type" checked onchange="toggleTaxLayout()">
+                <span class="slider"></span>
+              </label>
+              <span class="toggle-label font-medium text-primary" style="font-size:12px; font-weight:600;">With GST</span>
             </div>
           </div>
 
-          <!-- Direct Financial Totals (Comfortable Inputs) -->
-          <div class="form-row">
-            <div class="form-group">
-              <label for="bill-subtotal-input">Taxable Value / Subtotal (₹) *</label>
-              <input type="number" id="bill-subtotal-input" min="0" step="any" required placeholder="0.00" oninput="autoCalculateBillTotals()">
-            </div>
-            <div class="form-group id-gst-input-group">
-              <label for="bill-gst-input">GST Tax Amount (₹)</label>
-              <input type="number" id="bill-gst-input" min="0" step="any" placeholder="0.00" oninput="autoCalculateBillTotals()">
-            </div>
+          <!-- Taxable Value / Subtotal (Full-Width, comfortable inputs) -->
+          <div class="form-group">
+            <label for="bill-subtotal-input">Taxable Value / Subtotal (₹) *</label>
+            <input type="number" id="bill-subtotal-input" min="0" step="any" required placeholder="0.00" oninput="autoCalculateBillTotals()" style="font-size: 16px; padding: 12px 14px; font-weight:600;">
+          </div>
+
+          <!-- GST Tax Amount (Full-Width, comfortable inputs) -->
+          <div class="form-group id-gst-input-group">
+            <label for="bill-gst-input">GST Tax Amount (₹)</label>
+            <input type="number" id="bill-gst-input" min="0" step="any" placeholder="0.00" oninput="autoCalculateBillTotals()" style="font-size: 16px; padding: 12px 14px; font-weight:600;">
           </div>
 
           <div class="form-row">
             <div class="form-group">
               <label for="bill-discount-input">Discount (₹)</label>
-              <input type="number" id="bill-discount-input" min="0" step="any" value="0" placeholder="0.00" oninput="autoCalculateBillTotals()">
+              <input type="number" id="bill-discount-input" min="0" step="any" value="0" placeholder="0.00" oninput="autoCalculateBillTotals()" style="font-size: 15px; padding: 12px 14px;">
             </div>
             <div class="form-group">
               <label for="bill-total-input">Grand Total (₹) *</label>
-              <input type="number" id="bill-total-input" min="0" step="any" required placeholder="0.00" style="font-weight: 800; color: var(--color-primary);">
+              <input type="number" id="bill-total-input" min="0" step="any" required placeholder="0.00" style="font-size: 16px; font-weight: 800; color: var(--color-primary); padding: 12px 14px; background-color: var(--color-accent-light); border: 1px solid var(--color-primary);">
             </div>
           </div>
 
