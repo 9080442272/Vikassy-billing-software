@@ -1790,6 +1790,18 @@ input:checked + .slider:before {
   border-radius: var(--radius-md);
 }
 
+/* Table column hiding utilities */
+@media (max-width: 1024px) {
+  .col-hide-tablet {
+    display: none !important;
+  }
+}
+@media (max-width: 768px) {
+  .col-hide-mobile {
+    display: none !important;
+  }
+}
+
 /* ==========================================
    MOBILE & TABLET RESPONSIVENESS OVERRIDES
    ========================================== */

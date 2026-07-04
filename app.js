@@ -183,12 +183,12 @@ function renderRecentBills() {
       <td class="font-medium">${bill.billNumber}</td>
       <td>${clientName}</td>
       <td>${formatDate(bill.date)}</td>
-      <td>
+      <td class="col-hide-mobile">
         <span class="badge ${bill.billType === 'with-gst' ? 'badge-gst' : 'badge-nogst'}">
           ${bill.billType === 'with-gst' ? 'With GST' : 'No GST'}
         </span>
       </td>
-      <td>${formatCurrency(bill.totalGst)}</td>
+      <td class="col-hide-tablet">${formatCurrency(bill.totalGst)}</td>
       <td class="font-medium">${formatCurrency(bill.totalAmount)}</td>
       <td>
         <button class="btn btn-secondary btn-sm" onclick="viewInvoice(${bill.id})">
@@ -366,12 +366,12 @@ function renderClients() {
       <td>
         <div class="font-medium">${client.name}</div>
       </td>
-      <td>${client.companyName || '<span class="text-muted">N/A</span>'}</td>
-      <td>
+      <td class="col-hide-mobile">${client.companyName || '<span class="text-muted">N/A</span>'}</td>
+      <td class="col-hide-tablet">
         <div>${client.email || ''}</div>
         <div class="text-muted small">${client.phone || ''}</div>
       </td>
-      <td><code class="text-gold font-medium">${client.gstin || '<span class="text-muted">Unregistered</span>'}</code></td>
+      <td class="col-hide-mobile"><code class="text-gold font-medium">${client.gstin || '<span class="text-muted">Unregistered</span>'}</code></td>
       <td class="font-medium">${formatCurrency(totalBusiness)}</td>
       <td>
         <button class="btn btn-secondary btn-sm" onclick="editClient(${client.id})">
@@ -532,16 +532,16 @@ function renderBills() {
     tr.innerHTML = `
       <td class="font-medium">${bill.billNumber}</td>
       <td>${clientName}</td>
-      <td>${formatDate(bill.date)}</td>
-      <td>
+      <td class="col-hide-mobile">${formatDate(bill.date)}</td>
+      <td class="col-hide-tablet">
         <span class="badge ${bill.billType === 'with-gst' ? 'badge-gst' : 'badge-nogst'}">
           ${bill.billType === 'with-gst' ? 'With GST' : 'No GST'}
         </span>
       </td>
-      <td>${formatCurrency(bill.subtotal)}</td>
-      <td>${formatCurrency(bill.totalGst)}</td>
+      <td class="col-hide-tablet">${formatCurrency(bill.subtotal)}</td>
+      <td class="col-hide-tablet">${formatCurrency(bill.totalGst)}</td>
       <td class="font-medium">${formatCurrency(bill.totalAmount)}</td>
-      <td>${attachmentBadge}</td>
+      <td class="col-hide-mobile">${attachmentBadge}</td>
       <td>
         <button class="btn btn-secondary btn-sm" onclick="viewInvoice(${bill.id})">
           <i class="ph ph-eye"></i> Invoice
