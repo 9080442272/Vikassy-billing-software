@@ -1476,6 +1476,10 @@ input:checked + .slider:before {
   margin-bottom: 32px;
 }
 
+.ceo-grid {
+  grid-template-columns: 1.15fr 1.5fr;
+}
+
 .ai-card {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -1999,8 +2003,9 @@ input:checked + .slider:before {
   }
 
   /* AI Advisor mobile overrides */
-  .ai-intelligence-grid {
-    grid-template-columns: 1fr;
+  .ai-intelligence-grid,
+  .ceo-grid {
+    grid-template-columns: 1fr !important;
     gap: 16px;
   }
   .health-body {
