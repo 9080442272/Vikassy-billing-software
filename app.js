@@ -617,11 +617,15 @@ function viewAttachedFile(billId) {
 function openBillModal(prefilledData = false) {
   // Reset Form
   document.getElementById('bill-form').reset();
-  document.getElementById('bill-items-tbody').innerHTML = '';
-  document.getElementById('bill-discount').value = 0;
   
   // Set Date input default to today
   document.getElementById('bill-date').value = new Date().toISOString().split('T')[0];
+
+  // Reset inputs
+  document.getElementById('bill-subtotal-input').value = '0.00';
+  document.getElementById('bill-gst-input').value = '0.00';
+  document.getElementById('bill-discount-input').value = '0.00';
+  document.getElementById('bill-total-input').value = '0.00';
 
   // Reset attachment state
   if (!prefilledData) {
@@ -636,18 +640,36 @@ function openBillModal(prefilledData = false) {
   toggleTaxLayout();
 
   if (prefilledData) {
-    // Fill from scan
+    // Fill from scan or prefilled values
     document.getElementById('bill-number').value = prefilledData.billNumber || '';
     document.getElementById('bill-date').value = prefilledData.date || new Date().toISOString().split('T')[0];
     taxToggle.checked = prefilledData.billType === 'with-gst';
     toggleTaxLayout();
 
-    // Populate prefilled items
+    let subtotalSum = 0;
+    let gstSum = 0;
+    
     if (prefilledData.items && prefilledData.items.length > 0) {
       prefilledData.items.forEach(item => {
-        addInvoiceLineItem(item.name, item.price, item.qty, item.gstRate);
+        const qty = item.qty || 1;
+        const price = item.price || 0;
+        const rate = item.gstRate || 0;
+        const sub = price * qty;
+        subtotalSum += sub;
+        gstSum += sub * (rate / 100);
       });
+    } else {
+      // If we directly have values
+      subtotalSum = prefilledData.subtotal || 0;
+      gstSum = prefilledData.totalGst || 0;
     }
+    const discount = prefilledData.discount || 0;
+    const total = Math.max(0, (subtotalSum + gstSum) - discount);
+    
+    document.getElementById('bill-subtotal-input').value = subtotalSum.toFixed(2);
+    document.getElementById('bill-gst-input').value = gstSum.toFixed(2);
+    document.getElementById('bill-discount-input').value = discount.toFixed(2);
+    document.getElementById('bill-total-input').value = total.toFixed(2);
 
     // Set file attachment
     if (uploadedFileData) {
@@ -655,12 +677,9 @@ function openBillModal(prefilledData = false) {
       document.getElementById('bill-attachment-img').src = uploadedFileData;
       document.getElementById('bill-attachment-name').textContent = truncateText(uploadedFileName, 20);
     }
-  } else {
-    // Start with 1 empty row
-    addInvoiceLineItem();
   }
 
-  calculateBillTotals();
+  autoCalculateBillTotals();
   document.getElementById('bill-modal').classList.add('active');
 }
 
@@ -677,139 +696,28 @@ function removeAttachment() {
 
 function toggleTaxLayout() {
   const isGstEnabled = document.getElementById('bill-tax-type').checked;
-  const gstCols = document.querySelectorAll('.gst-col');
+  const gstInputGroup = document.querySelector('.form-group.id-gst-input-group');
   
-  gstCols.forEach(col => {
+  if (gstInputGroup) {
     if (isGstEnabled) {
-      col.classList.remove('hidden');
+      gstInputGroup.classList.remove('hidden');
     } else {
-      col.classList.add('hidden');
+      gstInputGroup.classList.add('hidden');
+      document.getElementById('bill-gst-input').value = '0.00';
     }
-  });
-
-  // Also toggle items columns hidden classes in rows
-  const tbody = document.getElementById('bill-items-tbody');
-  const rows = tbody.querySelectorAll('tr');
-  rows.forEach(row => {
-    const rowGstRate = row.querySelector('.row-gst-rate-td');
-    const rowGstAmt = row.querySelector('.row-gst-amt-td');
-    if (rowGstRate && rowGstAmt) {
-      if (isGstEnabled) {
-        rowGstRate.classList.remove('hidden');
-        rowGstAmt.classList.remove('hidden');
-      } else {
-        rowGstRate.classList.add('hidden');
-        rowGstAmt.classList.add('hidden');
-      }
-    }
-  });
-
-  calculateBillTotals();
-}
-
-function addInvoiceLineItem(name = '', price = 0, qty = 1, gstRate = 18) {
-  const tbody = document.getElementById('bill-items-tbody');
-  const isGstEnabled = document.getElementById('bill-tax-type').checked;
-  const rowId = 'row-' + Date.now() + '-' + Math.floor(Math.random()*1000);
-
-  const tr = document.createElement('tr');
-  tr.id = rowId;
-  tr.innerHTML = `
-    <td>
-      <input type="text" class="item-name" required placeholder="Item description" value="${name}">
-    </td>
-    <td>
-      <input type="number" class="item-price" min="0" step="any" required placeholder="0.00" value="${price > 0 ? price : ''}" oninput="calculateRowTotal('${rowId}')">
-    </td>
-    <td>
-      <input type="number" class="item-qty" min="1" required placeholder="1" value="${qty}" oninput="calculateRowTotal('${rowId}')">
-    </td>
-    <td class="row-gst-rate-td ${isGstEnabled ? '' : 'hidden'}">
-      <select class="item-gst-rate" onchange="calculateRowTotal('${rowId}')">
-        <option value="0" ${gstRate === 0 ? 'selected' : ''}>0%</option>
-        <option value="5" ${gstRate === 5 ? 'selected' : ''}>5%</option>
-        <option value="12" ${gstRate === 12 ? 'selected' : ''}>12%</option>
-        <option value="18" ${gstRate === 18 ? 'selected' : ''}>18%</option>
-        <option value="28" ${gstRate === 28 ? 'selected' : ''}>28%</option>
-      </select>
-    </td>
-    <td class="row-gst-amt-td ${isGstEnabled ? '' : 'hidden'}">
-      <span class="row-gst-amt">₹0.00</span>
-    </td>
-    <td>
-      <span class="row-total font-medium">₹0.00</span>
-    </td>
-    <td>
-      <button type="button" class="btn-icon text-red" onclick="deleteInvoiceLineItem('${rowId}')"><i class="ph ph-trash"></i></button>
-    </td>
-  `;
-
-  tbody.appendChild(tr);
-  calculateRowTotal(rowId);
-}
-
-function deleteInvoiceLineItem(rowId) {
-  const row = document.getElementById(rowId);
-  if (row) {
-    row.remove();
-    calculateBillTotals();
   }
-}
-
-function calculateRowTotal(rowId) {
-  const row = document.getElementById(rowId);
-  if (!row) return;
-
-  const price = Number(row.querySelector('.item-price').value) || 0;
-  const qty = Number(row.querySelector('.item-qty').value) || 0;
-  const isGstEnabled = document.getElementById('bill-tax-type').checked;
-  const gstRate = isGstEnabled ? (Number(row.querySelector('.item-gst-rate').value) || 0) : 0;
-
-  const subtotal = price * qty;
-  const gstAmt = subtotal * (gstRate / 100);
-  const total = subtotal + gstAmt;
-
-  row.querySelector('.row-gst-amt').textContent = formatCurrency(gstAmt);
-  row.querySelector('.row-total').textContent = formatCurrency(total);
-
-  calculateBillTotals();
-}
-
-function calculateBillTotals() {
-  const tbody = document.getElementById('bill-items-tbody');
-  const rows = tbody.querySelectorAll('tr');
-  const isGstEnabled = document.getElementById('bill-tax-type').checked;
-
-  let subtotalSum = 0;
-  let gstSum = 0;
-
-  rows.forEach(row => {
-    const price = Number(row.querySelector('.item-price').value) || 0;
-    const qty = Number(row.querySelector('.item-qty').value) || 0;
-    const gstRate = isGstEnabled ? (Number(row.querySelector('.item-gst-rate').value) || 0) : 0;
-
-    const rowSubtotal = price * qty;
-    const rowGst = rowSubtotal * (gstRate / 100);
-
-    subtotalSum += rowSubtotal;
-    gstSum += rowGst;
-  });
-
-  const discount = Number(document.getElementById('bill-discount').value) || 0;
-  const grandTotal = Math.max(0, (subtotalSum + gstSum) - discount);
-
-  document.getElementById('summary-subtotal').textContent = formatCurrency(subtotalSum);
   
-  const gstRow = document.querySelector('.summary-row.gst-row');
-  if (isGstEnabled) {
-    gstRow.classList.remove('hidden');
-    document.getElementById('summary-gst').textContent = formatCurrency(gstSum);
-  } else {
-    gstRow.classList.add('hidden');
-    gstSum = 0; // enforce zero tax
-  }
+  autoCalculateBillTotals();
+}
 
-  document.getElementById('summary-total').textContent = formatCurrency(grandTotal);
+function autoCalculateBillTotals() {
+  const subtotal = parseFloat(document.getElementById('bill-subtotal-input').value) || 0;
+  const isGstEnabled = document.getElementById('bill-tax-type').checked;
+  const gstAmt = isGstEnabled ? (parseFloat(document.getElementById('bill-gst-input').value) || 0) : 0;
+  const discount = parseFloat(document.getElementById('bill-discount-input').value) || 0;
+
+  const grandTotal = Math.max(0, (subtotal + gstAmt) - discount);
+  document.getElementById('bill-total-input').value = grandTotal.toFixed(2);
 }
 
 async function saveBill(event) {
@@ -819,49 +727,26 @@ async function saveBill(event) {
   const billNumber = document.getElementById('bill-number').value.trim();
   const date = document.getElementById('bill-date').value;
   const isGstEnabled = document.getElementById('bill-tax-type').checked;
-  const discount = Number(document.getElementById('bill-discount').value) || 0;
 
   if (!clientId) {
     alert('Please select or register a client first.');
     return;
   }
 
-  const tbody = document.getElementById('bill-items-tbody');
-  const rows = tbody.querySelectorAll('tr');
-  if (rows.length === 0) {
-    alert('Please add at least one line item.');
-    return;
-  }
+  const subtotalSum = parseFloat(document.getElementById('bill-subtotal-input').value) || 0;
+  const gstSum = isGstEnabled ? (parseFloat(document.getElementById('bill-gst-input').value) || 0) : 0;
+  const discount = parseFloat(document.getElementById('bill-discount-input').value) || 0;
+  const grandTotal = parseFloat(document.getElementById('bill-total-input').value) || 0;
 
-  // Compile line items
-  const items = [];
-  let subtotalSum = 0;
-  let gstSum = 0;
-
-  for (const row of rows) {
-    const name = row.querySelector('.item-name').value.trim();
-    const price = Number(row.querySelector('.item-price').value) || 0;
-    const qty = Number(row.querySelector('.item-qty').value) || 0;
-    const gstRate = isGstEnabled ? (Number(row.querySelector('.item-gst-rate').value) || 0) : 0;
-
-    const itemSubtotal = price * qty;
-    const itemGst = itemSubtotal * (gstRate / 100);
-    const itemTotal = itemSubtotal + itemGst;
-
-    items.push({
-      name,
-      price,
-      qty,
-      gstRate,
-      gstAmount: itemGst,
-      total: itemTotal
-    });
-
-    subtotalSum += itemSubtotal;
-    gstSum += itemGst;
-  }
-
-  const grandTotal = Math.max(0, (subtotalSum + gstSum) - discount);
+  // Compile a clean placeholder invoice summary item to keep data schema consistent
+  const items = [{
+    name: isGstEnabled ? 'Fabric Invoice Summary (Taxable)' : 'Fabric Invoice Summary',
+    price: subtotalSum,
+    qty: 1,
+    gstRate: isGstEnabled ? 18 : 0,
+    gstAmount: gstSum,
+    total: grandTotal
+  }];
 
   const billData = {
     clientId: Number(clientId),
