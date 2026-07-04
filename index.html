@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Varahi Export | Premium Accounting & GST Billing SaaS</title>
+  
+  <!-- Typography & Design system font pairings -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Calistoga&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Phosphor Icons (Vector only assets, consistent strokes, scalable) -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <!-- Chart.js (Dynamic Data Visualizations) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">
+        <i class="ph-fill ph-wallet"></i>
+      </div>
+      <span class="brand-name">Varahi Export</span>
+    </div>
+    
+    <nav class="nav-menu">
+      <button class="nav-item active" data-tab="dashboard">
+        <i class="ph ph-squares-four"></i>
+        <span>Dashboard</span>
+      </button>
+      <button class="nav-item" data-tab="clients">
+        <i class="ph ph-users-three"></i>
+        <span>Clients</span>
+      </button>
+      <button class="nav-item" data-tab="bills">
+        <i class="ph ph-receipt"></i>
+        <span>Bills & Invoices</span>
+      </button>
+    </nav>
+    
+    <div class="user-profile">
+      <div class="avatar">VK</div>
+      <div class="profile-info">
+        <span class="user-name">Vikassy</span>
+        <span class="user-role">Administrator</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Layout -->
+  <main class="main-content">
+    
+    <!-- DASHBOARD VIEW -->
+    <section id="dashboard-view" class="tab-view active">
+      <header class="view-header">
+        <div>
+          <h1>Financial Overview</h1>
+          <p class="subtitle">Monitor your business performance, client revenues, and GST filings.</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-primary" onclick="openBillModal(false)">
+            <i class="ph ph-plus-circle"></i> New Bill
+          </button>
+          <button class="btn btn-accent" onclick="openScanModal()">
+            <i class="ph ph-upload-simple"></i> Upload Bill
+          </button>
+        </div>
+      </header>
+
+      <!-- KPI Metrics Cards -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-card-header">
+            <span class="metric-label">Total Revenue</span>
+            <div class="metric-icon gold"><i class="ph ph-currency-inr"></i></div>
+          </div>
+          <h2 class="metric-value" id="kpi-revenue">₹0.00</h2>
+          <p class="metric-footer text-green">
+            <i class="ph ph-trend-up"></i>
+            <span>Life-time sales cumulative</span>
+          </p>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-card-header">
+            <span class="metric-label">GST Collected</span>
+            <div class="metric-icon purple"><i class="ph ph-percent"></i></div>
+          </div>
+          <h2 class="metric-value" id="kpi-gst">₹0.00</h2>
+          <p class="metric-footer text-muted" id="kpi-gst-ratio">
+            <span>GST portion of total revenue</span>
+          </p>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-card-header">
+            <span class="metric-label">Total Bills</span>
+            <div class="metric-icon"><i class="ph ph-receipt"></i></div>
+          </div>
+          <h2 class="metric-value" id="kpi-bills-count">0</h2>
+          <p class="metric-footer" id="kpi-bills-type-breakdown">
+            <span>0 With GST · 0 Without GST</span>
+          </p>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-card-header">
+            <span class="metric-label">Registered Clients</span>
+            <div class="metric-icon"><i class="ph ph-users-three"></i></div>
+          </div>
+          <h2 class="metric-value" id="kpi-clients-count">0</h2>
+          <p class="metric-footer" id="kpi-active-clients">
+            <span>Actively transacting accounts</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3>Monthly Income & GST Trend</h3>
+          <div class="chart-container">
+            <canvas id="incomeTrendChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>GST vs Non-GST Contribution</h3>
+          <div class="chart-container flex-center">
+            <canvas id="gstRatioChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Bills -->
+      <div class="recent-activities-card">
+        <div class="card-header">
+          <h3>Recent Transactions</h3>
+          <button class="btn-text" data-tab-trigger="bills">View all bills</button>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Bill No.</th>
+                <th>Client</th>
+                <th>Date</th>
+                <th>Type</th>
+                <th>GST Amount</th>
+                <th>Total Amount</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="recent-bills-table-body">
+              <tr>
+                <td colspan="7" class="text-center text-muted">No transactions found. Add a client and upload a bill to begin.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- CLIENTS VIEW -->
+    <section id="clients-view" class="tab-view">
+      <header class="view-header">
+        <div>
+          <h1>Client Management</h1>
+          <p class="subtitle">Store and update client coordinates and GST details.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openClientModal()">
+          <i class="ph ph-user-plus"></i> Add Client
+        </button>
+      </header>
+
+      <div class="search-filter-row">
+        <div class="search-input-wrapper">
+          <i class="ph ph-magnifying-glass"></i>
+          <input type="text" id="client-search" placeholder="Search clients by name, company, email..." oninput="filterClients()">
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Client Name</th>
+                <th>Company</th>
+                <th>Email / Phone</th>
+                <th>GSTIN</th>
+                <th>Total Business</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="clients-table-body">
+              <tr>
+                <td colspan="6" class="text-center text-muted">No clients saved. Click "Add Client" to register.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- BILLS VIEW -->
+    <section id="bills-view" class="tab-view">
+      <header class="view-header">
+        <div>
+          <h1>Bills & Invoices</h1>
+          <p class="subtitle">Manage bills with and without GST. Generate, review, and print invoices.</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-primary" onclick="openBillModal(false)">
+            <i class="ph ph-plus-circle"></i> Manual Bill
+          </button>
+          <button class="btn btn-accent" onclick="openScanModal()">
+            <i class="ph ph-upload-simple"></i> Upload Bill
+          </button>
+        </div>
+      </header>
+
+      <div class="search-filter-row multi-filters">
+        <div class="search-input-wrapper">
+          <i class="ph ph-magnifying-glass"></i>
+          <input type="text" id="bill-search" placeholder="Search bill number..." oninput="filterBills()">
+        </div>
+        
+        <select id="bill-filter-client" onchange="filterBills()">
+          <option value="">All Clients</option>
+        </select>
+        
+        <select id="bill-filter-gst" onchange="filterBills()">
+          <option value="">All Tax Types</option>
+          <option value="with-gst">With GST</option>
+          <option value="without-gst">Without GST</option>
+        </select>
+
+        <input type="date" id="bill-filter-date" onchange="filterBills()">
+      </div>
+
+      <div class="table-card">
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Bill No.</th>
+                <th>Client</th>
+                <th>Date</th>
+                <th>Tax Scheme</th>
+                <th>Subtotal</th>
+                <th>GST Amount</th>
+                <th>Total Amount</th>
+                <th>Attachment</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="bills-table-body">
+              <tr>
+                <td colspan="9" class="text-center text-muted">No invoices found. Add a client and upload a bill to begin.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- CLIENT MODAL (Add / Edit Client) -->
+  <div id="client-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="client-modal-title">Register New Client</h3>
+        <button class="btn-close" onclick="closeClientModal()"><i class="ph ph-x"></i></button>
+      </div>
+      <form id="client-form" onsubmit="saveClient(event)">
+        <input type="hidden" id="client-id-field">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="client-name">Client Contact Name *</label>
+              <input type="text" id="client-name" required placeholder="e.g. John Doe">
+            </div>
+            <div class="form-group">
+              <label for="client-company">Company Name</label>
+              <input type="text" id="client-company" placeholder="e.g. Acme Tech Solutions">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="client-email">Email Address</label>
+              <input type="email" id="client-email" placeholder="e.g. john@acme.com">
+            </div>
+            <div class="form-group">
+              <label for="client-phone">Phone Number</label>
+              <input type="tel" id="client-phone" placeholder="e.g. +91 98765 43210">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="client-gstin">Client GSTIN (Tax ID)</label>
+            <input type="text" id="client-gstin" placeholder="e.g. 27AAAAA1111A1Z1" pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$" title="Enter a valid 15-digit GSTIN number format">
+            <span class="field-hint">Leave blank if the client is unregistered or doesn't have a GSTIN.</span>
+          </div>
+
+          <div class="form-group">
+            <label for="client-address">Billing Address</label>
+            <textarea id="client-address" rows="3" placeholder="Street Address, City, State, ZIP"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeClientModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Client Data</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- BILL SCAN / UPLOAD MODAL -->
+  <div id="scan-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Upload & Scan Receipt Bill</h3>
+        <button class="btn-close" onclick="closeScanModal()"><i class="ph ph-x"></i></button>
+      </div>
+      <div class="modal-body text-center">
+        <p class="modal-desc">Drag & drop a bill receipt (JPEG, PNG or PDF) to scan and extract items and GST details using our OCR simulator.</p>
+        
+        <!-- Drag & Drop container -->
+        <div id="drop-zone" class="drop-zone">
+          <i class="ph ph-cloud-arrow-up"></i>
+          <h4>Drag & Drop Receipt Here</h4>
+          <p>or click to browse local files</p>
+          <input type="file" id="file-input" accept="image/*,application/pdf" hidden>
+        </div>
+
+        <!-- Scanning overlay animation -->
+        <div id="scanning-container" class="scanning-container hidden">
+          <div class="scanning-preview-box">
+            <img id="scanning-preview-img" src="" alt="Receipt preview">
+            <div class="scanner-bar"></div>
+          </div>
+          <div class="scanning-status">
+            <div class="spinner"></div>
+            <p>Analyzing invoice layout...</p>
+            <div class="progress-bar-bg">
+              <div id="scan-progress-bar" class="progress-bar-fill"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- File preview container after upload (before scan) -->
+        <div id="file-preview-container" class="file-preview-container hidden">
+          <div class="file-info-chip">
+            <i class="ph ph-file-text"></i>
+            <span id="uploaded-filename">receipt.jpg</span>
+            <button class="btn-icon" onclick="clearUploadedFile()"><i class="ph ph-trash"></i></button>
+          </div>
+          <img id="file-preview-img" src="" alt="Preview">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeScanModal()">Cancel</button>
+        <button type="button" id="btn-start-scan" class="btn btn-accent" disabled onclick="simulateScan()">
+          <i class="ph ph-scan"></i> Start AI Scan Analysis
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BILL DETAILS MODAL (Create/Edit manual or scanning result verification) -->
+  <div id="bill-modal" class="modal-overlay">
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <h3 id="bill-modal-title">Record Bill details</h3>
+        <button class="btn-close" onclick="closeBillModal()"><i class="ph ph-x"></i></button>
+      </div>
+      <form id="bill-form" onsubmit="saveBill(event)">
+        <div class="modal-body">
+          
+          <div class="bill-form-grid">
+            <!-- Left inputs side -->
+            <div class="bill-form-main">
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="bill-client">Select Client *</label>
+                  <div class="client-select-wrapper">
+                    <select id="bill-client" required>
+                      <option value="">-- Choose Client --</option>
+                    </select>
+                    <button type="button" class="btn-icon-square btn-accent" onclick="openClientModal(true)" title="Quick register new client">
+                      <i class="ph ph-user-plus"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="bill-number">Bill/Invoice Number *</label>
+                  <input type="text" id="bill-number" required placeholder="e.g. INV-2026-001">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="bill-date">Invoice Date *</label>
+                  <input type="date" id="bill-date" required>
+                </div>
+                <div class="form-group">
+                  <label for="bill-tax-type">Tax Type</label>
+                  <div class="toggle-switch-wrapper">
+                    <span class="toggle-label text-muted">Without GST</span>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="bill-tax-type" checked onchange="toggleTaxLayout()">
+                      <span class="slider"></span>
+                    </label>
+                    <span class="toggle-label font-medium text-gold">With GST</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Invoice Line Items -->
+              <div class="items-section">
+                <div class="section-title-row">
+                  <h4>Invoice Line Items</h4>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="addInvoiceLineItem()">
+                    <i class="ph ph-plus"></i> Add Item
+                  </button>
+                </div>
+
+                <div class="items-table-wrapper">
+                  <table class="items-table">
+                    <thead>
+                      <tr>
+                        <th>Item Description *</th>
+                        <th width="120">Price (₹) *</th>
+                        <th width="80">Qty *</th>
+                        <th width="100" class="gst-col">GST (%)</th>
+                        <th width="110" class="gst-col">GST Amt</th>
+                        <th width="120">Total (₹)</th>
+                        <th width="40"></th>
+                      </tr>
+                    </thead>
+                    <tbody id="bill-items-tbody">
+                      <!-- Rendered dynamically -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right summary / attachment preview side -->
+            <div class="bill-form-summary">
+              
+              <!-- Scanned receipt attachment thumbnail if exists -->
+              <div id="bill-attachment-container" class="attachment-preview-card hidden">
+                <span class="card-label">Receipt Attachment</span>
+                <div class="attachment-preview-box">
+                  <img id="bill-attachment-img" src="" alt="Attached receipt">
+                  <div class="attachment-actions">
+                    <span id="bill-attachment-name" class="filename">receipt.png</span>
+                    <button type="button" class="btn-icon text-red" onclick="removeAttachment()"><i class="ph ph-trash"></i></button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Calculations Card -->
+              <div class="summary-card">
+                <h4>Invoice Summary</h4>
+                <hr class="divider">
+                
+                <div class="summary-row">
+                  <span>Subtotal</span>
+                  <span id="summary-subtotal">₹0.00</span>
+                </div>
+                
+                <div class="summary-row gst-row">
+                  <span>GST Total</span>
+                  <span id="summary-gst">₹0.00</span>
+                </div>
+
+                <div class="summary-row">
+                  <label for="bill-discount">Discount (₹)</label>
+                  <input type="number" id="bill-discount" value="0" min="0" step="any" oninput="calculateBillTotals()" class="summary-input">
+                </div>
+
+                <hr class="divider">
+                <div class="summary-row total-row">
+                  <span>Grand Total</span>
+                  <span id="summary-total">₹0.00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeBillModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Invoice Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- INVOICE DETAILS MODAL & PRINT CONTAINER -->
+  <div id="invoice-modal" class="modal-overlay">
+    <div class="modal-card modal-large invoice-view-modal">
+      <div class="modal-header no-print">
+        <h3>Invoice Details</h3>
+        <div class="modal-header-actions">
+          <button class="btn btn-primary" onclick="printInvoice()">
+            <i class="ph ph-printer"></i> Print / Download PDF
+          </button>
+          <button class="btn-close" onclick="closeInvoiceModal()"><i class="ph ph-x"></i></button>
+        </div>
+      </div>
+      <div class="modal-body print-area" id="print-area">
+        <!-- RENDERED BY JAVASCRIPT FOR A CLEAN INVOICE PRINT OUT -->
+        <div class="invoice-printout">
+          <div class="invoice-printout-header">
+            <div class="company-brand">
+              <div class="brand-logo print-logo"><i class="ph-fill ph-wallet"></i></div>
+              <div>
+                <h2>Vikassy</h2>
+                <p>128, Elite Techno Hub, City Road, Mumbai - 400001</p>
+                <p>GSTIN: 27ABCDE1234F1Z0</p>
+              </div>
+            </div>
+            <div class="invoice-meta-info text-right">
+              <h1 class="invoice-heading-text">INVOICE</h1>
+              <p><strong>Invoice No:</strong> <span id="print-inv-no">INV-001</span></p>
+              <p><strong>Date:</strong> <span id="print-inv-date">2026-07-04</span></p>
+              <p><strong>Tax Scheme:</strong> <span id="print-inv-scheme">With GST</span></p>
+            </div>
+          </div>
+
+          <hr class="invoice-divider">
+
+          <div class="invoice-billing-row">
+            <div class="bill-to">
+              <span class="section-label">Bill To:</span>
+              <h3 id="print-client-name">Client Name</h3>
+              <p id="print-client-company">Client Company</p>
+              <p id="print-client-address">Billing Address Line 1</p>
+              <p><strong>GSTIN:</strong> <span id="print-client-gstin">Unregistered</span></p>
+              <p><strong>Email:</strong> <span id="print-client-email">john@example.com</span> | <strong>Phone:</strong> <span id="print-client-phone">+91 99999 88888</span></p>
+            </div>
+          </div>
+
+          <table class="invoice-printout-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Item Description</th>
+                <th class="text-right">Price (₹)</th>
+                <th class="text-center">Qty</th>
+                <th class="text-right gst-print-col">GST (%)</th>
+                <th class="text-right gst-print-col">GST Amt (₹)</th>
+                <th class="text-right">Total (₹)</th>
+              </tr>
+            </thead>
+            <tbody id="print-items-tbody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+
+          <div class="invoice-printout-totals">
+            <div class="totals-col">
+              <div class="totals-row">
+                <span>Subtotal:</span>
+                <span id="print-subtotal">₹0.00</span>
+              </div>
+              <div class="totals-row gst-print-col">
+                <span>GST Total:</span>
+                <span id="print-gst">₹0.00</span>
+              </div>
+              <div class="totals-row">
+                <span>Discount:</span>
+                <span id="print-discount">-₹0.00</span>
+              </div>
+              <hr class="divider">
+              <div class="totals-row grand-total-row">
+                <span>Grand Total:</span>
+                <span id="print-total">₹0.00</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="invoice-footer-notes">
+            <p>Thank you for your business!</p>
+            <p class="small text-muted">This is a computer-generated document. No physical signature is required.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="db.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
