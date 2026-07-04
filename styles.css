@@ -770,6 +770,13 @@ select:focus, input[type="date"]:focus, input[type="text"]:focus, input[type="em
   transition: transform var(--transition-normal);
 }
 
+.modal-card form {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-grow: 1;
+}
+
 .modal-overlay.active .modal-card {
   transform: scale(1);
 }
