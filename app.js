@@ -1994,16 +1994,18 @@ function renderCeoLog() {
       <td>
         ${act.isCritical ? '<span class="badge" style="background-color:rgba(239,68,68,0.08); color:var(--color-destructive); border:1px solid rgba(239,68,68,0.2);">Critical</span>' : '<span class="text-muted" style="font-size:11px;">Regular</span>'}
       </td>
-      <td>
-        <button class="btn btn-secondary btn-sm btn-icon" onclick="viewCeoActivity(${act.id})" title="View details">
-          <i class="ph ph-eye"></i>
-        </button>
-        <button class="btn btn-secondary btn-sm btn-icon" onclick="editCeoActivity(${act.id})" title="Edit entry">
-          <i class="ph ph-pencil"></i>
-        </button>
-        <button class="btn btn-secondary btn-sm btn-icon text-red" onclick="deleteCeoActivity(${act.id})" title="Delete entry">
-          <i class="ph ph-trash"></i>
-        </button>
+      <td class="text-center">
+        <div style="display: flex; justify-content: center; align-items: center; gap: 6px;">
+          <button class="btn btn-secondary btn-sm btn-icon" onclick="viewCeoActivity(${act.id})" title="View details">
+            <i class="ph ph-eye"></i>
+          </button>
+          <button class="btn btn-secondary btn-sm btn-icon" onclick="editCeoActivity(${act.id})" title="Edit entry">
+            <i class="ph ph-pencil"></i>
+          </button>
+          <button class="btn btn-secondary btn-sm btn-icon text-red" onclick="deleteCeoActivity(${act.id})" title="Delete entry">
+            <i class="ph ph-trash"></i>
+          </button>
+        </div>
       </td>
     `;
     tbody.appendChild(tr);
