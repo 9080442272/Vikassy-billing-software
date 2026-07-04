@@ -2095,3 +2095,175 @@ input:checked + .slider:before {
 .tab-view.active .ai-card { animation-delay: 0.02s; }
 .tab-view.active .table-card { animation-delay: 0.08s; }
 
+/* ==========================================
+   FRAMER MOTION-STYLE SPLASH SCREEN STYLES
+   ========================================== */
+.splash-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #0b0e14; /* Deep midnight theme */
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.splash-screen.exit {
+  transform: translateY(-100vh);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.splash-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.splash-logo-container {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+/* SVG Line Drawing Effect */
+.splash-logo-svg {
+  width: 80px;
+  height: 80px;
+  filter: drop-shadow(0 0 15px rgba(124, 58, 237, 0.6));
+}
+
+.splash-path {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: drawPath 2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes drawPath {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Glowing Pulsing Ring behind Logo */
+.logo-pulse-ring {
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  border: 2px solid rgba(124, 58, 237, 0.3);
+  border-radius: 50%;
+  animation: ringPulse 2s infinite ease-out;
+}
+
+@keyframes ringPulse {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+/* Title Letter Stagger Animations */
+.splash-title {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  letter-spacing: 4px;
+  color: #FFFFFF;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+.splash-title .char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(20px) scale(0.5);
+  animation: charEnter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes charEnter {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Stagger delays for letters in "VARAHI EXPORTS" */
+.splash-title .char:nth-child(1) { animation-delay: 0.2s; }
+.splash-title .char:nth-child(2) { animation-delay: 0.27s; }
+.splash-title .char:nth-child(3) { animation-delay: 0.34s; }
+.splash-title .char:nth-child(4) { animation-delay: 0.41s; }
+.splash-title .char:nth-child(5) { animation-delay: 0.48s; }
+.splash-title .char:nth-child(6) { animation-delay: 0.55s; }
+.splash-title .char:nth-child(7) { animation-delay: 0.62s; }
+.splash-title .char:nth-child(8) { animation-delay: 0.69s; }
+.splash-title .char:nth-child(9) { animation-delay: 0.76s; }
+.splash-title .char:nth-child(10) { animation-delay: 0.83s; }
+.splash-title .char:nth-child(11) { animation-delay: 0.90s; }
+.splash-title .char:nth-child(12) { animation-delay: 0.97s; }
+.splash-title .char:nth-child(13) { animation-delay: 1.04s; }
+.splash-title .char:nth-child(14) { animation-delay: 1.11s; }
+
+.splash-subtitle {
+  font-size: 13px;
+  color: var(--color-primary);
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeInSubtitle 0.8s ease forwards;
+  animation-delay: 1.2s;
+  letter-spacing: 1px;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+@keyframes fadeInSubtitle {
+  to {
+    opacity: 0.9;
+    transform: translateY(0);
+  }
+}
+
+/* Progress bar loader */
+.splash-loader-bar {
+  width: 140px;
+  height: 3px;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+  opacity: 0;
+  animation: fadeInLoader 0.5s ease forwards;
+  animation-delay: 1.4s;
+}
+
+@keyframes fadeInLoader {
+  to { opacity: 1; }
+}
+
+.splash-loader-progress {
+  width: 0%;
+  height: 100%;
+  background-color: var(--color-primary);
+  border-radius: 2px;
+  box-shadow: 0 0 8px var(--color-primary);
+  animation: fillProgress 1.6s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  animation-delay: 1.4s;
+}
+
+@keyframes fillProgress {
+  to { width: 100%; }
+}
+
