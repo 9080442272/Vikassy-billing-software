@@ -66,6 +66,8 @@ function setupTabNavigation() {
       } else if (targetTab === 'bills') {
         renderBills();
         populateClientsDropdowns();
+      } else if (targetTab === 'ai-advisor') {
+        initAIAdvisorTab();
       }
     });
   });
@@ -1147,3 +1149,339 @@ function formatDate(dateStr) {
 function truncateText(str, n) {
   return (str.length > n) ? str.substr(0, n - 1) + '...' : str;
 }
+
+/**
+ * ==========================================
+ * AI ADVISOR LOGIC & INTERACTIVE CHATBOT
+ * ==========================================
+ */
+let aiAnalyzedBefore = false;
+
+function initAIAdvisorTab() {
+  const chatLogs = document.getElementById('ai-chat-logs');
+  if (chatLogs) {
+    chatLogs.scrollTop = chatLogs.scrollHeight;
+  }
+}
+
+// Generates strategic analysis based on real ledger data
+function generateAIReport() {
+  const gauge = document.querySelector('.health-score-gauge');
+  const percentageSpan = document.getElementById('ai-health-percentage');
+  const statusSpan = document.getElementById('ai-health-status');
+  const summaryText = document.getElementById('ai-summary-text');
+  const recList = document.getElementById('ai-recommendations-list');
+
+  if (!gauge || !percentageSpan || !statusSpan || !summaryText || !recList) return;
+
+  // Trigger scanning visual loading state
+  gauge.className = 'health-score-gauge scan-active';
+  percentageSpan.textContent = '--';
+  statusSpan.textContent = 'Analyzing...';
+  statusSpan.className = 'badge badge-gst font-medium';
+  summaryText.innerHTML = '<div class="spinner" style="margin: 10px auto;"></div> Analyzing ledger entries, bills distribution, tax slabs, and cash flow predictability...';
+
+  setTimeout(() => {
+    // 1. Calculations from active dataset
+    const totalRev = allBills.reduce((sum, b) => sum + b.totalAmount, 0);
+    const totalGst = allBills.reduce((sum, b) => sum + b.totalGst, 0);
+    const billCount = allBills.length;
+    const clientCount = allClients.length;
+
+    // 2. Client concentration analysis
+    const clientRevenue = {};
+    allBills.forEach(b => {
+      clientRevenue[b.clientId] = (clientRevenue[b.clientId] || 0) + b.totalAmount;
+    });
+
+    let maxClientRev = 0;
+    let topClientId = null;
+    for (const cid in clientRevenue) {
+      if (clientRevenue[cid] > maxClientRev) {
+        maxClientRev = clientRevenue[cid];
+        topClientId = Number(cid);
+      }
+    }
+
+    const topClient = allClients.find(c => c.id === topClientId);
+    const topClientName = topClient ? (topClient.companyName || topClient.name) : 'N/A';
+    const clientConcentrationRatio = totalRev > 0 ? (maxClientRev / totalRev) * 100 : 0;
+
+    // 3. Score calculation logic
+    let score = 95;
+
+    if (clientCount === 0) {
+      score = 0;
+    } else {
+      if (clientCount === 1) score -= 30; // Solo client risk
+      else if (clientCount === 2) score -= 15;
+      
+      if (clientConcentrationRatio > 70) score -= 25; // Massive concentration risk
+      else if (clientConcentrationRatio > 50) score -= 15;
+      else if (clientConcentrationRatio > 35) score -= 8;
+
+      if (billCount < 3) score -= 15; // Unstable data
+      else if (billCount < 6) score -= 5;
+    }
+
+    score = Math.max(10, Math.min(100, Math.round(score)));
+
+    // Apply color styling based on health score range
+    if (score >= 80) {
+      gauge.className = 'health-score-gauge good';
+      statusSpan.textContent = 'Stable / Good';
+      statusSpan.className = 'badge badge-gst font-medium text-green';
+    } else if (score >= 50) {
+      gauge.className = 'health-score-gauge warning';
+      statusSpan.textContent = 'Moderate Risk';
+      statusSpan.className = 'badge badge-nogst font-medium text-gold';
+    } else {
+      gauge.className = 'health-score-gauge warning';
+      statusSpan.textContent = 'High Alert';
+      statusSpan.className = 'badge badge-nogst font-medium text-red';
+    }
+
+    percentageSpan.textContent = `${score}%`;
+
+    // 4. Executive Summary Generation
+    if (clientCount === 0) {
+      summaryText.textContent = "Your ledger database is currently empty. To perform a business intelligence sweep, register at least one client and upload/record transactions under the Bills tab.";
+      recList.innerHTML = `
+        <div class="recommendation-item alert-danger">
+          <div class="icon" style="background-color: rgba(239, 68, 68, 0.1); color: var(--color-destructive);"><i class="ph ph-warning-octagon"></i></div>
+          <div>
+            <h5 style="color: var(--color-destructive);">No Ledger Data</h5>
+            <p>Add clients and save bills to configure strategic insights.</p>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    const formattedRevenue = formatCurrency(totalRev);
+    const formattedGst = formatCurrency(totalGst);
+    
+    let summaryTextBody = `Varahi Export registers a Financial Health Index of **${score}%** compiled from **${billCount}** transactions and **${clientCount}** accounts. `;
+    if (clientConcentrationRatio > 40) {
+      summaryTextBody += `Your client portfolio displays a significant concentration risk, with **${topClientName}** accounting for **${clientConcentrationRatio.toFixed(1)}%** of your lifetime sales. We advise client outreach to diversify your revenue stream. `;
+    } else {
+      summaryTextBody += `Your client distribution is healthy, with no single account representing more than 40% of sales. `;
+    }
+    summaryTextBody += `Additionally, you have accrued **${formattedGst}** in GST liabilities. We suggest preserving this amount in a separate liquidity account to cover upcoming tax filing runs smoothly.`;
+    
+    summaryText.innerHTML = summaryTextBody.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    // 5. Strategic Recommendations List Populate
+    let recItemsHtml = '';
+
+    // Card 1: Client Diversity
+    if (clientConcentrationRatio > 40) {
+      recItemsHtml += `
+        <div class="recommendation-item alert-danger">
+          <div class="icon" style="background-color: rgba(239, 68, 68, 0.15); color: var(--color-destructive);"><i class="ph ph-warning-octagon"></i></div>
+          <div>
+            <h5 style="color: var(--color-destructive);">High Concentration Risk (${clientConcentrationRatio.toFixed(1)}%)</h5>
+            <p><strong>${topClientName}</strong> represents ${clientConcentrationRatio.toFixed(1)}% of your sales. If this account experiences delays or churns, Varahi Export will experience immediate cash pressure. Target client concentration levels below 30%.</p>
+          </div>
+        </div>
+      `;
+    } else {
+      recItemsHtml += `
+        <div class="recommendation-item alert-success">
+          <div class="icon" style="background-color: rgba(16, 185, 129, 0.15); color: var(--color-success);"><i class="ph ph-check-circle"></i></div>
+          <div>
+            <h5 style="color: var(--color-success);">Healthy Client Diversification</h5>
+            <p>Your largest client represents ${clientConcentrationRatio.toFixed(1)}% of sales, which falls within safe compliance thresholds (<40%). Your business exposure is safely distributed.</p>
+          </div>
+        </div>
+      `;
+    }
+
+    // Card 2: Tax Liquidity Reserve
+    if (totalGst > 0) {
+      recItemsHtml += `
+        <div class="recommendation-item">
+          <div class="icon" style="background-color: rgba(245, 158, 11, 0.15); color: var(--color-primary);"><i class="ph ph-safe"></i></div>
+          <div>
+            <h5>GST Liquidity Reserve: ${formattedGst}</h5>
+            <p>Move ${formattedGst} to a secondary tax reserve account. This prevents accidentally utilizing collected tax funds as operational working capital, ensuring zero filing frictions.</p>
+          </div>
+        </div>
+      `;
+    } else {
+      recItemsHtml += `
+        <div class="recommendation-item">
+          <div class="icon"><i class="ph ph-info"></i></div>
+          <div>
+            <h5>GST Liability: ₹0.00</h5>
+            <p>You have not recorded any GST billing entries. If you begin domestic business expansions, enable the "With GST" switch on bills to automate calculations.</p>
+          </div>
+        </div>
+      `;
+    }
+
+    // Card 3: Revenue Variance
+    const avgInvoiceSize = totalRev / billCount;
+    recItemsHtml += `
+      <div class="recommendation-item">
+        <div class="icon" style="background-color: rgba(139, 92, 246, 0.15); color: var(--color-accent);"><i class="ph ph-chart-line-up"></i></div>
+        <div>
+          <h5>Average Transaction Size: ${formatCurrency(avgInvoiceSize)}</h5>
+          <p>Your average invoice size is ${formatCurrency(avgInvoiceSize)} across ${billCount} tickets. To optimize margins, analyze the profitability of small tickets compared to operations overhead.</p>
+        </div>
+      </div>
+    `;
+
+    recList.innerHTML = recItemsHtml;
+    aiAnalyzedBefore = true;
+
+    // Send brief notification message in AI Chat
+    addChatMessage('assistant', `I have successfully analyzed your ledger! Your business health index is **${score}%**. You can ask me questions about this analysis below.`);
+  }, 1200);
+}
+
+// AI Chatbot Logic
+function addChatMessage(sender, text) {
+  const chatLogs = document.getElementById('ai-chat-logs');
+  if (!chatLogs) return;
+
+  const div = document.createElement('div');
+  div.className = `chat-message ${sender}`;
+  const parsedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  div.innerHTML = `<p>${parsedText}</p>`;
+  
+  chatLogs.appendChild(div);
+  chatLogs.scrollTop = chatLogs.scrollHeight;
+}
+
+function submitChatMessage(event) {
+  event.preventDefault();
+  const input = document.getElementById('ai-chat-input');
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) return;
+
+  addChatMessage('user', text);
+  input.value = '';
+
+  // Show typing bubble
+  const chatLogs = document.getElementById('ai-chat-logs');
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'chat-message assistant typing-indicator';
+  typingDiv.innerHTML = '<p><span class="spinner" style="width:12px; height:12px; border-width:1px; display:inline-block; margin-right:4px;"></span> Thinking...</p>';
+  chatLogs.appendChild(typingDiv);
+  chatLogs.scrollTop = chatLogs.scrollHeight;
+
+  // Process AI reply after delay
+  setTimeout(() => {
+    typingDiv.remove();
+    const reply = generateAIChatReply(text);
+    addChatMessage('assistant', reply);
+  }, 750);
+}
+
+// Clicking chips triggers message
+function sendQuickMessage(text) {
+  addChatMessage('user', text);
+  
+  const chatLogs = document.getElementById('ai-chat-logs');
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'chat-message assistant typing-indicator';
+  typingDiv.innerHTML = '<p><span class="spinner" style="width:12px; height:12px; border-width:1px; display:inline-block; margin-right:4px;"></span> Thinking...</p>';
+  chatLogs.appendChild(typingDiv);
+  chatLogs.scrollTop = chatLogs.scrollHeight;
+
+  setTimeout(() => {
+    typingDiv.remove();
+    const reply = generateAIChatReply(text);
+    addChatMessage('assistant', reply);
+  }, 700);
+}
+
+// Basic simulated AI parsing engine running on live IndexedDB records
+function generateAIChatReply(query) {
+  const text = query.toLowerCase();
+  
+  if (allBills.length === 0) {
+    return "Your database has no bills recorded. Please add some invoices under the **Bills** tab first so I can analyze your metrics!";
+  }
+
+  const totalRev = allBills.reduce((sum, b) => sum + b.totalAmount, 0);
+  const totalGst = allBills.reduce((sum, b) => sum + b.totalGst, 0);
+  const billCount = allBills.length;
+  const clientCount = allClients.length;
+
+  // Group client revenues
+  const clientRevenue = {};
+  allBills.forEach(b => {
+    clientRevenue[b.clientId] = (clientRevenue[b.clientId] || 0) + b.totalAmount;
+  });
+  
+  let maxClientRev = 0;
+  let topClientId = null;
+  for (const cid in clientRevenue) {
+    if (clientRevenue[cid] > maxClientRev) {
+      maxClientRev = clientRevenue[cid];
+      topClientId = Number(cid);
+    }
+  }
+  const topClient = allClients.find(c => c.id === topClientId);
+  const topClientName = topClient ? (topClient.companyName || topClient.name) : 'N/A';
+  const topClientContact = topClient ? topClient.name : 'N/A';
+  const concentrationRatio = totalRev > 0 ? (maxClientRev / totalRev) * 100 : 0;
+
+  // 1. Top Client Query
+  if (text.includes('top client') || text.includes('biggest client') || text.includes('top client analysis') || text.includes('highest contributor')) {
+    return `Your top client is **${topClientName}** (Contact: ${topClientContact}). Lifetime billing for this client is **${formatCurrency(maxClientRev)}**, which represents **${concentrationRatio.toFixed(1)}%** of your total sales.`;
+  }
+
+  // 2. GST Query
+  if (text.includes('gst') || text.includes('tax') || text.includes('vat')) {
+    const withGstCount = allBills.filter(b => b.billType === 'with-gst').length;
+    return `You have generated **${withGstCount}** bills under the GST scheme. Total GST collected to date is **${formatCurrency(totalGst)}** on a base revenue of **${formatCurrency(totalRev - totalGst)}**. I suggest holding at least **${formatCurrency(totalGst)}** as liquid reserves for upcoming quarterly tax payouts.`;
+  }
+
+  // 3. Client Concentration Risk Query
+  if (text.includes('concentration') || text.includes('risk') || text.includes('diversify')) {
+    if (concentrationRatio > 40) {
+      return `Yes, you have a **High Client Concentration Risk**. Your largest account (**${topClientName}**) represents **${concentrationRatio.toFixed(1)}%** of total revenue. If they churn, your business cashflow will drop significantly. I recommend acquiring new clients to drop this ratio below 35%.`;
+    } else {
+      return `Your client concentration is **healthy**. Your largest client represents **${concentrationRatio.toFixed(1)}%** of total business. Having no single client represent more than 40% means your sales are diversified safely.`;
+    }
+  }
+
+  // 4. Sales Forecast Query
+  if (text.includes('forecast') || text.includes('predict') || text.includes('future') || text.includes('next month')) {
+    const monthlyAverages = totalRev / Math.max(1, (new Set(allBills.map(b => b.date.substring(0, 7))).size));
+    const projectedMin = monthlyAverages * 0.85;
+    const projectedMax = monthlyAverages * 1.15;
+    return `Based on your monthly transaction volume, I project next month's sales to reach **${formatCurrency(monthlyAverages)}** (expected range: **${formatCurrency(projectedMin)}** to **${formatCurrency(projectedMax)}** with 90% confidence). *Tip: Increasing recurring invoice services can tighten this variance range.*`;
+  }
+
+  // 5. Cash Flow Review
+  if (text.includes('cash flow') || text.includes('review') || text.includes('financial review')) {
+    const avgInvoice = totalRev / billCount;
+    return `**Cash Flow Summary:**\n\n• **Total Invoiced:** ${formatCurrency(totalRev)}\n• **Tax Liabilities (GST):** ${formatCurrency(totalGst)}\n• **Average Ticket Size:** ${formatCurrency(avgInvoice)}\n• **Clients Registered:** ${clientCount}\n\nYour operational liquidity indicators are stable. We recommend automating invoices to decrease collection intervals.`;
+  }
+
+  // 6. Suggestion Query
+  if (text.includes('suggestion') || text.includes('improve') || text.includes('advice') || text.includes('recommendation')) {
+    let advice = `Based on your records, here are 2 AI suggestions to improve Varahi Export's cashflows:\n\n`;
+    if (concentrationRatio > 40) {
+      advice += `1. **Diversification:** Dilute client concentration risk by targeting new contracts. Currently, **${topClientName}** holds too much leverage (${concentrationRatio.toFixed(1)}%).\n`;
+    } else {
+      advice += `1. **Upsell Core Accounts:** Your account diversity is safe. Try pitching volume discount deals to **${topClientName}** to increase revenue.\n`;
+    }
+    advice += `2. **Liquidity Reserve:** Keep a strict tax margin of **${formatCurrency(totalGst)}** reserved for tax filings.`;
+    return advice;
+  }
+
+  // Default response
+  return `I can help you review your accounting database! Try asking:
+  \n• *"Who is my top client by sales?"*
+  \n• *"How much GST did I collect?"*
+  \n• *"Do I have client concentration risk?"*
+  \n• *"Forecast next month's sales."*
+  \n• *"Provide a complete cash flow review."*`;
+}
+

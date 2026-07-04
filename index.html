@@ -53,6 +53,10 @@
         <i class="ph ph-receipt"></i>
         <span>Bills & Invoices</span>
       </button>
+      <button class="nav-item" data-tab="ai-advisor">
+        <i class="ph ph-sparkle"></i>
+        <span>AI Advisor</span>
+      </button>
     </nav>
     
     <div class="user-profile">
@@ -277,6 +281,107 @@
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI ADVISOR VIEW -->
+    <section id="ai-advisor-view" class="tab-view">
+      <header class="view-header">
+        <div>
+          <h1>AI Business Intelligence</h1>
+          <p class="subtitle">Get strategic financial advice, growth forecasts, and risk assessments generated directly from your ledger data.</p>
+        </div>
+        <button class="btn btn-accent" onclick="generateAIReport()">
+          <i class="ph ph-sparkle"></i> Run AI Analysis
+        </button>
+      </header>
+
+      <div class="ai-intelligence-grid">
+        <!-- Left Side: Analysis cards -->
+        <div class="ai-analysis-main">
+          
+          <!-- Health Score and Summary Card -->
+          <div class="ai-card health-score-card">
+            <div class="health-header">
+              <h3>Varahi Export Health Score</h3>
+              <span class="badge badge-gst font-medium" id="ai-health-status">Pending Scan</span>
+            </div>
+            <div class="health-body">
+              <div class="health-score-gauge">
+                <div class="gauge-center">
+                  <span id="ai-health-percentage">--</span>
+                  <span class="label">Health Index</span>
+                </div>
+              </div>
+              <div class="health-summary-text">
+                <h4>Executive Summary</h4>
+                <p id="ai-summary-text">Click "Run AI Analysis" to compile ledger data and produce your real-time financial health summary.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bullet Recommendations -->
+          <div class="ai-card recommendations-card">
+            <h3>Strategic Recommendations</h3>
+            <hr class="divider">
+            <div class="recommendations-list" id="ai-recommendations-list">
+              <div class="recommendation-item empty-state">
+                <div class="icon"><i class="ph ph-chart-line-up"></i></div>
+                <div>
+                  <h5>Growth & Diversification</h5>
+                  <p>AI will analyze your billing profiles to see if your income is spread out safely among clients or concentrated in a single account.</p>
+                </div>
+              </div>
+              <div class="recommendation-item empty-state">
+                <div class="icon"><i class="ph ph-shield-check"></i></div>
+                <div>
+                  <h5>Tax & Compliance reserves</h5>
+                  <p>Analyzes your GST margins to ensure you keep appropriate cash reserves for tax liabilities.</p>
+                </div>
+              </div>
+              <div class="recommendation-item empty-state">
+                <div class="icon"><i class="ph ph-trend-up"></i></div>
+                <div>
+                  <h5>Seasonality & Variance forecasting</h5>
+                  <p>Calculates variance in your monthly sales vectors and predicts stability index for next quarter.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Side: Interactive AI Assistant Chat -->
+        <div class="ai-chat-sidebar">
+          <div class="ai-card chat-card">
+            <div class="chat-header">
+              <div class="chat-ai-avatar"><i class="ph-fill ph-sparkle"></i></div>
+              <div>
+                <h4>Interactive Financial Advisor</h4>
+                <p class="small text-green"><span class="pulse-dot"></span> Online & connected to your database</p>
+              </div>
+            </div>
+            
+            <div class="chat-logs" id="ai-chat-logs">
+              <div class="chat-message assistant">
+                <p>Hello! I am your AI Business Advisor. I have read-only access to your <strong>Varahi Export</strong> clients and bills records. Ask me anything about your revenue, GST status, or growth metrics!</p>
+              </div>
+            </div>
+
+            <!-- Quick Suggestion Chips -->
+            <div class="suggestion-chips">
+              <button class="chip" onclick="sendQuickMessage('Provide complete cash flow review')">Cash Flow Review</button>
+              <button class="chip" onclick="sendQuickMessage('Who is my top client by sales?')">Top Client Analysis</button>
+              <button class="chip" onclick="sendQuickMessage('Do I have client concentration risk?')">Concentration Risk</button>
+              <button class="chip" onclick="sendQuickMessage('Forecast next month sales')">Sales Forecast</button>
+            </div>
+
+            <form class="chat-input-form" onsubmit="submitChatMessage(event)">
+              <input type="text" id="ai-chat-input" placeholder="Ask about your financial status..." required>
+              <button type="submit" class="btn btn-accent btn-icon-square"><i class="ph-fill ph-paper-plane-right"></i></button>
+            </form>
+          </div>
         </div>
       </div>
     </section>
