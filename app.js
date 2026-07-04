@@ -2280,3 +2280,36 @@ function closeCeoDetailsModal() {
 function editCeoActivity(id) {
   openCeoActivityModal(id);
 }
+
+// Progressive Web App (PWA) Custom Install Trigger
+let pwaDeferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (event) => {
+  // Prevent Chrome from automatically showing the prompt
+  event.preventDefault();
+  // Stash the event so it can be triggered later.
+  pwaDeferredPrompt = event;
+});
+
+function triggerPwaInstall() {
+  if (!pwaDeferredPrompt) {
+    alert("📱 PWA Installation Guide:\n\n🍎 iOS / Safari:\n1. Tap the Share button in Safari (box with up arrow).\n2. Scroll down and select 'Add to Home Screen'.\n\n🤖 Android / Chrome / HTTP:\n1. PWA installation requires a secure HTTPS connection (e.g. once deployed on GitHub Pages) or 'localhost'.\n2. If accessing via your local network IP (http://192.168.x.x), browsers block installation due to security policies.");
+    return;
+  }
+  
+  // Close the More Options modal first
+  closeMoreMenu();
+  
+  // Show the browser's install prompt
+  pwaDeferredPrompt.prompt();
+  
+  // Wait for the user to respond to the prompt
+  pwaDeferredPrompt.userChoice.then((choiceResult) => {
+    if (choiceResult.outcome === 'accepted') {
+      console.log('User accepted the PWA install prompt');
+    } else {
+      console.log('User dismissed the PWA install prompt');
+    }
+    pwaDeferredPrompt = null;
+  });
+}
