@@ -206,6 +206,15 @@ const db = {
       });
     },
 
+    async update(bill) {
+      const store = await getStore('bills', 'readwrite');
+      return new Promise((resolve, reject) => {
+        const request = store.put(bill);
+        request.onsuccess = (e) => resolve(e.target.result);
+        request.onerror = (e) => reject(e.target.error);
+      });
+    },
+
     async delete(id) {
       const store = await getStore('bills', 'readwrite');
       return new Promise((resolve, reject) => {

@@ -100,6 +100,17 @@
         </div>
       </header>
 
+      <!-- Unpaid Bills Reminder Alert Banner -->
+      <div id="unpaid-bills-alert" style="display:none; background-color: rgba(239, 68, 68, 0.08); border: 1px dashed var(--color-destructive); color: var(--color-destructive); padding: 14px 20px; border-radius: var(--radius-md); margin-bottom: 24px; font-size: 13px; justify-content: space-between; align-items: center; animation: fadeIn var(--transition-normal);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <i class="ph ph-bell-ringing" style="font-size: 18px; color: var(--color-destructive);"></i>
+          <span>You have <strong id="unpaid-bills-count">0</strong> unpaid bills awaiting follow-up. Total outstanding: <strong id="unpaid-bills-total">₹0.00</strong>.</span>
+        </div>
+        <button class="btn btn-secondary btn-sm" style="background-color: transparent; border-color: var(--color-destructive); color: var(--color-destructive);" onclick="const navItem = document.querySelector('.nav-item[data-tab=\'bills\']'); if (navItem) navItem.click();">
+          Follow Up Now <i class="ph ph-arrow-right"></i>
+        </button>
+      </div>
+
       <!-- KPI Metrics Cards -->
       <div class="metrics-grid">
         <div class="metric-card">
@@ -283,13 +294,14 @@
                 <th class="col-hide-tablet">Subtotal</th>
                 <th class="col-hide-tablet">GST Amount</th>
                 <th>Total Amount</th>
+                <th>Status</th>
                 <th class="col-hide-mobile">Attachment</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody id="bills-table-body">
               <tr>
-                <td colspan="9" class="text-center text-muted">No invoices found. Add a client and upload a bill to begin.</td>
+                <td colspan="10" class="text-center text-muted">No invoices found. Add a client and upload a bill to begin.</td>
               </tr>
             </tbody>
           </table>

@@ -155,6 +155,22 @@ function updateDashboard() {
   document.getElementById('kpi-bills-count').textContent = totalBillsCount;
   document.getElementById('kpi-clients-count').textContent = totalClientsCount;
 
+  // Unpaid bills follow-ups alert calculation
+  const unpaidBills = allBills.filter(b => b.paymentStatus !== 'Paid');
+  const unpaidCount = unpaidBills.length;
+  const unpaidTotal = unpaidBills.reduce((sum, b) => sum + b.totalAmount, 0);
+  const alertBanner = document.getElementById('unpaid-bills-alert');
+  
+  if (alertBanner) {
+    if (unpaidCount > 0) {
+      document.getElementById('unpaid-bills-count').textContent = unpaidCount;
+      document.getElementById('unpaid-bills-total').textContent = formatCurrency(unpaidTotal);
+      alertBanner.style.display = 'flex';
+    } else {
+      alertBanner.style.display = 'none';
+    }
+  }
+
   // GST Ratio breakdown text
   const gstRatio = totalRevenue > 0 ? ((totalGst / totalRevenue) * 100).toFixed(1) : '0.0';
   document.getElementById('kpi-gst-ratio').innerHTML = `<span>GST represents <strong>${gstRatio}%</strong> of total sales</span>`;
@@ -531,7 +547,7 @@ function renderBills() {
   tbody.innerHTML = '';
 
   if (allBills.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">No invoices found. Add a client and upload a bill to begin.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted">No invoices found. Add a client and upload a bill to begin.</td></tr>`;
     return;
   }
 
@@ -546,6 +562,12 @@ function renderBills() {
       ? `<span class="badge badge-gst" style="cursor:pointer;" onclick="viewAttachedFile('${bill.id}')" title="Click to view file"><i class="ph ph-paperclip"></i> View Receipt</span>`
       : '<span class="text-muted">None</span>';
 
+    const paymentStatus = bill.paymentStatus || 'Pending';
+    const statusBadge = `<span class="badge ${paymentStatus === 'Paid' ? 'badge-gst' : 'badge-nogst'}" 
+                               style="${paymentStatus === 'Paid' ? 'background-color:rgba(16,185,129,0.08); color:var(--color-success); border-color:rgba(16,185,129,0.2);' : 'background-color:rgba(239,68,68,0.08); color:var(--color-destructive); border-color:rgba(239,68,68,0.2);'}">
+                          ${paymentStatus}
+                         </span>`;
+
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="font-medium">${bill.billNumber}</td>
@@ -559,10 +581,15 @@ function renderBills() {
       <td class="col-hide-tablet">${formatCurrency(bill.subtotal)}</td>
       <td class="col-hide-tablet">${formatCurrency(bill.totalGst)}</td>
       <td class="font-medium">${formatCurrency(bill.totalAmount)}</td>
+      <td>${statusBadge}</td>
       <td class="col-hide-mobile">${attachmentBadge}</td>
       <td>
         <button class="btn btn-secondary btn-sm" onclick="viewInvoice(${bill.id})">
           <i class="ph ph-eye"></i> Invoice
+        </button>
+        <button class="btn btn-secondary btn-sm" style="padding: 4px 8px;" onclick="toggleBillStatus(${bill.id})" title="Toggle Payment Status">
+          <i class="ph ${paymentStatus === 'Paid' ? 'ph-arrow-counter-clockwise' : 'ph-check-bold'}"></i>
+          ${paymentStatus === 'Paid' ? 'Reopen' : 'Paid'}
         </button>
         <button class="btn btn-secondary btn-sm btn-icon text-red" onclick="deleteBill(${bill.id})" title="Delete Bill">
           <i class="ph ph-trash"></i>
@@ -2129,3 +2156,17 @@ function generateCeoBehaviorReport(totalHours, criticalCount, focusTime) {
   reportBox.innerHTML = reportText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 }
 
+async function toggleBillStatus(id) {
+  const bill = allBills.find(b => b.id === id);
+  if (!bill) return;
+
+  bill.paymentStatus = (bill.paymentStatus === 'Paid') ? 'Pending' : 'Paid';
+  try {
+    await window.db.bills.update(bill);
+    await refreshData();
+    renderBills();
+    updateDashboard();
+  } catch (error) {
+    alert('Error toggling payment status: ' + error.message);
+  }
+}
