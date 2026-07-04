@@ -1808,6 +1808,9 @@ input:checked + .slider:before {
 .mobile-top-header {
   display: none;
 }
+.mobile-only-nav {
+  display: none !important;
+}
 
 @media (max-width: 768px) {
   body {
@@ -1846,16 +1849,24 @@ input:checked + .slider:before {
     gap: 0;
   }
 
+  .mobile-only-nav {
+    display: flex !important;
+  }
+
+  .mobile-hidden-nav {
+    display: none !important;
+  }
+
   .sidebar .nav-item {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px; /* Shrunk vertical space */
-    padding: 4px 2px; /* Equal horizontal spread */
-    font-size: 8px; /* High-density font sizing to prevent wrapping */
+    gap: 4px;
+    padding: 6px 4px;
+    font-size: 10px;
     border-radius: var(--radius-md);
-    flex: 1; /* Automatically splits screen into 7 equal column widths */
-    max-width: 14%; /* Prevents width blowouts */
+    flex: 1;
+    max-width: 25%; /* Limit to 25% for 4 active items */
     text-align: center;
     border: none;
     background: none;
@@ -1863,18 +1874,23 @@ input:checked + .slider:before {
   }
 
   .sidebar .nav-item i {
-    font-size: 16px; /* Scaled down icons on mobile */
+    font-size: 18px; /* Slightly scaled up for breathing room */
     margin: 0;
   }
 
   .sidebar .nav-item span {
-    font-size: 8px;
+    font-size: 10px;
     font-weight: 500;
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
     max-width: 100%;
   }
+
+  .more-menu-item:active {
+    background-color: var(--color-muted) !important;
+  }
+
 
   .sidebar .nav-item:hover {
     background: none;

@@ -50,6 +50,7 @@ function setupTabNavigation() {
   navItems.forEach(item => {
     item.addEventListener('click', () => {
       const targetTab = item.getAttribute('data-tab');
+      if (!targetTab) return;
       
       // Update nav active classes
       navItems.forEach(i => i.classList.remove('active'));
@@ -2168,5 +2169,31 @@ async function toggleBillStatus(id) {
     updateDashboard();
   } catch (error) {
     alert('Error toggling payment status: ' + error.message);
+  }
+}
+
+/**
+ * ==========================================
+ * MOBILE MORE MENU SYSTEM
+ * ==========================================
+ */
+function openMoreMenu() {
+  document.getElementById('mobile-more-modal').classList.add('active');
+}
+
+function closeMoreMenu() {
+  document.getElementById('mobile-more-modal').classList.remove('active');
+}
+
+function triggerMobileTab(tabId) {
+  closeMoreMenu();
+  const target = document.querySelector(`.nav-item[data-tab="${tabId}"]`);
+  if (target) {
+    target.click();
+    
+    // Visually highlight the 'More' button to show we are inside a sub-option
+    document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
+    const moreBtn = document.querySelector('.mobile-only-nav');
+    if (moreBtn) moreBtn.classList.add('active');
   }
 }

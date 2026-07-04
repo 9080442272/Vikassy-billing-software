@@ -43,7 +43,7 @@
         <i class="ph ph-squares-four"></i>
         <span>Dashboard</span>
       </button>
-      <button class="nav-item" data-tab="clients">
+      <button class="nav-item mobile-hidden-nav" data-tab="clients">
         <i class="ph ph-users-three"></i>
         <span>Clients</span>
       </button>
@@ -51,7 +51,7 @@
         <i class="ph ph-receipt"></i>
         <span>Invoices</span>
       </button>
-      <button class="nav-item" data-tab="employees">
+      <button class="nav-item mobile-hidden-nav" data-tab="employees">
         <i class="ph ph-identification-card"></i>
         <span>Employees</span>
       </button>
@@ -59,13 +59,17 @@
         <i class="ph ph-scissors"></i>
         <span>Fabrics</span>
       </button>
-      <button class="nav-item" data-tab="ceo-tracker">
+      <button class="nav-item mobile-hidden-nav" data-tab="ceo-tracker">
         <i class="ph ph-briefcase"></i>
         <span>CEO Log</span>
       </button>
-      <button class="nav-item" data-tab="ai-advisor">
+      <button class="nav-item mobile-hidden-nav" data-tab="ai-advisor">
         <i class="ph ph-sparkle"></i>
         <span>AI Advisor</span>
+      </button>
+      <button class="nav-item mobile-only-nav" onclick="openMoreMenu()">
+        <i class="ph ph-dots-three-outline"></i>
+        <span>More</span>
       </button>
     </nav>
     
@@ -1169,6 +1173,57 @@
           <button type="submit" class="btn btn-primary">Submit Activity Log</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- MOBILE MORE MENU DRAWER -->
+  <div id="mobile-more-modal" class="modal-overlay">
+    <div class="modal-card" style="padding-bottom: 20px;">
+      <div class="modal-header">
+        <h3>More Options</h3>
+        <button class="btn-close" onclick="closeMoreMenu()"><i class="ph ph-x"></i></button>
+      </div>
+      <div class="modal-body" style="padding: 0;">
+        <div class="more-menu-list" style="display: flex; flex-direction: column;">
+          
+          <a class="more-menu-item" onclick="triggerMobileTab('clients')" style="display:flex; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--color-border); cursor:pointer; color:var(--color-text-primary); text-decoration:none;">
+            <i class="ph ph-users-three" style="font-size:22px; color:var(--color-primary);"></i>
+            <div style="flex:1;">
+              <div style="font-weight:600; font-size:14px;">Clients</div>
+              <div class="text-muted" style="font-size:11px;">Manage customers & ledger summaries</div>
+            </div>
+            <i class="ph ph-caret-right text-muted"></i>
+          </a>
+
+          <a class="more-menu-item" onclick="triggerMobileTab('employees')" style="display:flex; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--color-border); cursor:pointer; color:var(--color-text-primary); text-decoration:none;">
+            <i class="ph ph-identification-card" style="font-size:22px; color:var(--color-primary);"></i>
+            <div style="flex:1;">
+              <div style="font-weight:600; font-size:14px;">Employees</div>
+              <div class="text-muted" style="font-size:11px;">Track stitching staff, roles & payouts</div>
+            </div>
+            <i class="ph ph-caret-right text-muted"></i>
+          </a>
+
+          <a class="more-menu-item" onclick="triggerMobileTab('ceo-tracker')" style="display:flex; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--color-border); cursor:pointer; color:var(--color-text-primary); text-decoration:none;">
+            <i class="ph ph-briefcase" style="font-size:22px; color:var(--color-primary);"></i>
+            <div style="flex:1;">
+              <div style="font-weight:600; font-size:14px;">CEO Log</div>
+              <div class="text-muted" style="font-size:11px;">CEO performance tracking & owner analytics</div>
+            </div>
+            <i class="ph ph-caret-right text-muted"></i>
+          </a>
+
+          <a class="more-menu-item" onclick="triggerMobileTab('ai-advisor')" style="display:flex; align-items:center; gap:16px; padding:16px 24px; cursor:pointer; color:var(--color-text-primary); text-decoration:none;">
+            <i class="ph ph-sparkle" style="font-size:22px; color:var(--color-primary);"></i>
+            <div style="flex:1;">
+              <div style="font-weight:600; font-size:14px;">AI Advisor</div>
+              <div class="text-muted" style="font-size:11px;">AI business health audits & reports</div>
+            </div>
+            <i class="ph ph-caret-right text-muted"></i>
+          </a>
+
+        </div>
+      </div>
     </div>
   </div>
 
