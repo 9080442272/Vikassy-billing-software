@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'AccountingSoftwareDB';
-const DB_VERSION = 2; // Upgraded to v2 to support production/stitching records
+const DB_VERSION = 3; // Upgraded to v3 to support CEO activity tracking
 let dbInstance = null;
 
 function initDB() {
@@ -71,6 +71,14 @@ function initDB() {
         stitchingStore.createIndex('fabricId', 'fabricId', { unique: false });
         stitchingStore.createIndex('status', 'status', { unique: false });
         console.log('Created stitching object store');
+      }
+
+      // Create CEO Activities Store
+      if (!db.objectStoreNames.contains('ceo_activities')) {
+        const ceoStore = db.createObjectStore('ceo_activities', { keyPath: 'id', autoIncrement: true });
+        ceoStore.createIndex('date', 'date', { unique: false });
+        ceoStore.createIndex('focusArea', 'focusArea', { unique: false });
+        console.log('Created ceo_activities object store');
       }
     };
   });
@@ -219,7 +227,7 @@ const db = {
           name: emp.name || '',
           phone: emp.phone || '',
           role: emp.role || 'Stitcher',
-          stitchRate: Number(emp.stitchRate) || 0, // ₹ paid per piece stitched
+          stitchRate: Number(emp.stitchRate) || 0,
           salary: Number(emp.salary) || 0,
           createdAt: new Date().toISOString()
         };
@@ -275,11 +283,11 @@ const db = {
       return new Promise((resolve, reject) => {
         const record = {
           fabricType: fab.fabricType || '',
-          quantityReceived: Number(fab.quantityReceived) || 0, // in meters
+          quantityReceived: Number(fab.quantityReceived) || 0,
           color: fab.color || '',
           receivedDate: fab.receivedDate || new Date().toISOString().split('T')[0],
           supplier: fab.supplier || '',
-          status: fab.status || 'Stored', // Stored / Stitching / Completed
+          status: fab.status || 'Stored',
           createdAt: new Date().toISOString()
         };
         const request = store.add(record);
@@ -339,7 +347,7 @@ const db = {
           ratePerPiece: Number(stitch.ratePerPiece) || 0,
           totalPayment: Number(stitch.totalPayment) || 0,
           assignedDate: stitch.assignedDate || new Date().toISOString().split('T')[0],
-          status: stitch.status || 'Stitching', // Stitching / Finished
+          status: stitch.status || 'Stitching',
           notes: stitch.notes || '',
           createdAt: new Date().toISOString()
         };
@@ -379,6 +387,47 @@ const db = {
 
     async delete(id) {
       const store = await getStore('stitching', 'readwrite');
+      return new Promise((resolve, reject) => {
+        const request = store.delete(Number(id));
+        request.onsuccess = () => resolve(true);
+        request.onerror = (e) => reject(e.target.error);
+      });
+    }
+  },
+
+  /**
+   * CEO Activity Log Operations
+   */
+  ceoActivities: {
+    async add(act) {
+      const store = await getStore('ceo_activities', 'readwrite');
+      return new Promise((resolve, reject) => {
+        const record = {
+          date: act.date || new Date().toISOString().split('T')[0],
+          focusArea: act.focusArea || 'Operations', // Sales / Operations / Production / Finance / Strategy
+          description: act.description || '',
+          hoursSpent: Number(act.hoursSpent) || 0,
+          productivityLevel: act.productivityLevel || 'Medium', // High / Medium / Low
+          isCritical: !!act.isCritical, // boolean (critical accomplishment indicator)
+          createdAt: new Date().toISOString()
+        };
+        const request = store.add(record);
+        request.onsuccess = (e) => resolve(e.target.result);
+        request.onerror = (e) => reject(e.target.error);
+      });
+    },
+
+    async getAll() {
+      const store = await getStore('ceo_activities', 'readonly');
+      return new Promise((resolve, reject) => {
+        const request = store.getAll();
+        request.onsuccess = (e) => resolve(e.target.result);
+        request.onerror = (e) => reject(e.target.error);
+      });
+    },
+
+    async delete(id) {
+      const store = await getStore('ceo_activities', 'readwrite');
       return new Promise((resolve, reject) => {
         const request = store.delete(Number(id));
         request.onsuccess = () => resolve(true);

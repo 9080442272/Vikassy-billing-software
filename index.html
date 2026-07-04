@@ -61,6 +61,10 @@
         <i class="ph ph-scissors"></i>
         <span>Fabrics</span>
       </button>
+      <button class="nav-item" data-tab="ceo-tracker">
+        <i class="ph ph-briefcase"></i>
+        <span>CEO Tracker</span>
+      </button>
       <button class="nav-item" data-tab="ai-advisor">
         <i class="ph ph-sparkle"></i>
         <span>AI Advisor</span>
@@ -507,6 +511,86 @@
             </table>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- CEO TRACKER VIEW -->
+    <section id="ceo-tracker-view" class="tab-view">
+      <header class="view-header">
+        <div>
+          <h1>CEO Performance & Log Book</h1>
+          <p class="subtitle">CEO logs daily operational tasks. Owner Vikassy analyzes focus distribution, efficiency, and behavioral metrics.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openCeoActivityModal()">
+          <i class="ph ph-briefcase"></i> Log Daily Activity
+        </button>
+      </header>
+
+      <!-- CEO Tracker Workspace Layout -->
+      <div class="ai-intelligence-grid" style="grid-template-columns: 1.15fr 1.5fr;">
+        
+        <!-- Left Side: Owner Analytics Hub -->
+        <div class="ai-card" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+          <h3 style="font-size: 15px; font-weight: 600; border-bottom: 1px solid var(--color-border); padding-bottom: 12px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+            <i class="ph ph-presentation-chart" style="color: var(--color-primary); font-size: 20px;"></i>
+            Owner's Behavioral Insights
+          </h3>
+
+          <!-- KPI Mini Cards -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div style="background-color: var(--color-muted); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+              <div class="text-muted" style="font-size: 10px; text-transform: uppercase; font-weight:600; letter-spacing:0.02em;">Total Hours Logged</div>
+              <h2 id="ceo-total-hours" style="font-size: 22px; font-weight: 800; margin-top: 4px; font-family: var(--font-heading);">0 hrs</h2>
+            </div>
+            <div style="background-color: var(--color-muted); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+              <div class="text-muted" style="font-size: 10px; text-transform: uppercase; font-weight:600; letter-spacing:0.02em;">Critical Actions</div>
+              <h2 id="ceo-critical-count" style="font-size: 22px; font-weight: 800; margin-top: 4px; font-family: var(--font-heading); color: var(--color-primary);">0</h2>
+            </div>
+          </div>
+
+          <!-- Focus Area Distribution Chart -->
+          <div style="height: 180px; position: relative;">
+            <canvas id="ceoFocusChart"></canvas>
+          </div>
+
+          <!-- Behavioral Assessment Text block (compiled by client-side AI analysis) -->
+          <div style="background-color: var(--color-accent-light); border: 1px dashed var(--color-primary); border-radius: var(--radius-md); padding: 16px;">
+            <h5 style="font-size: 11px; font-weight: 700; color: var(--color-primary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+              <i class="ph ph-sparkle"></i> AI Behavioral Analysis
+            </h5>
+            <p id="ceo-behavioral-report" style="font-size: 12px; line-height: 1.6; color: var(--color-text-secondary);">
+              No activity logs recorded. Run the CEO activity log to evaluate time allotments and executive efficiency metrics.
+            </p>
+          </div>
+        </div>
+
+        <!-- Right Side: CEO Log Book Grid -->
+        <div class="table-card" style="margin-bottom: 0;">
+          <div class="card-header" style="padding: 20px 24px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="font-size: 16px; font-weight:600;">CEO Log Book Calendar</h3>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Focus Area</th>
+                  <th>Task Description</th>
+                  <th class="text-right">Hours</th>
+                  <th class="col-hide-mobile">Productivity</th>
+                  <th class="col-hide-tablet">Type</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="ceo-activities-table-body">
+                <tr>
+                  <td colspan="7" class="text-center text-muted">No activity logs recorded. Let the CEO log daily workflows.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </section>
   </main>
@@ -1009,6 +1093,67 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" onclick="closeStitchingModal()">Cancel</button>
           <button type="submit" class="btn btn-primary">Assign Job</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- CEO ACTIVITY LOG MODAL -->
+  <div id="ceo-activity-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Record Daily CEO Activity</h3>
+        <button class="btn-close" onclick="closeCeoActivityModal()"><i class="ph ph-x"></i></button>
+      </div>
+      <form id="ceo-activity-form" onsubmit="saveCeoActivity(event)">
+        <div class="modal-body">
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="ceo-act-date">Date of Activity *</label>
+              <input type="date" id="ceo-act-date" required>
+            </div>
+            <div class="form-group">
+              <label for="ceo-act-focus">Primary Focus Area *</label>
+              <select id="ceo-act-focus" required>
+                <option value="Strategy">Strategy & Governance</option>
+                <option value="Sales">Sales & Client Acquisition</option>
+                <option value="Finance">Finance, GST & Taxes</option>
+                <option value="Operations">Operations & Team Coordination</option>
+                <option value="Production">Production & Fabric Supply</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="ceo-act-hours">Hours Invested *</label>
+              <input type="number" id="ceo-act-hours" min="0.5" max="24" step="any" required placeholder="e.g. 6.5">
+            </div>
+            <div class="form-group">
+              <label for="ceo-act-productivity">Productivity Level *</label>
+              <select id="ceo-act-productivity" required>
+                <option value="High">High Focus / Peak Efficiency</option>
+                <option value="Medium">Medium Focus / Routine Speed</option>
+                <option value="Low">Low Focus / Distracted / Admin Block</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="ceo-act-desc">Description of Work Accomplished *</label>
+            <textarea id="ceo-act-desc" rows="3" required placeholder="Describe specific actions taken (e.g. Closed export deal with UK agent, resolved tailor strike in line 2)"></textarea>
+          </div>
+
+          <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-top:10px;">
+            <input type="checkbox" id="ceo-act-critical" style="width:16px; height:16px; cursor:pointer;">
+            <label for="ceo-act-critical" style="margin-bottom:0; cursor:pointer; font-weight:600; color: var(--color-primary);">Mark as Critical Accomplishment</label>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeCeoActivityModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Activity Log</button>
         </div>
       </form>
     </div>

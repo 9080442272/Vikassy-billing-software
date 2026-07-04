@@ -8,8 +8,10 @@ let allBills = [];
 let allEmployees = [];
 let allFabrics = [];
 let allStitching = [];
+let allCeoActivities = [];
 let incomeChart = null;
 let gstChart = null;
+let ceoFocusChart = null;
 
 // Temporary state for uploads/scans
 let uploadedFileData = null;
@@ -74,6 +76,8 @@ function setupTabNavigation() {
       } else if (targetTab === 'fabrics') {
         renderFabrics();
         populateProductionDropdowns();
+      } else if (targetTab === 'ceo-tracker') {
+        renderCeoLog();
       } else if (targetTab === 'ai-advisor') {
         initAIAdvisorTab();
       }
@@ -98,6 +102,7 @@ async function refreshData() {
   allEmployees = await window.db.employees.getAll();
   allFabrics = await window.db.fabrics.getAll();
   allStitching = await window.db.stitching.getAll();
+  allCeoActivities = await window.db.ceoActivities.getAll();
   
   populateClientsDropdowns();
   populateProductionDropdowns();
@@ -1898,5 +1903,229 @@ function generateAIChatReply(query) {
   \n• *"Do I have client concentration risk?"*
   \n• *"Forecast next month's sales."*
   \n• *"Provide a complete cash flow review."*`;
+}
+
+/**
+ * ==========================================
+ * CEO PERFORMANCE & WORK ACTIVITY LOGS
+ * ==========================================
+ */
+function renderCeoLog() {
+  const tbody = document.getElementById('ceo-activities-table-body');
+  const totalHoursSpan = document.getElementById('ceo-total-hours');
+  const criticalCountSpan = document.getElementById('ceo-critical-count');
+
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+
+  if (allCeoActivities.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No activity logs recorded. Let the CEO log daily workflows.</td></tr>`;
+    totalHoursSpan.textContent = '0 hrs';
+    criticalCountSpan.textContent = '0';
+    updateCeoFocusChart({});
+    document.getElementById('ceo-behavioral-report').textContent = 'No logs registered yet. Submit daily actions to analyze focus patterns.';
+    return;
+  }
+
+  // Sort activities by date descending
+  const sortedActivities = [...allCeoActivities].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  let totalHours = 0;
+  let criticalCount = 0;
+  const focusTime = {
+    Strategy: 0,
+    Sales: 0,
+    Finance: 0,
+    Operations: 0,
+    Production: 0
+  };
+
+  sortedActivities.forEach(act => {
+    totalHours += act.hoursSpent;
+    if (act.isCritical) criticalCount++;
+    
+    // Sum by focus area
+    if (focusTime.hasOwnProperty(act.focusArea)) {
+      focusTime[act.focusArea] += act.hoursSpent;
+    }
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${formatDate(act.date)}</td>
+      <td><span class="badge badge-gst" style="background-color:var(--color-accent-light); color:var(--color-primary);">${act.focusArea}</span></td>
+      <td title="${act.description}">${truncateText(act.description, 35)}</td>
+      <td class="text-right font-medium">${act.hoursSpent} hrs</td>
+      <td>
+        <span class="badge ${act.productivityLevel === 'High' ? 'badge-gst' : (act.productivityLevel === 'Medium' ? 'badge-nogst' : 'badge-nogst')}" 
+              style="${act.productivityLevel === 'High' ? 'background-color:rgba(16,185,129,0.08); color:var(--color-success); border-color:rgba(16,185,129,0.2);' : ''}">
+          ${act.productivityLevel}
+        </span>
+      </td>
+      <td>
+        ${act.isCritical ? '<span class="badge" style="background-color:rgba(239,68,68,0.08); color:var(--color-destructive); border:1px solid rgba(239,68,68,0.2);">Critical</span>' : '<span class="text-muted" style="font-size:11px;">Regular</span>'}
+      </td>
+      <td>
+        <button class="btn btn-secondary btn-sm btn-icon text-red" onclick="deleteCeoActivity(${act.id})" title="Delete entry">
+          <i class="ph ph-trash"></i>
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Update KPIs
+  totalHoursSpan.textContent = `${totalHours.toFixed(1)} hrs`;
+  criticalCountSpan.textContent = criticalCount;
+
+  // Render focus distribution chart
+  updateCeoFocusChart(focusTime);
+
+  // Generate Owner Behavioral report
+  generateCeoBehaviorReport(totalHours, criticalCount, focusTime);
+}
+
+function openCeoActivityModal() {
+  document.getElementById('ceo-activity-form').reset();
+  document.getElementById('ceo-act-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('ceo-activity-modal').classList.add('active');
+}
+
+function closeCeoActivityModal() {
+  document.getElementById('ceo-activity-modal').classList.remove('active');
+}
+
+async function saveCeoActivity(event) {
+  event.preventDefault();
+
+  const date = document.getElementById('ceo-act-date').value;
+  const focusArea = document.getElementById('ceo-act-focus').value;
+  const hoursSpent = Number(document.getElementById('ceo-act-hours').value) || 0;
+  const productivityLevel = document.getElementById('ceo-act-productivity').value;
+  const description = document.getElementById('ceo-act-desc').value.trim();
+  const isCritical = document.getElementById('ceo-act-critical').checked;
+
+  const actData = { date, focusArea, hoursSpent, productivityLevel, description, isCritical };
+
+  try {
+    await window.db.ceoActivities.add(actData);
+    closeCeoActivityModal();
+    await refreshData();
+    renderCeoLog();
+  } catch (error) {
+    alert('Error saving activity: ' + error.message);
+  }
+}
+
+async function deleteCeoActivity(id) {
+  if (confirm('Delete this CEO activity log entry?')) {
+    await window.db.ceoActivities.delete(id);
+    await refreshData();
+    renderCeoLog();
+  }
+}
+
+// Chart.js renderer for CEO Focus Areas
+function updateCeoFocusChart(focusData) {
+  const ctx = document.getElementById('ceoFocusChart');
+  if (!ctx) return;
+
+  if (ceoFocusChart) {
+    ceoFocusChart.destroy();
+  }
+
+  const labels = ['Strategy', 'Sales', 'Finance', 'Operations', 'Production'];
+  const values = labels.map(l => focusData[l] || 0);
+
+  // Check if there is any data logged
+  const total = values.reduce((s, v) => s + v, 0);
+  const chartData = total > 0 ? values : [1, 1, 1, 1, 1];
+  const colors = total > 0 
+    ? ['#7C3AED', '#4F46E5', '#10B981', '#F59E0B', '#EF4444'] 
+    : ['#E5E7EB', '#E5E7EB', '#E5E7EB', '#E5E7EB', '#E5E7EB'];
+
+  ceoFocusChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: labels.map(l => `${l} (hrs)`),
+      datasets: [{
+        data: chartData,
+        backgroundColor: colors,
+        borderWidth: 1,
+        borderColor: '#FFFFFF'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '70%',
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: {
+            color: '#4B5563',
+            font: { family: 'Inter', size: 10 }
+          }
+        }
+      }
+    }
+  });
+}
+
+// Client-side AI behavioral parser
+function generateCeoBehaviorReport(totalHours, criticalCount, focusTime) {
+  const reportBox = document.getElementById('ceo-behavioral-report');
+  if (!reportBox) return;
+
+  if (totalHours === 0) {
+    reportBox.textContent = 'No logs registered yet. Submit daily actions to analyze focus patterns.';
+    return;
+  }
+
+  // Calculate percentages
+  const percentages = {};
+  for (const area in focusTime) {
+    percentages[area] = (focusTime[area] / totalHours) * 100;
+  }
+
+  // Calculate high productivity percentage
+  const highProdLogs = allCeoActivities.filter(a => a.productivityLevel === 'High');
+  const highProdHours = highProdLogs.reduce((sum, a) => sum + a.hoursSpent, 0);
+  const highProdRatio = (highProdHours / totalHours) * 100;
+
+  let reportText = `**CEO Work Audit Report (for Owner Vikassy):**\n\n`;
+  reportText += `The CEO logged **${totalHours.toFixed(1)} hours** across **${allCeoActivities.length} logs**. `;
+
+  // Behavioral Assessment
+  if (percentages.Strategy < 15) {
+    reportText += `⚠️ **Strategy Deficit:** The CEO spent only **${percentages.Strategy.toFixed(1)}%** on planning. An executive should spend >20% here to guide Varahi Export's market direction. `;
+  } else {
+    reportText += `✓ **Healthy Strategy Focus:** **${percentages.Strategy.toFixed(1)}%** time was spent on forward planning. `;
+  }
+
+  if (percentages.Operations > 40) {
+    reportText += `⚠️ **Micro-management Warning:** **${percentages.Operations.toFixed(1)}%** of logged time is tied to daily Operations. The CEO is bogged down in helpers coordination. Advise delegation. `;
+  }
+
+  if (percentages.Sales > 25) {
+    reportText += `🔥 **Revenue Driver:** Excellent focus on Sales & Client Acquisition (**${percentages.Sales.toFixed(1)}%**), directly aiding export contracts. `;
+  } else if (percentages.Sales < 10) {
+    reportText += `⚠️ **Sales Pipeline Risk:** Client acquisition is neglected (**${percentages.Sales.toFixed(1)}%**). CEO must prioritize client outreach. `;
+  }
+
+  if (highProdRatio > 70) {
+    reportText += `\n\n**Efficiency Profile:** High Focus Ratio is outstanding (**${highProdRatio.toFixed(0)}%**), demonstrating peak operational alignment.`;
+  } else if (highProdRatio < 40) {
+    reportText += `\n\n**Efficiency Profile:** High Focus Ratio is low (**${highProdRatio.toFixed(0)}%**). CEO reports significant routine/distracted blocks. Review meeting schedules or tails bottlenecks to optimize.`;
+  } else {
+    reportText += `\n\n**Efficiency Profile:** Steady focus rating (**${highProdRatio.toFixed(0)}%** High Efficiency).`;
+  }
+
+  if (criticalCount > 0) {
+    reportText += ` CEO registered **${criticalCount} critical accomplishments** this cycle.`;
+  }
+
+  // Parse markdown bold text
+  reportBox.innerHTML = reportText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 }
 
