@@ -493,8 +493,8 @@ export default function App() {
       subtotal: parseFloat(billSubtotal),
       totalGst: parseFloat(billGstAmount) || 0,
       totalAmount: parseFloat(billGrandTotal),
-      fileData: billAttachmentData,
-      fileName: billAttachmentName
+      fileData: billAttachmentData || undefined,
+      fileName: billAttachmentName || undefined
     };
 
     try {
