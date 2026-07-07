@@ -108,7 +108,7 @@ button, input, select, textarea {
   align-items: center;
   gap: 12px;
   margin-bottom: 40px;
-  padding: 0 8px;
+  padding: 0 16px;
 }
 
 .brand-logo {
@@ -160,6 +160,11 @@ button, input, select, textarea {
 
 .nav-item i {
   font-size: 20px;
+  width: 24px;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: transform var(--transition-fast);
 }
 
@@ -188,8 +193,10 @@ button, input, select, textarea {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding-top: 16px;
+  padding: 16px;
   border-top: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-radius var(--transition-fast);
 }
 
 .avatar {
@@ -2306,11 +2313,6 @@ input:checked + .slider:before {
   font-size: 18px;
 }
 
-/* User profile clickability styling */
-.user-profile {
-  cursor: pointer;
-  transition: background-color var(--transition-fast);
-}
 .user-profile:hover {
   background-color: rgba(255, 255, 255, 0.03);
   border-radius: var(--radius-md);
