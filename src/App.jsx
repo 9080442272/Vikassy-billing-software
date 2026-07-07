@@ -1009,6 +1009,38 @@ export default function App() {
     }).format(val);
   };
 
+  // Compile recent activity log items from database
+  const getRecentActivities = () => {
+    const activities = [];
+
+    (bills || []).slice(0, 3).forEach(b => {
+      activities.push({
+        id: b._id,
+        type: 'invoice',
+        title: `Invoice Registered`,
+        desc: `Recorded bill ${b.billNumber} for client amount of ${formatCurrency(b.totalAmount)}.`,
+        time: b.date ? new Date(b.date) : new Date(),
+        icon: 'ph-receipt',
+        color: '#8B5CF6'
+      });
+    });
+
+    (fabrics || []).slice(0, 3).forEach(f => {
+      activities.push({
+        id: f._id,
+        type: 'fabric',
+        title: `Fabric Roll Received`,
+        desc: `Received ${f.quantityReceived} Pcs of ${f.color} ${f.fabricType} from ${f.supplier}.`,
+        time: f.receivedDate ? new Date(f.receivedDate) : new Date(),
+        icon: 'ph-package',
+        color: '#10B981'
+      });
+    });
+
+    // Sort by time descending
+    return activities.sort((a, b) => b.time - a.time).slice(0, 4);
+  };
+
   // If user is not logged in, render the Auth Overlay
   if (!BYPASS_AUTH && !isLoggedIn) {
     return (
@@ -1236,40 +1268,72 @@ export default function App() {
               </div>
             </header>
 
+            {/* Welcome banner greeting */}
+            <div className="welcome-banner" style={{
+              padding: '20px 24px',
+              borderRadius: 'var(--radius-lg)',
+              background: 'linear-gradient(135deg, rgba(124,58,237,0.12) 0%, rgba(139,92,246,0.03) 100%)',
+              border: '1px solid rgba(124,58,237,0.2)',
+              marginBottom: '24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '4px'
+            }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#ffffff' }}>Vanakkam, {currentLoggedUser?.fullName || 'CEO'}! 👋</h2>
+              <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: '1.4' }}>
+                Here is your real-time operations status stream for **Varahi Exports**. Everything is running stably.
+              </p>
+            </div>
+
             {/* Dashboard highlights grid */}
-            <div className="highlights-grid">
-              <div className="highlight-card bg-surface border">
-                <div className="icon bg-accent-light text-primary"><i className="ph ph-currency-inr"></i></div>
-                <div>
-                  <span className="title text-muted">Total Billing</span>
-                  <h3 className="value text-primary">{formatCurrency(bills.reduce((s, b) => s + b.totalAmount, 0))}</h3>
+            <div className="metrics-grid">
+              <div className="metric-card">
+                <div className="metric-card-header">
+                  <span className="metric-label">Total Billing</span>
+                  <div className="metric-icon purple"><i className="ph ph-currency-inr"></i></div>
+                </div>
+                <div className="metric-value text-primary">{formatCurrency(bills.reduce((s, b) => s + b.totalAmount, 0))}</div>
+                <div className="metric-footer">
+                  <span style={{ color: 'var(--color-success)', fontWeight: 600 }}><i className="ph ph-arrow-up-right"></i> Stable</span>
+                  <span>Synced in Cloud</span>
                 </div>
               </div>
-              <div className="highlight-card bg-surface border">
-                <div className="icon" style={{ backgroundColor: 'rgba(245,158,11,0.08)', color: 'var(--color-primary)' }}><i className="ph ph-receipt"></i></div>
-                <div>
-                  <span className="title text-muted">Invoices Logged</span>
-                  <h3 className="value">{bills.length} Bills</h3>
+              <div className="metric-card">
+                <div className="metric-card-header">
+                  <span className="metric-label">Invoices Logged</span>
+                  <div className="metric-icon gold"><i className="ph ph-receipt"></i></div>
+                </div>
+                <div className="metric-value">{bills.length} Bills</div>
+                <div className="metric-footer">
+                  <span style={{ color: 'var(--color-success)', fontWeight: 600 }}><i className="ph ph-trend-up"></i> Active</span>
+                  <span>Transaction ledger</span>
                 </div>
               </div>
-              <div className="highlight-card bg-surface border">
-                <div className="icon" style={{ backgroundColor: 'rgba(16,185,129,0.08)', color: 'var(--color-success)' }}><i className="ph ph-package"></i></div>
-                <div>
-                  <span className="title text-muted">Active Fabric Rolls</span>
-                  <h3 className="value">{fabrics.filter(f => f.status === 'Stored' || f.status === 'Stitching').length} Rolls</h3>
+              <div className="metric-card">
+                <div className="metric-card-header">
+                  <span className="metric-label">Active Fabric Rolls</span>
+                  <div className="metric-icon purple" style={{ color: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)' }}><i className="ph ph-package"></i></div>
+                </div>
+                <div className="metric-value">{fabrics.filter(f => f.status === 'Stored' || f.status === 'Stitching').length} Rolls</div>
+                <div className="metric-footer">
+                  <span>{fabrics.filter(f => f.status === 'Stitching').length} allocated in stitching</span>
                 </div>
               </div>
-              <div className="highlight-card bg-surface border">
-                <div className="icon" style={{ backgroundColor: 'rgba(239,68,68,0.08)', color: 'var(--color-destructive)' }}><i className="ph ph-clock"></i></div>
-                <div>
-                  <span className="title text-muted">CEO Logged Hours</span>
-                  <h3 className="value">{ceoActivities.reduce((s, a) => s + a.hoursSpent, 0)} Hrs</h3>
+              <div className="metric-card">
+                <div className="metric-card-header">
+                  <span className="metric-label">CEO Work Logs</span>
+                  <div className="metric-icon gold" style={{ color: '#EF4444', backgroundColor: 'rgba(239,68,68,0.1)' }}><i className="ph ph-briefcase"></i></div>
+                </div>
+                <div className="metric-value">{ceoActivities.reduce((s, a) => s + a.hoursSpent, 0)} Hrs</div>
+                <div className="metric-footer">
+                  <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>{ceoActivities.filter(a => a.isCritical).length} Milestones</span>
+                  <span>logged today</span>
                 </div>
               </div>
             </div>
 
             {/* Main Dashboard charts and concentration risk layout */}
-            <div className="dashboard-charts-layout">
+            <div className="charts-grid" style={{ marginBottom: '24px' }}>
               <div className="chart-card bg-surface border">
                 <h3>Revenue Contribution by Client</h3>
                 <div className="chart-container" style={{ height: '300px', position: 'relative', marginTop: '16px' }}>
@@ -1279,7 +1343,7 @@ export default function App() {
 
               <div className="table-card bg-surface border">
                 <h3>Client Concentration Risk</h3>
-                <p className="small text-muted" style={{ marginBottom: '16px' }}>Assess transactional dependency share.</p>
+                <p className="small text-muted" style={{ marginBottom: '16px' }}>Assess dependency share.</p>
                 <div className="table-responsive desktop-table-container">
                   <table className="data-table">
                     <thead>
@@ -1344,6 +1408,39 @@ export default function App() {
                   })}
                   {bills.length === 0 && (
                     <div className="text-center text-muted" style={{ padding: '16px' }}>No billing summaries computed.</div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="charts-grid">
+              <div className="table-card bg-surface border" style={{ padding: '24px' }}>
+                <h3 style={{ marginBottom: '4px' }}>Recent System Activities</h3>
+                <p className="small text-muted" style={{ marginBottom: '20px' }}>Real-time operations stream across Varahi Exports.</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {getRecentActivities().map((act) => (
+                    <div key={act.id} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                      <div style={{
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '8px',
+                        backgroundColor: 'rgba(255,255,255,0.03)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: act.color,
+                        flexShrink: 0
+                      }}>
+                        <i className={`ph ${act.icon}`} style={{ fontSize: '18px' }}></i>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#ffffff' }}>{act.title}</span>
+                        <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: '1.4' }}>{act.desc}</span>
+                      </div>
+                    </div>
+                  ))}
+                  {getRecentActivities().length === 0 && (
+                    <div className="text-center text-muted" style={{ padding: '16px', fontSize: '12px' }}>No system logs generated yet.</div>
                   )}
                 </div>
               </div>
