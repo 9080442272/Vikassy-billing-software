@@ -115,9 +115,19 @@ export default function App() {
   const updateCeoActivityMutation = useMutation(api.ceoActivities.update);
   const deleteCeoActivityMutation = useMutation(api.ceoActivities.remove);
 
+  // Set to true to temporarily bypass authentication for dev / client reviews
+  const BYPASS_AUTH = true;
+
   // --- State hooks ---
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('lastActiveTab') || 'dashboard');
-  const [currentLoggedUser, setCurrentLoggedUser] = useState(null);
+  const [currentLoggedUser, setCurrentLoggedUser] = useState(() => {
+    const localUser = localStorage.getItem('currentUser');
+    return localUser ? { username: localUser, fullName: localUser } : {
+      username: 'admin',
+      fullName: 'Vikashini Balasubramanian',
+      email: 'varahi.export@gmail.com'
+    };
+  });
   const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('isLoggedIn') === 'true');
   const [isFirstTimeSetup, setIsFirstTimeSetup] = useState(false);
   const [authMode, setAuthMode] = useState('login'); // login / register / forgot
@@ -1000,7 +1010,7 @@ export default function App() {
   };
 
   // If user is not logged in, render the Auth Overlay
-  if (!isLoggedIn) {
+  if (!BYPASS_AUTH && !isLoggedIn) {
     return (
       <div id="auth-screen" className="auth-overlay-wrapper active">
         <div className="auth-container-card">
