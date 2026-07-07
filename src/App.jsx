@@ -1041,6 +1041,133 @@ export default function App() {
     return activities.sort((a, b) => b.time - a.time).slice(0, 4);
   };
 
+  // Seed demo data for empty database setup
+  const handleSeedDemoData = async () => {
+    try {
+      // 1. Seed Clients
+      const clientId1 = await addClientMutation({
+        name: "Sri Varahi Exports",
+        companyName: "Varahi Exports Pvt Ltd",
+        email: "contact@varahiexports.com",
+        phone: "+91 98765 43210",
+        gstin: "33AABCU1234F1Z5",
+        address: "123, Garment Zone, Tiruppur, TN"
+      });
+      const clientId2 = await addClientMutation({
+        name: "Karthik Apparels",
+        companyName: "Karthik Textiles",
+        email: "karthik@textiles.in",
+        phone: "+91 94432 10987",
+        gstin: "33BBDDU5678G2Z4",
+        address: "45, Cotton Street, Coimbatore, TN"
+      });
+      const clientId3 = await addClientMutation({
+        name: "Global Garments",
+        companyName: "Global Imports Inc",
+        email: "import@globalgarments.com",
+        phone: "+1 555 0199",
+        gstin: "",
+        address: "Houston, Texas, USA"
+      });
+
+      // 2. Seed Employees
+      await addEmployeeMutation({
+        name: "Ramesh Kumar",
+        phone: "+91 98940 12345",
+        role: "Stitcher",
+        subCategory: "Jeans Specialist",
+        stitchRate: 15,
+        salary: 12000
+      });
+      await addEmployeeMutation({
+        name: "Anitha Devi",
+        phone: "+91 97890 54321",
+        role: "Stitcher",
+        subCategory: "T-Shirt Specialist",
+        stitchRate: 12,
+        salary: 10000
+      });
+      await addEmployeeMutation({
+        name: "Selvam Murugan",
+        phone: "+91 94440 98765",
+        role: "Signer",
+        subCategory: "Lead Auditor",
+        stitchRate: 0,
+        salary: 15000
+      });
+
+      // 3. Seed Fabric Rolls
+      await addFabricMutation({
+        fabricType: "Denim Cotton",
+        quantityReceived: 120,
+        color: "Navy Blue",
+        receivedDate: "2026-07-01",
+        supplier: "Texcraft Mills",
+        status: "Stitching"
+      });
+      await addFabricMutation({
+        fabricType: "Organic Cotton Knit",
+        quantityReceived: 250,
+        color: "Crimson Red",
+        receivedDate: "2026-07-03",
+        supplier: "BioThread Suppliers",
+        status: "Stored"
+      });
+
+      // 4. Seed Bills
+      await addBillMutation({
+        clientId: clientId1,
+        billNumber: "VE-2026-001",
+        date: "2026-07-02",
+        billType: "with-gst",
+        items: [
+          { name: "Denim Jackets (L)", price: 850, qty: 100, gstRate: 5, gstAmount: 4250, total: 89250 }
+        ],
+        discount: 250,
+        subtotal: 85000,
+        totalGst: 4250,
+        totalAmount: 89000
+      });
+
+      await addBillMutation({
+        clientId: clientId2,
+        billNumber: "VE-2026-002",
+        date: "2026-07-05",
+        billType: "without-gst",
+        items: [
+          { name: "Cotton Crew Neck Shirts", price: 350, qty: 150, gstRate: 0, gstAmount: 0, total: 52500 }
+        ],
+        discount: 500,
+        subtotal: 52500,
+        totalGst: 0,
+        totalAmount: 52000
+      });
+
+      // 5. Seed CEO Activity Logs
+      await addCeoActivityMutation({
+        date: "2026-07-06",
+        focusArea: "Production Planning",
+        description: "Audited denim stitching outputs, mapped supplier dispatch timelines.",
+        hoursSpent: 5.5,
+        productivityLevel: "High",
+        isCritical: true
+      });
+
+      await addCeoActivityMutation({
+        date: "2026-07-07",
+        focusArea: "Financial Audit",
+        description: "Cleared tax schemes validation reviews and verified GST invoices calculations.",
+        hoursSpent: 3.5,
+        productivityLevel: "Medium",
+        isCritical: false
+      });
+
+      alert("🎉 Demo data seeded successfully! The dashboard is now populated.");
+    } catch (err) {
+      alert("Error seeding demo data: " + err.message);
+    }
+  };
+
   // If user is not logged in, render the Auth Overlay
   if (!BYPASS_AUTH && !isLoggedIn) {
     return (
@@ -1283,6 +1410,24 @@ export default function App() {
               <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: '1.4' }}>
                 Here is your real-time operations status stream for **Varahi Exports**. Everything is running stably.
               </p>
+              {bills.length === 0 && fabrics.length === 0 && employees.length === 0 && (
+                <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-start' }}>
+                  <p style={{ fontSize: '12px', color: '#A78BFA', fontWeight: 500 }}>
+                    💡 Your database is empty. Would you like to seed mock demo data to explore the dashboard instantly?
+                  </p>
+                  <button className="btn btn-secondary" onClick={handleSeedDemoData} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 16px',
+                    fontSize: '12px',
+                    borderColor: 'rgba(124,58,237,0.4)',
+                    color: '#ffffff'
+                  }}>
+                    <i className="ph ph-sparkle"></i> Seed Demo Data
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Dashboard highlights grid */}
