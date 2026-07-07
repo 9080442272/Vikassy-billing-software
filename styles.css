@@ -714,7 +714,7 @@ button, input, select, textarea {
   box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15);
 }
 
-select, input[type="date"], input[type="text"], input[type="number"], input[type="email"], input[type="tel"], textarea {
+select, input[type="date"], input[type="text"], input[type="password"], input[type="number"], input[type="email"], input[type="tel"], textarea {
   padding: 14px 18px;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -724,7 +724,7 @@ select, input[type="date"], input[type="text"], input[type="number"], input[type
   color-scheme: dark;
 }
 
-select:focus, input[type="date"]:focus, input[type="text"]:focus, input[type="number"]:focus, input[type="email"]:focus, input[type="tel"]:focus, textarea:focus {
+select:focus, input[type="date"]:focus, input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus, input[type="email"]:focus, input[type="tel"]:focus, textarea:focus {
   border-color: var(--color-primary);
   outline: none;
   box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15);
