@@ -1,4 +1,11 @@
+# Dependency and build folders
+node_modules/
+dist/
+node-v20.12.2-darwin-arm64/
+
+# Local env & database config overrides
+.env.local
+.env.*.local
+.convex/
 .DS_Store
 *.log
-.system_generated/
-*.tmp
