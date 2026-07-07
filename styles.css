@@ -1448,7 +1448,6 @@ input:checked + .slider:before {
   /* Force background printing */
   .invoice-printout {
     box-shadow: none !important;
-    border: none !important;
     padding: 0 !important;
     margin: 0 !important;
     background: #ffffff !important;

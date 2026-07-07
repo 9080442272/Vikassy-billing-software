@@ -999,60 +999,221 @@ function simulateScan() {
  * INVOICE VIEWER & PRINT LAYOUTS
  * ==========================================
  */
+// Indian Currency Number to Words converter helper
+function numberToWords(num) {
+  const a = ['', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '];
+  const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+  function numToWordsPart(n) {
+    if (n < 20) return a[n];
+    const digit = n % 10;
+    return b[Math.floor(n / 10)] + (digit ? ' ' + a[digit] : '');
+  }
+
+  const parts = parseFloat(num).toFixed(2).split('.');
+  let rupees = parseInt(parts[0], 10) || 0;
+  let paise = parseInt(parts[1], 10) || 0;
+
+  let str = '';
+  
+  if (rupees === 0) {
+    str = 'Zero Rupees ';
+  } else {
+    // Crore
+    if (rupees >= 10000000) {
+      str += numToWordsPart(Math.floor(rupees / 10000000)) + 'Crore ';
+      rupees %= 10000000;
+    }
+    // Lakh
+    if (rupees >= 100000) {
+      str += numToWordsPart(Math.floor(rupees / 100000)) + 'Lakh ';
+      rupees %= 100000;
+    }
+    // Thousand
+    if (rupees >= 1000) {
+      str += numToWordsPart(Math.floor(rupees / 1000)) + 'Thousand ';
+      rupees %= 1000;
+    }
+    // Hundred
+    if (rupees >= 100) {
+      str += numToWordsPart(Math.floor(rupees / 100)) + 'Hundred ';
+      rupees %= 100;
+    }
+    // Tens & Ones
+    if (rupees > 0) {
+      str += numToWordsPart(rupees);
+    }
+    str += 'Rupees ';
+  }
+
+  if (paise > 0) {
+    str += 'and ' + numToWordsPart(paise) + 'Paise ';
+  }
+  
+  return 'INR ' + str.trim() + ' Only';
+}
+
 function viewInvoice(id) {
   const bill = allBills.find(b => b.id === Number(id));
   if (!bill) return;
 
   const client = allClients.find(c => c.id === bill.clientId);
   
-  // Fill details into Print/View panel
-  document.getElementById('print-inv-no').textContent = bill.billNumber;
-  document.getElementById('print-inv-date').textContent = formatDate(bill.date);
-  document.getElementById('print-inv-scheme').textContent = bill.billType === 'with-gst' ? 'With GST' : 'Without GST';
+  // Fill details into Tally-style Print/View panel
+  document.getElementById('print-tally-inv-no').textContent = bill.billNumber;
+  document.getElementById('print-tally-date').textContent = formatDate(bill.date);
 
-  // Client Details
-  document.getElementById('print-client-name').textContent = client ? client.name : 'Unknown Client';
-  document.getElementById('print-client-company').textContent = client ? (client.companyName || '') : '';
-  document.getElementById('print-client-address').textContent = client ? (client.address || '') : '';
-  document.getElementById('print-client-gstin').textContent = client ? (client.gstin || 'Unregistered') : 'N/A';
-  document.getElementById('print-client-email').textContent = client ? (client.email || 'N/A') : 'N/A';
-  document.getElementById('print-client-phone').textContent = client ? (client.phone || 'N/A') : 'N/A';
+  // Client / Buyer / Consignee Details
+  const clientName = client ? client.name : 'Unknown Client';
+  const clientCompany = client ? (client.companyName || '') : '';
+  const clientAddress = client ? (client.address || '') : '';
+  const clientGstin = client ? (client.gstin || 'Unregistered') : 'N/A';
+
+  // Consignee (Ship to)
+  document.getElementById('print-consignee-name').textContent = clientCompany || clientName;
+  document.getElementById('print-consignee-address').textContent = clientAddress || 'N/A';
+  document.getElementById('print-consignee-gstin').textContent = clientGstin;
+
+  // Buyer (Bill to)
+  document.getElementById('print-buyer-name').textContent = clientName;
+  document.getElementById('print-buyer-address').textContent = clientAddress || 'N/A';
+  document.getElementById('print-buyer-gstin').textContent = clientGstin;
 
   // Populate items print table
-  const tbody = document.getElementById('print-items-tbody');
+  const tbody = document.getElementById('print-tally-items-tbody');
   tbody.innerHTML = '';
 
   const isGst = bill.billType === 'with-gst';
-  const printGstCols = document.querySelectorAll('.gst-print-col');
-  
-  // Hide GST column if bill doesn't have it
-  printGstCols.forEach(col => {
-    if (isGst) {
-      col.style.display = '';
-    } else {
-      col.style.display = 'none';
-    }
-  });
+  let totalQty = 0;
 
   bill.items.forEach((item, index) => {
+    totalQty += item.qty;
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${index + 1}</td>
-      <td class="font-medium">${item.name}</td>
-      <td class="text-right">${formatCurrency(item.price)}</td>
-      <td class="text-center">${item.qty}</td>
-      <td class="text-right gst-print-col" style="${isGst ? '' : 'display:none;'}">${item.gstRate}%</td>
-      <td class="text-right gst-print-col" style="${isGst ? '' : 'display:none;'}">${formatCurrency(item.gstAmount)}</td>
-      <td class="text-right font-medium">${formatCurrency(item.total)}</td>
+      <td style="border-right: 1px solid #000; padding: 6px; text-align: center;">${index + 1}</td>
+      <td style="border-right: 1px solid #000; padding: 6px; font-weight: 500;">
+        ${item.name}
+      </td>
+      <td style="border-right: 1px solid #000; padding: 6px; text-align: center;">6205</td>
+      <td style="border-right: 1px solid #000; padding: 6px; text-align: center;">${isGst ? item.gstRate + '%' : '0%'}</td>
+      <td style="border-right: 1px solid #000; padding: 6px; text-align: right;">${item.qty} pcs</td>
+      <td style="border-right: 1px solid #000; padding: 6px; text-align: right;">${item.price.toFixed(2)}</td>
+      <td style="border-right: 1px solid #000; padding: 6px; text-align: center;">pcs</td>
+      <td style="padding: 6px; text-align: right;">${(item.price * item.qty).toFixed(2)}</td>
     `;
     tbody.appendChild(tr);
   });
 
-  // Summary figures
-  document.getElementById('print-subtotal').textContent = formatCurrency(bill.subtotal);
-  document.getElementById('print-gst').textContent = formatCurrency(bill.totalGst);
-  document.getElementById('print-discount').textContent = `- ${formatCurrency(bill.discount)}`;
-  document.getElementById('print-total').textContent = formatCurrency(bill.totalAmount);
+  // If GST is active, append CGST & SGST rows at the bottom of the items list
+  if (isGst && bill.totalGst > 0) {
+    const cgstRate = 2.5; // Since we default to 5% GST for garments HSN 6205
+    const cgstAmt = bill.totalGst / 2;
+    
+    // CGST Row
+    const trCgst = document.createElement('tr');
+    trCgst.innerHTML = `
+      <td style="border-right: 1px solid #000; padding: 6px;"></td>
+      <td style="border-right: 1px solid #000; padding: 6px; font-style: italic; text-align: right; font-weight: bold; padding-right: 20px; color:#000;">
+        Cgst @ ${cgstRate.toFixed(1)}%
+      </td>
+      <td style="border-right: 1px solid #000; padding: 6px;"></td>
+      <td style="border-right: 1px solid #000; padding: 6px;"></td>
+      <td style="border-right: 1px solid #000; padding: 6px;"></td>
+      <td style="border-right: 1px solid #000; padding: 6px;"></td>
+      <td style="border-right: 1px solid #000; padding: 6px;"></td>
+      <td style="padding: 6px; text-align: right; font-weight: bold; color:#000;">${cgstAmt.toFixed(2)}</td>
+    `;
+    tbody.appendChild(trCgst);
+
+    // SGST Row
+    const trSgst = document.createElement('tr');
+    trSgst.innerHTML = `
+      <td style="border-right: 1px solid #000; padding: 6px;"></td>
+      <td style="border-right: 1px solid #000; padding: 6px; font-style: italic; text-align: right; font-weight: bold; padding-right: 20px; color:#000;">
+        Sgst @ ${cgstRate.toFixed(1)}%
+      </td>
+      <td style="border-right: 1px solid #000; padding: 6px;"></td>
+      <td style="border-right: 1px solid #000; padding: 6px;"></td>
+      <td style="border-right: 1px solid #000; padding: 6px;"></td>
+      <td style="border-right: 1px solid #000; padding: 6px;"></td>
+      <td style="border-right: 1px solid #000; padding: 6px;"></td>
+      <td style="padding: 6px; text-align: right; font-weight: bold; color:#000;">${cgstAmt.toFixed(2)}</td>
+    `;
+    tbody.appendChild(trSgst);
+  }
+
+  // If there's a discount, append a Discount row at the bottom of the items list
+  if (bill.discount > 0) {
+    const trDiscount = document.createElement('tr');
+    trDiscount.innerHTML = `
+      <td style="border-right: 1px solid #000; padding: 6px;"></td>
+      <td style="border-right: 1px solid #000; padding: 6px; font-style: italic; text-align: right; font-weight: bold; padding-right: 20px; color: #ef4444;">
+        Less: Discount
+      </td>
+      <td style="border-right: 1px solid #000; padding: 6px;"></td>
+      <td style="border-right: 1px solid #000; padding: 6px;"></td>
+      <td style="border-right: 1px solid #000; padding: 6px;"></td>
+      <td style="border-right: 1px solid #000; padding: 6px;"></td>
+      <td style="border-right: 1px solid #000; padding: 6px;"></td>
+      <td style="padding: 6px; text-align: right; font-weight: bold; color: #ef4444;">-${bill.discount.toFixed(2)}</td>
+    `;
+    tbody.appendChild(trDiscount);
+  }
+
+  // Set Footers
+  document.getElementById('print-tally-total-qty').textContent = `${totalQty} pcs`;
+  document.getElementById('print-tally-total-amount').textContent = formatCurrency(bill.totalAmount);
+
+  // Set Amount in Words
+  document.getElementById('print-tally-amount-words').textContent = numberToWords(bill.totalAmount);
+
+  // Render HSN summary table & tax words
+  const hsnContainer = document.getElementById('print-tally-hsn-container');
+  const taxWordsContainer = document.getElementById('print-tally-tax-words-container');
+  
+  if (isGst && bill.totalGst > 0) {
+    hsnContainer.style.display = 'block';
+    taxWordsContainer.style.display = 'block';
+
+    const hsnTbody = document.getElementById('print-tally-hsn-tbody');
+    hsnTbody.innerHTML = '';
+
+    const cgstRate = 2.5; // 5% divided by 2
+    const cgstAmt = bill.totalGst / 2;
+
+    const trHsn = document.createElement('tr');
+    trHsn.innerHTML = `
+      <td style="border-right: 1px solid #000; padding: 6px;">6205</td>
+      <td style="border-right: 1px solid #000; padding: 6px; text-align: right;">${bill.subtotal.toFixed(2)}</td>
+      <td style="border-right: 1px solid #000; padding: 6px;">${cgstRate.toFixed(2)}%</td>
+      <td style="border-right: 1px solid #000; padding: 6px; text-align: right;">${cgstAmt.toFixed(2)}</td>
+      <td style="border-right: 1px solid #000; padding: 6px;">${cgstRate.toFixed(2)}%</td>
+      <td style="border-right: 1px solid #000; padding: 6px; text-align: right;">${cgstAmt.toFixed(2)}</td>
+      <td style="padding: 6px; text-align: right;">${bill.totalGst.toFixed(2)}</td>
+    `;
+    hsnTbody.appendChild(trHsn);
+
+    // HSN Total row
+    const trHsnTotal = document.createElement('tr');
+    trHsnTotal.style.fontWeight = 'bold';
+    trHsnTotal.style.borderTop = '1px solid #000';
+    trHsnTotal.innerHTML = `
+      <td style="border-right: 1px solid #000; padding: 6px;">Total</td>
+      <td style="border-right: 1px solid #000; padding: 6px; text-align: right;">${bill.subtotal.toFixed(2)}</td>
+      <td style="border-right: 1px solid #000; padding: 6px;"></td>
+      <td style="border-right: 1px solid #000; padding: 6px; text-align: right;">${cgstAmt.toFixed(2)}</td>
+      <td style="border-right: 1px solid #000; padding: 6px;"></td>
+      <td style="border-right: 1px solid #000; padding: 6px; text-align: right;">${cgstAmt.toFixed(2)}</td>
+      <td style="padding: 6px; text-align: right;">${bill.totalGst.toFixed(2)}</td>
+    `;
+    hsnTbody.appendChild(trHsnTotal);
+
+    // Set Tax Amount in Words
+    document.getElementById('print-tally-tax-words').textContent = numberToWords(bill.totalGst);
+  } else {
+    hsnContainer.style.display = 'none';
+    taxWordsContainer.style.display = 'none';
+  }
 
   // Show Modal
   document.getElementById('invoice-modal').classList.add('active');

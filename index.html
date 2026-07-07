@@ -864,81 +864,215 @@
         </div>
       </div>
       <div class="modal-body print-area" id="print-area">
-        <!-- RENDERED BY JAVASCRIPT FOR A CLEAN INVOICE PRINT OUT -->
-        <div class="invoice-printout">
-          <div class="invoice-printout-header">
-            <div class="company-brand">
-              <div class="brand-logo print-logo"><i class="ph-fill ph-wallet"></i></div>
-              <div>
-                <h2>Vikassy</h2>
-                <p>128, Elite Techno Hub, City Road, Mumbai - 400001</p>
-                <p>GSTIN: 27ABCDE1234F1Z0</p>
-              </div>
-            </div>
-            <div class="invoice-meta-info text-right">
-              <h1 class="invoice-heading-text">INVOICE</h1>
-              <p><strong>Invoice No:</strong> <span id="print-inv-no">INV-001</span></p>
-              <p><strong>Date:</strong> <span id="print-inv-date">2026-07-04</span></p>
-              <p><strong>Tax Scheme:</strong> <span id="print-inv-scheme">With GST</span></p>
-            </div>
+        <!-- RENDERED BY JAVASCRIPT FOR A CLEAN        <div class="invoice-printout" style="padding: 20px; font-family: 'Inter', sans-serif; color: #000; background-color: #fff; border: 1px solid #000; max-width: 800px; margin: 0 auto; box-shadow: none; border-radius: 0;">
+          
+          <!-- Document Title Header -->
+          <div style="text-align: center; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #000; padding-bottom: 4px; margin-bottom: 0; color:#000;">
+            Tax Invoice
           </div>
 
-          <hr class="invoice-divider">
-
-          <div class="invoice-billing-row">
-            <div class="bill-to">
-              <span class="section-label">Bill To:</span>
-              <h3 id="print-client-name">Client Name</h3>
-              <p id="print-client-company">Client Company</p>
-              <p id="print-client-address">Billing Address Line 1</p>
-              <p><strong>GSTIN:</strong> <span id="print-client-gstin">Unregistered</span></p>
-              <p><strong>Email:</strong> <span id="print-client-email">john@example.com</span> | <strong>Phone:</strong> <span id="print-client-phone">+91 99999 88888</span></p>
-            </div>
-          </div>
-
-          <table class="invoice-printout-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Item Description</th>
-                <th class="text-right">Price (₹)</th>
-                <th class="text-center">Qty</th>
-                <th class="text-right gst-print-col">GST (%)</th>
-                <th class="text-right gst-print-col">GST Amt (₹)</th>
-                <th class="text-right">Total (₹)</th>
-              </tr>
-            </thead>
-            <tbody id="print-items-tbody">
-              <!-- Rendered via JS -->
-            </tbody>
+          <!-- Top Grid (Seller & Consignee Left, Metadata Right) -->
+          <table style="width: 100%; border-collapse: collapse; border-bottom: 1px solid #000; margin-bottom: 0;">
+            <tr>
+              <!-- Left Side (Sellers, Ship to, Bill to) -->
+              <td style="width: 50%; border-right: 1px solid #000; vertical-align: top; padding: 8px; font-size: 11px; line-height: 1.4; color:#000;">
+                <div style="font-weight: bold; font-size: 13px; margin-bottom: 2px;">VARAHI EXPORTS</div>
+                <div>8/2933 A, Karuparayan Kovil,</div>
+                <div>3rd Street, Pandian Nagar,</div>
+                <div>Tirupur - 641603.</div>
+                <div>Mob: 9994685525</div>
+                <div>GSTIN/UIN: <span style="font-weight: 600;">33CKMPS0071D1ZC</span></div>
+                <div>State Name: Tamil Nadu, Code: 33</div>
+                <div>E-Mail: varahi.export@gmail.com</div>
+                
+                <div style="border-top: 1px solid #000; margin-top: 8px; padding-top: 8px;">
+                  <div style="font-weight: bold; text-transform: uppercase; font-size: 9px; color: #444; margin-bottom: 2px;">Consignee (Ship to)</div>
+                  <div id="print-consignee-name" style="font-weight: bold;">-</div>
+                  <div id="print-consignee-address">-</div>
+                  <div>GSTIN/UIN: <span id="print-consignee-gstin" style="font-weight: 600;">-</span></div>
+                  <div>State Name: Tamil Nadu, Code: 33</div>
+                </div>
+                
+                <div style="border-top: 1px solid #000; margin-top: 8px; padding-top: 8px;">
+                  <div style="font-weight: bold; text-transform: uppercase; font-size: 9px; color: #444; margin-bottom: 2px;">Buyer (Bill to)</div>
+                  <div id="print-buyer-name" style="font-weight: bold;">-</div>
+                  <div id="print-buyer-address">-</div>
+                  <div>GSTIN/UIN: <span id="print-buyer-gstin" style="font-weight: 600;">-</span></div>
+                  <div>State Name: Tamil Nadu, Code: 33</div>
+                </div>
+              </td>
+              
+              <!-- Right Side (Tally Metadata Grid) -->
+              <td style="width: 50%; vertical-align: top; padding: 0; font-size: 11px; color:#000;">
+                <table style="width: 100%; border-collapse: collapse; height: 100%;">
+                  <tr>
+                    <td style="width: 50%; border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 6px; vertical-align: top;">
+                      <div style="color: #444; font-size: 8px; text-transform: uppercase;">Invoice No.</div>
+                      <div id="print-tally-inv-no" style="font-weight: bold; font-size: 12px; margin-top: 2px;">-</div>
+                    </td>
+                    <td style="width: 50%; border-bottom: 1px solid #000; padding: 6px; vertical-align: top;">
+                      <div style="color: #444; font-size: 8px; text-transform: uppercase;">Dated</div>
+                      <div id="print-tally-date" style="font-weight: bold; margin-top: 2px;">-</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="width: 50%; border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 6px; vertical-align: top;">
+                      <div style="color: #444; font-size: 8px; text-transform: uppercase;">Delivery Note</div>
+                      <div style="margin-top: 2px;">-</div>
+                    </td>
+                    <td style="width: 50%; border-bottom: 1px solid #000; padding: 6px; vertical-align: top;">
+                      <div style="color: #444; font-size: 8px; text-transform: uppercase;">Mode/Terms of Payment</div>
+                      <div style="margin-top: 2px;">-</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="width: 50%; border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 6px; vertical-align: top;">
+                      <div style="color: #444; font-size: 8px; text-transform: uppercase;">Reference No. & Date.</div>
+                      <div style="margin-top: 2px;">-</div>
+                    </td>
+                    <td style="width: 50%; border-bottom: 1px solid #000; padding: 6px; vertical-align: top;">
+                      <div style="color: #444; font-size: 8px; text-transform: uppercase;">Other References</div>
+                      <div style="margin-top: 2px;">-</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="width: 50%; border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 6px; vertical-align: top;">
+                      <div style="color: #444; font-size: 8px; text-transform: uppercase;">Buyer's Order No.</div>
+                      <div style="margin-top: 2px;">-</div>
+                    </td>
+                    <td style="width: 50%; border-bottom: 1px solid #000; padding: 6px; vertical-align: top;">
+                      <div style="color: #444; font-size: 8px; text-transform: uppercase;">Dated</div>
+                      <div style="margin-top: 2px;">-</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="width: 50%; border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 6px; vertical-align: top;">
+                      <div style="color: #444; font-size: 8px; text-transform: uppercase;">Dispatch Doc No.</div>
+                      <div style="margin-top: 2px;">-</div>
+                    </td>
+                    <td style="width: 50%; border-bottom: 1px solid #000; padding: 6px; vertical-align: top;">
+                      <div style="color: #444; font-size: 8px; text-transform: uppercase;">Delivery Note Date</div>
+                      <div style="margin-top: 2px;">-</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="width: 50%; border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 6px; vertical-align: top;">
+                      <div style="color: #444; font-size: 8px; text-transform: uppercase;">Dispatched through</div>
+                      <div style="margin-top: 2px;">-</div>
+                    </td>
+                    <td style="width: 50%; border-bottom: 1px solid #000; padding: 6px; vertical-align: top;">
+                      <div style="color: #444; font-size: 8px; text-transform: uppercase;">Destination</div>
+                      <div style="margin-top: 2px;">-</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="padding: 6px; vertical-align: top; height: 60px;">
+                      <div style="color: #444; font-size: 8px; text-transform: uppercase;">Terms of Delivery</div>
+                      <div style="margin-top: 4px; line-height: 1.3;">-</div>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
           </table>
 
-          <div class="invoice-printout-totals">
-            <div class="totals-col">
-              <div class="totals-row">
-                <span>Subtotal:</span>
-                <span id="print-subtotal">₹0.00</span>
-              </div>
-              <div class="totals-row gst-print-col">
-                <span>GST Total:</span>
-                <span id="print-gst">₹0.00</span>
-              </div>
-              <div class="totals-row">
-                <span>Discount:</span>
-                <span id="print-discount">-₹0.00</span>
-              </div>
-              <hr class="divider">
-              <div class="totals-row grand-total-row">
-                <span>Grand Total:</span>
-                <span id="print-total">₹0.00</span>
-              </div>
-            </div>
+          <!-- Line Items Table -->
+          <table style="width: 100%; border-collapse: collapse; border-bottom: 1px solid #000; font-size: 11px; color:#000;">
+            <thead>
+              <tr style="border-bottom: 1px solid #000; background-color: #fff; font-weight: bold;">
+                <th style="border-right: 1px solid #000; padding: 6px; width: 40px; text-align: center;">Sl No.</th>
+                <th style="border-right: 1px solid #000; padding: 6px; text-align: left;">Description of Goods</th>
+                <th style="border-right: 1px solid #000; padding: 6px; width: 70px; text-align: center;">HSN/SAC</th>
+                <th style="border-right: 1px solid #000; padding: 6px; width: 60px; text-align: center;">GST Rate</th>
+                <th style="border-right: 1px solid #000; padding: 6px; width: 80px; text-align: right;">Quantity</th>
+                <th style="border-right: 1px solid #000; padding: 6px; width: 80px; text-align: right;">Rate</th>
+                <th style="border-right: 1px solid #000; padding: 6px; width: 50px; text-align: center;">per</th>
+                <th style="padding: 6px; width: 100px; text-align: right;">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="print-tally-items-tbody">
+              <!-- Rendered via JS -->
+            </tbody>
+            <tfoot>
+              <tr style="border-top: 1px solid #000; font-weight: bold; background-color: #fff;">
+                <td colspan="4" style="border-right: 1px solid #000; padding: 6px; text-align: right;">Total</td>
+                <td id="print-tally-total-qty" style="border-right: 1px solid #000; padding: 6px; text-align: right;">-</td>
+                <td style="border-right: 1px solid #000; padding: 6px;"></td>
+                <td style="border-right: 1px solid #000; padding: 6px;"></td>
+                <td id="print-tally-total-amount" style="padding: 6px; text-align: right;">₹0.00</td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <!-- Amount Chargeable in words -->
+          <div style="border-bottom: 1px solid #000; padding: 8px; font-size: 11px; line-height: 1.4; color:#000;">
+            <span style="color: #444; font-size: 8px; text-transform: uppercase; display: block; margin-bottom: 2px;">Amount Chargeable (in words)</span>
+            <div id="print-tally-amount-words" style="font-weight: bold;">-</div>
           </div>
 
-          <div class="invoice-footer-notes">
-            <p>Thank you for your business!</p>
-            <p class="small text-muted">This is a computer-generated document. No physical signature is required.</p>
+          <!-- HSN/SAC Summary Table -->
+          <div id="print-tally-hsn-container" style="border-bottom: 1px solid #000; display:none; color:#000;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 10px; text-align: center;">
+              <thead>
+                <tr style="border-bottom: 1px solid #000; font-weight: bold;">
+                  <th rowspan="2" style="border-right: 1px solid #000; padding: 4px; vertical-align: middle;">HSN/SAC</th>
+                  <th rowspan="2" style="border-right: 1px solid #000; padding: 4px; vertical-align: middle;">Taxable Value</th>
+                  <th colspan="2" style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px;">Central Tax</th>
+                  <th colspan="2" style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px;">State Tax</th>
+                  <th rowspan="2" style="padding: 4px; vertical-align: middle;">Total Tax Amount</th>
+                </tr>
+                <tr style="border-bottom: 1px solid #000; font-weight: bold;">
+                  <th style="border-right: 1px solid #000; padding: 4px; width: 60px;">Rate</th>
+                  <th style="border-right: 1px solid #000; padding: 4px; width: 80px;">Amount</th>
+                  <th style="border-right: 1px solid #000; padding: 4px; width: 60px;">Rate</th>
+                  <th style="border-right: 1px solid #000; padding: 4px; width: 80px;">Amount</th>
+                </tr>
+              </thead>
+              <tbody id="print-tally-hsn-tbody">
+                <!-- Rendered via JS -->
+              </tbody>
+            </table>
           </div>
+
+          <!-- Tax Amount in words -->
+          <div id="print-tally-tax-words-container" style="border-bottom: 1px solid #000; padding: 8px; font-size: 11px; line-height: 1.4; display:none; color:#000;">
+            <span style="color: #444; font-size: 8px; text-transform: uppercase; display: block; margin-bottom: 2px;">Tax Amount (in words)</span>
+            <div id="print-tally-tax-words" style="font-weight: bold;">-</div>
+          </div>
+
+          <!-- Bottom Bank Details & Signatures -->
+          <table style="width: 100%; border-collapse: collapse; font-size: 11px; color:#000;">
+            <tr>
+              <!-- Bank details & Declaration -->
+              <td style="width: 50%; border-right: 1px solid #000; vertical-align: top; padding: 8px; line-height: 1.5;">
+                <div style="font-weight: bold; text-decoration: underline; margin-bottom: 4px; font-size: 10px; text-transform: uppercase; color: #444;">Company's Bank Details</div>
+                <div>Bank Name: <span style="font-weight: bold;">CANARA BANK</span></div>
+                <div>A/c No.: <span style="font-weight: bold;">12001346874</span></div>
+                <div>Branch & IFS Code: <span style="font-weight: bold;">SME BRANCH, TIRUPUR & CNRB0002415</span></div>
+                
+                <div style="margin-top: 10px; border-top: 1px dashed #bbb; padding-top: 6px;">
+                  <span style="font-weight: bold; font-size: 8px; text-transform: uppercase; color: #444; display: block; margin-bottom: 2px;">Declaration</span>
+                  <div style="font-size: 9px; color: #444; line-height: 1.3;">We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</div>
+                </div>
+              </td>
+              
+              <!-- Signatory section -->
+              <td style="width: 50%; vertical-align: top; padding: 8px; text-align: right; height: 110px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div style="font-size: 10px;">
+                  <span style="color: #444;">for</span> <span style="font-weight: bold; text-transform: uppercase;">Varahi Exports</span>
+                </div>
+                <div style="margin-top: 60px; font-size: 10px; font-weight: bold;">
+                  Authorised Signatory
+                </div>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Computer Generated disclaimer footer -->
+          <div style="border-top: 1px solid #000; text-align: center; font-size: 9px; color: #444; padding-top: 4px; margin-top: 6px;">
+            This is a Computer Generated Invoice
+          </div>
+
         </div>
       </div>
     </div>
