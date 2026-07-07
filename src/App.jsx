@@ -1280,7 +1280,7 @@ export default function App() {
               <div className="table-card bg-surface border">
                 <h3>Client Concentration Risk</h3>
                 <p className="small text-muted" style={{ marginBottom: '16px' }}>Assess transactional dependency share.</p>
-                <div className="table-responsive">
+                <div className="table-responsive desktop-table-container">
                   <table className="data-table">
                     <thead>
                       <tr>
@@ -1316,6 +1316,36 @@ export default function App() {
                     </tbody>
                   </table>
                 </div>
+                <div className="mobile-cards-container">
+                  {Object.entries(
+                    bills.reduce((acc, b) => {
+                      const c = clients.find(cl => cl._id === b.clientId);
+                      const name = c ? c.name : 'Unknown';
+                      acc[name] = (acc[name] || 0) + b.totalAmount;
+                      return acc;
+                    }, {})
+                  ).map(([name, sum]) => {
+                    const total = bills.reduce((s, b) => s + b.totalAmount, 0) || 1;
+                    const pct = (sum / total) * 100;
+                    return (
+                      <div key={name} style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '12px', borderRadius: '8px', backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--color-border)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                          <span style={{ fontWeight: 600 }}>{name}</span>
+                          <span style={{ color: 'var(--color-primary)', fontWeight: 600 }}>{pct.toFixed(1)}%</span>
+                        </div>
+                        <div style={{ height: '6px', width: '100%', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${pct}%`, backgroundColor: 'var(--color-primary)', borderRadius: '3px' }}></div>
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', textAlign: 'right' }}>
+                          {formatCurrency(sum)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {bills.length === 0 && (
+                    <div className="text-center text-muted" style={{ padding: '16px' }}>No billing summaries computed.</div>
+                  )}
+                </div>
               </div>
             </div>
           </section>
@@ -1341,7 +1371,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="table-card bg-surface border">
+            <div className="table-card bg-surface border desktop-table-container">
               <div className="table-responsive">
                 <table className="data-table">
                   <thead>
@@ -1379,6 +1409,58 @@ export default function App() {
                 </table>
               </div>
             </div>
+
+            <div className="mobile-cards-container">
+              {clients.filter(c => c.name.toLowerCase().includes(clientSearch.toLowerCase()) || (c.companyName || '').toLowerCase().includes(clientSearch.toLowerCase())).map(c => (
+                <div key={c._id} className="mobile-card">
+                  <div className="mobile-card-header">
+                    <div className="mobile-card-title">{c.name}</div>
+                    <span className="badge" style={{
+                      backgroundColor: c.gstin ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
+                      color: c.gstin ? 'var(--color-success)' : 'var(--color-danger)',
+                      border: c.gstin ? '1px solid rgba(16,185,129,0.2)' : '1px solid rgba(239,68,68,0.2)',
+                      fontSize: '10px',
+                      padding: '2px 6px',
+                      borderRadius: '8px'
+                    }}>{c.gstin ? 'GST' : 'Regular'}</span>
+                  </div>
+                  <div className="mobile-card-body">
+                    <div className="mobile-card-detail">
+                      <span className="mobile-card-detail-label">Company</span>
+                      <span className="mobile-card-detail-value">{c.companyName || '-'}</span>
+                    </div>
+                    <div className="mobile-card-detail">
+                      <span className="mobile-card-detail-label">GSTIN</span>
+                      <span className="mobile-card-detail-value" style={{ color: 'var(--color-primary)' }}>{c.gstin || 'Unregistered'}</span>
+                    </div>
+                    <div className="mobile-card-detail">
+                      <span className="mobile-card-detail-label">Phone</span>
+                      <span className="mobile-card-detail-value">{c.phone || '-'}</span>
+                    </div>
+                    <div className="mobile-card-detail">
+                      <span className="mobile-card-detail-label">Email</span>
+                      <span className="mobile-card-detail-value">{c.email || '-'}</span>
+                    </div>
+                  </div>
+                  {c.address && (
+                    <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', padding: '0 4px' }}>
+                      <strong>Address: </strong>{c.address}
+                    </div>
+                  )}
+                  <div className="mobile-card-footer">
+                    <button className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => openEditClient(c)}>
+                      <i className="ph ph-pencil-simple"></i> Edit
+                    </button>
+                    <button className="btn btn-secondary text-red" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => deleteClient(c._id)}>
+                      <i className="ph ph-trash"></i> Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {clients.length === 0 && (
+                <div className="text-center text-muted" style={{ padding: '24px' }}>No client records found. Register your first buyer!</div>
+              )}
+            </div>
           </section>
         )}
 
@@ -1402,7 +1484,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="table-card bg-surface border">
+            <div className="table-card bg-surface border desktop-table-container">
               <div className="table-responsive">
                 <table className="data-table">
                   <thead>
@@ -1456,6 +1538,64 @@ export default function App() {
                 </table>
               </div>
             </div>
+
+            <div className="mobile-cards-container">
+              {bills.filter(b => b.billNumber.toLowerCase().includes(billSearch.toLowerCase())).map(b => {
+                const c = clients.find(cl => cl._id === b.clientId);
+                return (
+                  <div key={b._id} className="mobile-card">
+                    <div className="mobile-card-header">
+                      <div className="mobile-card-title" style={{ color: 'var(--color-primary)' }}>{b.billNumber}</div>
+                      <span className="badge" style={{
+                        backgroundColor: b.billType === 'with-gst' ? 'rgba(124,58,237,0.1)' : 'rgba(255,255,255,0.05)',
+                        color: b.billType === 'with-gst' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        fontSize: '10px',
+                        padding: '2px 6px',
+                        borderRadius: '8px'
+                      }}>{b.billType === 'with-gst' ? 'GST (5%)' : 'No GST'}</span>
+                    </div>
+                    <div className="mobile-card-body">
+                      <div className="mobile-card-detail">
+                        <span className="mobile-card-detail-label">Client</span>
+                        <span className="mobile-card-detail-value">{c ? c.name : 'Unknown Client'}</span>
+                      </div>
+                      <div className="mobile-card-detail">
+                        <span className="mobile-card-detail-label">Grand Total</span>
+                        <span className="mobile-card-detail-value" style={{ color: 'var(--color-success)' }}>{formatCurrency(b.totalAmount)}</span>
+                      </div>
+                      <div className="mobile-card-detail">
+                        <span className="mobile-card-detail-label">Date</span>
+                        <span className="mobile-card-detail-value">{formatDate(b.date)}</span>
+                      </div>
+                      <div className="mobile-card-detail">
+                        <span className="mobile-card-detail-label">Tax Amount</span>
+                        <span className="mobile-card-detail-value">{formatCurrency(b.totalGst)}</span>
+                      </div>
+                    </div>
+                    <div className="mobile-card-footer">
+                      {b.fileData && (
+                        <a href={b.fileData} download={b.fileName} className="badge" style={{ textDecoration: 'none', backgroundColor: 'rgba(124,58,237,0.1)', color: 'var(--color-primary)', display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '6px 10px', fontSize: '11px', borderRadius: '6px', border: '1px solid rgba(124,58,237,0.2)' }}>
+                          <i className="ph ph-paperclip"></i> File
+                        </a>
+                      )}
+                      <button className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '11px' }} onClick={() => { setViewingInvoice(b); setIsInvoiceViewOpen(true); }}>
+                        <i className="ph ph-file-text"></i> View
+                      </button>
+                      <button className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '11px' }} onClick={() => openEditBill(b)}>
+                        <i className="ph ph-pencil-simple"></i> Edit
+                      </button>
+                      <button className="btn btn-secondary text-red" style={{ padding: '6px 10px', fontSize: '11px' }} onClick={() => deleteBill(b._id)}>
+                        <i className="ph ph-trash"></i> Delete
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+              {bills.length === 0 && (
+                <div className="text-center text-muted" style={{ padding: '24px' }}>No invoices logged. Log an invoice to calculate sales records.</div>
+              )}
+            </div>
           </section>
         )}
 
@@ -1479,7 +1619,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="table-card bg-surface border">
+            <div className="table-card bg-surface border desktop-table-container">
               <div className="table-responsive">
                 <table className="data-table">
                   <thead>
@@ -1515,6 +1655,42 @@ export default function App() {
                 </table>
               </div>
             </div>
+
+            <div className="mobile-cards-container">
+              {employees.filter(e => e.name.toLowerCase().includes(employeeSearch.toLowerCase())).map(emp => (
+                <div key={emp._id} className="mobile-card">
+                  <div className="mobile-card-header">
+                    <div className="mobile-card-title">{emp.name}</div>
+                    <span className="badge" style={{ backgroundColor: 'rgba(124,58,237,0.08)', color: 'var(--color-primary)', border: '1px solid rgba(124,58,237,0.15)', fontSize: '10px', padding: '2px 6px', borderRadius: '8px' }}>{emp.role}</span>
+                  </div>
+                  <div className="mobile-card-body">
+                    <div className="mobile-card-detail">
+                      <span className="mobile-card-detail-label">Stitch Rate</span>
+                      <span className="mobile-card-detail-value">{formatCurrency(emp.stitchRate)} / Pcs</span>
+                    </div>
+                    <div className="mobile-card-detail">
+                      <span className="mobile-card-detail-label">Basic Salary</span>
+                      <span className="mobile-card-detail-value">{formatCurrency(emp.salary)}</span>
+                    </div>
+                    <div className="mobile-card-detail" style={{ gridColumn: 'span 2' }}>
+                      <span className="mobile-card-detail-label">Phone</span>
+                      <span className="mobile-card-detail-value">{emp.phone || '-'}</span>
+                    </div>
+                  </div>
+                  <div className="mobile-card-footer">
+                    <button className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => openEditEmployee(emp)}>
+                      <i className="ph ph-pencil-simple"></i> Edit
+                    </button>
+                    <button className="btn btn-secondary text-red" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => deleteEmployee(emp._id)}>
+                      <i className="ph ph-trash"></i> Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {employees.length === 0 && (
+                <div className="text-center text-muted" style={{ padding: '24px' }}>No crew registered. Add employees to log stitching operations.</div>
+              )}
+            </div>
           </section>
         )}
 
@@ -1545,7 +1721,7 @@ export default function App() {
 
             <div className="grid-layout-2" style={{ gridTemplateColumns: '1.4fr 1fr', gap: '24px' }}>
               {/* Left Side: Fabric list */}
-              <div className="table-card bg-surface border" style={{ padding: '20px' }}>
+              <div className="table-card bg-surface border desktop-table-container" style={{ padding: '20px' }}>
                 <h3 style={{ marginBottom: '16px' }}>Fabric Roll Stock ledger</h3>
                 <div className="table-responsive">
                   <table className="data-table">
@@ -1594,8 +1770,51 @@ export default function App() {
                 </div>
               </div>
 
+              <div className="mobile-cards-container">
+                {fabrics.filter(f => f.fabricType.toLowerCase().includes(fabricSearch.toLowerCase()) || f.color.toLowerCase().includes(fabricSearch.toLowerCase()) || f.supplier.toLowerCase().includes(fabricSearch.toLowerCase())).map(f => (
+                  <div key={f._id} className="mobile-card">
+                    <div className="mobile-card-header">
+                      <div className="mobile-card-title">{f.fabricType}</div>
+                      <span className={`badge ${f.status === 'Completed' ? 'badge-success' : f.status === 'Stitching' ? 'badge-gst' : 'badge-neutral'}`}>{f.status}</span>
+                    </div>
+                    <div className="mobile-card-body">
+                      <div className="mobile-card-detail">
+                        <span className="mobile-card-detail-label">Color</span>
+                        <span className="mobile-card-detail-value" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: f.color.toLowerCase(), border: '1px solid rgba(255,255,255,0.1)' }}></span>
+                          {f.color}
+                        </span>
+                      </div>
+                      <div className="mobile-card-detail">
+                        <span className="mobile-card-detail-label">Qty Received</span>
+                        <span className="mobile-card-detail-value">{f.quantityReceived} Pcs</span>
+                      </div>
+                      <div className="mobile-card-detail">
+                        <span className="mobile-card-detail-label">Received Date</span>
+                        <span className="mobile-card-detail-value">{formatDate(f.receivedDate)}</span>
+                      </div>
+                      <div className="mobile-card-detail">
+                        <span className="mobile-card-detail-label">Supplier</span>
+                        <span className="mobile-card-detail-value">{f.supplier}</span>
+                      </div>
+                    </div>
+                    <div className="mobile-card-footer">
+                      <button className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => openEditFabric(f)}>
+                        <i className="ph ph-pencil-simple"></i> Edit
+                      </button>
+                      <button className="btn btn-secondary text-red" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => deleteFabric(f._id)}>
+                        <i className="ph ph-trash"></i> Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {fabrics.length === 0 && (
+                  <div className="text-center text-muted" style={{ padding: '16px' }}>No fabric rolls logged.</div>
+                )}
+              </div>
+
               {/* Right Side: Stitch allocations list */}
-              <div className="table-card bg-surface border" style={{ padding: '20px' }}>
+              <div className="table-card bg-surface border desktop-table-container" style={{ padding: '20px' }}>
                 <h3 style={{ marginBottom: '16px' }}>Active Stitching Assignments</h3>
                 <div className="table-responsive">
                   <table className="data-table">
@@ -1634,6 +1853,45 @@ export default function App() {
                     </tbody>
                   </table>
                 </div>
+              </div>
+
+              <div className="mobile-cards-container">
+                {stitching.map(s => {
+                  const emp = employees.find(e => e._id === s.employeeId);
+                  return (
+                    <div key={s._id} className="mobile-card">
+                      <div className="mobile-card-header">
+                        <div className="mobile-card-title">{emp ? emp.name : 'Unknown Staff'}</div>
+                        <span className={`badge ${s.status === 'Completed' ? 'badge-success' : 'badge-gst'}`}>{s.status}</span>
+                      </div>
+                      <div className="mobile-card-body">
+                        <div className="mobile-card-detail">
+                          <span className="mobile-card-detail-label">Qty Stitched</span>
+                          <span className="mobile-card-detail-value">{s.piecesStitched} Pcs</span>
+                        </div>
+                        <div className="mobile-card-detail">
+                          <span className="mobile-card-detail-label">Total Payout</span>
+                          <span className="mobile-card-detail-value" style={{ color: 'var(--color-primary)' }}>{formatCurrency(s.totalPayment)}</span>
+                        </div>
+                        <div className="mobile-card-detail" style={{ gridColumn: 'span 2' }}>
+                          <span className="mobile-card-detail-label">Stitch Rate</span>
+                          <span className="mobile-card-detail-value">{formatCurrency(s.ratePerPiece)} / Pcs</span>
+                        </div>
+                      </div>
+                      <div className="mobile-card-footer">
+                        <button className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => openEditStitching(s)}>
+                          <i className="ph ph-pencil-simple"></i> Edit
+                        </button>
+                        <button className="btn btn-secondary text-red" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => deleteStitching(s._id)}>
+                          <i className="ph ph-trash"></i> Delete
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+                {stitching.length === 0 && (
+                  <div className="text-center text-muted" style={{ padding: '16px' }}>No active stitching assignments logged.</div>
+                )}
               </div>
             </div>
           </section>
@@ -1677,7 +1935,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="table-card bg-surface border" style={{ padding: '20px' }}>
+            <div className="table-card bg-surface border desktop-table-container" style={{ padding: '20px' }}>
               <h3 style={{ marginBottom: '16px' }}>CEO Logs Book</h3>
               <div className="table-responsive">
                 <table className="data-table">
@@ -1721,6 +1979,45 @@ export default function App() {
                   </tbody>
                 </table>
               </div>
+            </div>
+
+            <div className="mobile-cards-container">
+              {ceoActivities.map(act => (
+                <div key={act._id} className="mobile-card" style={{ borderLeft: act.isCritical ? '4px solid var(--color-primary)' : '1px solid var(--color-border)' }}>
+                  <div className="mobile-card-header">
+                    <div className="mobile-card-title">{act.focusArea}</div>
+                    <span className={`badge ${act.productivityLevel === 'High' ? 'badge-success' : act.productivityLevel === 'Medium' ? 'badge-gst' : 'badge-neutral'}`}>{act.productivityLevel}</span>
+                  </div>
+                  <div className="mobile-card-body">
+                    <div className="mobile-card-detail">
+                      <span className="mobile-card-detail-label">Hours Logged</span>
+                      <span className="mobile-card-detail-value">{act.hoursSpent} Hrs</span>
+                    </div>
+                    <div className="mobile-card-detail">
+                      <span className="mobile-card-detail-label">Critical Milestone</span>
+                      <span className="mobile-card-detail-value">{act.isCritical ? '⭐ Yes' : 'No'}</span>
+                    </div>
+                    <div className="mobile-card-detail">
+                      <span className="mobile-card-detail-label">Date</span>
+                      <span className="mobile-card-detail-value">{formatDate(act.date)}</span>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', padding: '0 4px', cursor: 'pointer', lineHeight: '1.4' }} onClick={() => setSelectedCeoDetail(act)}>
+                    <strong>Details: </strong>{act.description}
+                  </div>
+                  <div className="mobile-card-footer">
+                    <button className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => openEditCeo(act)}>
+                      <i className="ph ph-pencil-simple"></i> Edit
+                    </button>
+                    <button className="btn btn-secondary text-red" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => deleteCeoActivity(act._id)}>
+                      <i className="ph ph-trash"></i> Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {ceoActivities.length === 0 && (
+                <div className="text-center text-muted" style={{ padding: '24px' }}>No activity records logged.</div>
+              )}
             </div>
           </section>
         )}

@@ -2315,3 +2315,98 @@ input:checked + .slider:before {
   border-radius: var(--radius-md);
 }
 
+/* ==========================================
+   MOBILE CARD LISTS AND DESKTOP TABLE SWITCHES
+   ========================================== */
+.mobile-cards-container {
+  display: none;
+}
+.desktop-table-container {
+  display: block;
+}
+
+.mobile-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.mobile-card:active {
+  transform: scale(0.98);
+  background-color: var(--color-muted);
+}
+
+.mobile-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.mobile-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.mobile-card-subtitle {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.mobile-card-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  font-size: 13px;
+  border-top: 1px dashed var(--color-border);
+  border-bottom: 1px dashed var(--color-border);
+  padding: 8px 0;
+  margin: 4px 0;
+}
+
+.mobile-card-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mobile-card-detail-label {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mobile-card-detail-value {
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.mobile-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .mobile-cards-container {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    width: 100%;
+    margin-top: 12px;
+  }
+  .desktop-table-container {
+    display: none !important;
+  }
+}
+
