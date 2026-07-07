@@ -179,6 +179,7 @@ export default function App() {
   const [billGrandTotal, setBillGrandTotal] = useState('0');
   const [billAttachmentData, setBillAttachmentData] = useState(null);
   const [billAttachmentName, setBillAttachmentName] = useState('');
+  const [selectedFabricId, setSelectedFabricId] = useState('');
 
   // --- AI Chat Advisor state values ---
   const [chatMessages, setChatMessages] = useState([
@@ -729,6 +730,20 @@ export default function App() {
     const status = document.getElementById('stitch-status').value;
     const notes = document.getElementById('stitch-notes').value.trim();
 
+    // Fabric roll consumption safety validation check
+    const selectedFabric = fabrics.find(f => f._id === fabricId);
+    if (selectedFabric) {
+      const alreadyStitchedOtherAssignments = (stitching || [])
+        .filter(s => s.fabricId === fabricId && s._id !== (editingStitching?._id || ''))
+        .reduce((sum, s) => sum + s.piecesStitched, 0);
+      const remainingForThis = selectedFabric.quantityReceived - alreadyStitchedOtherAssignments;
+      
+      if (piecesStitched > remainingForThis) {
+        alert(`❌ Over-Allocation Warning: You allocated ${piecesStitched} Pcs, but only ${remainingForThis} Pcs are remaining in this fabric roll!`);
+        return;
+      }
+    }
+
     try {
       if (editingStitching) {
         await updateStitchingMutation({
@@ -751,6 +766,7 @@ export default function App() {
   const openEditStitching = (s) => {
     setEditingStitching(s);
     setIsStitchingModalOpen(true);
+    setSelectedFabricId(s.fabricId);
     setTimeout(() => {
       document.getElementById('stitch-employee').value = s.employeeId;
       document.getElementById('stitch-fabric').value = s.fabricId;
@@ -1039,6 +1055,99 @@ export default function App() {
 
     // Sort by time descending
     return activities.sort((a, b) => b.time - a.time).slice(0, 4);
+  };
+
+  // Get remaining pieces in a fabric roll by deducting completed/assigned stitch assignments
+  const getRemainingFabricQty = (fabricId, totalReceived) => {
+    const totalStitched = (stitching || [])
+      .filter(s => s.fabricId === fabricId)
+      .reduce((sum, s) => sum + s.piecesStitched, 0);
+    return Math.max(0, totalReceived - totalStitched);
+  };
+
+  // Export Invoices list to CSV file
+  const handleExportInvoicesCSV = () => {
+    if (bills.length === 0) {
+      alert("No invoice records to export!");
+      return;
+    }
+    const headers = ["Invoice Number", "Client Name", "Invoice Date", "Tax Scheme", "Subtotal (INR)", "GST Tax (INR)", "Discount (INR)", "Grand Total (INR)"];
+    const rows = bills.map(b => {
+      const c = clients.find(cl => cl._id === b.clientId);
+      return [
+        b.billNumber,
+        c ? c.name : 'Unknown Client',
+        b.date,
+        b.billType === 'with-gst' ? 'With GST (5%)' : 'Without GST',
+        b.subtotal,
+        b.totalGst,
+        b.discount,
+        b.totalAmount
+      ];
+    });
+
+    const csvContent = [headers.join(","), ...rows.map(e => e.map(val => `"${val}"`).join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Varahi_Exports_Invoices_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Export Stitching Crew list to CSV file
+  const handleExportEmployeesCSV = () => {
+    if (employees.length === 0) {
+      alert("No employee records to export!");
+      return;
+    }
+    const headers = ["Employee Name", "Phone", "Staff Role", "Sub Category / Specialization"];
+    const rows = employees.map(emp => [
+      emp.name,
+      emp.phone || '',
+      emp.role,
+      emp.subCategory || ''
+    ]);
+
+    const csvContent = [headers.join(","), ...rows.map(e => e.map(val => `"${val}"`).join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Varahi_Exports_Stitching_Crew_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Export Fabrics Inventory Stock list to CSV file
+  const handleExportFabricsCSV = () => {
+    if (fabrics.length === 0) {
+      alert("No fabric roll records to export!");
+      return;
+    }
+    const headers = ["Received Date", "Fabric Type", "Color", "Qty Received (Pcs)", "Qty Remaining (Pcs)", "Supplier", "Status"];
+    const rows = fabrics.map(f => [
+      f.receivedDate,
+      f.fabricType,
+      f.color,
+      f.quantityReceived,
+      getRemainingFabricQty(f._id, f.quantityReceived),
+      f.supplier,
+      f.status
+    ]);
+
+    const csvContent = [headers.join(","), ...rows.map(e => e.map(val => `"${val}"`).join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Varahi_Exports_Fabrics_Stock_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Seed demo data for empty database setup
@@ -1719,11 +1828,14 @@ export default function App() {
               </button>
             </header>
 
-            <div className="search-filter-row" style={{ marginBottom: '20px' }}>
+            <div className="search-filter-row" style={{ marginBottom: '20px', display: 'flex', gap: '12px' }}>
               <div className="search-input-wrapper">
                 <i className="ph ph-magnifying-glass"></i>
                 <input type="text" placeholder="Search bills by invoice number..." value={billSearch} onChange={(e) => setBillSearch(e.target.value)} />
               </div>
+              <button className="btn btn-secondary" onClick={handleExportInvoicesCSV} title="Export Invoices to CSV">
+                <i className="ph ph-file-csv"></i> Export CSV
+              </button>
             </div>
 
             <div className="table-card bg-surface border desktop-table-container">
@@ -1854,11 +1966,14 @@ export default function App() {
               </button>
             </header>
 
-            <div className="search-filter-row" style={{ marginBottom: '20px' }}>
+            <div className="search-filter-row" style={{ marginBottom: '20px', display: 'flex', gap: '12px' }}>
               <div className="search-input-wrapper">
                 <i className="ph ph-magnifying-glass"></i>
                 <input type="text" placeholder="Search employees by name..." value={employeeSearch} onChange={(e) => setEmployeeSearch(e.target.value)} />
               </div>
+              <button className="btn btn-secondary" onClick={handleExportEmployeesCSV} title="Export Stitching Crew to CSV">
+                <i className="ph ph-file-csv"></i> Export CSV
+              </button>
             </div>
 
             <div className="table-card bg-surface border desktop-table-container">
@@ -1958,17 +2073,20 @@ export default function App() {
                 <button className="btn btn-primary" onClick={() => setIsFabricModalOpen(true)}>
                   <i className="ph ph-plus-circle"></i> Log Fabric Roll
                 </button>
-                <button className="btn btn-accent" onClick={() => setIsStitchingModalOpen(true)}>
+                <button className="btn btn-accent" onClick={() => { setSelectedFabricId(""); setIsStitchingModalOpen(true); }}>
                   <i className="ph ph-scissors"></i> Stitch Allocation
                 </button>
               </div>
             </header>
 
-            <div className="search-filter-row" style={{ marginBottom: '20px' }}>
+            <div className="search-filter-row" style={{ marginBottom: '20px', display: 'flex', gap: '12px' }}>
               <div className="search-input-wrapper">
                 <i className="ph ph-magnifying-glass"></i>
                 <input type="text" placeholder="Search rolls by color, supplier, or fabric..." value={fabricSearch} onChange={(e) => setFabricSearch(e.target.value)} />
               </div>
+              <button className="btn btn-secondary" onClick={handleExportFabricsCSV} title="Export Fabric Stocks to CSV">
+                <i className="ph ph-file-csv"></i> Export CSV
+              </button>
             </div>
 
             <div className="grid-layout-2" style={{ gridTemplateColumns: '1.4fr 1fr', gap: '24px' }}>
@@ -1983,6 +2101,7 @@ export default function App() {
                         <th>Fabric Type</th>
                         <th>Color</th>
                         <th className="text-right">Qty Received</th>
+                        <th className="text-right">Qty Remaining</th>
                         <th>Supplier</th>
                         <th>Status</th>
                         <th className="text-right">Actions</th>
@@ -2000,6 +2119,7 @@ export default function App() {
                             </div>
                           </td>
                           <td className="text-right font-medium">{f.quantityReceived} Pcs</td>
+                          <td className="text-right font-semibold text-primary">{getRemainingFabricQty(f._id, f.quantityReceived)} Pcs</td>
                           <td>{f.supplier}</td>
                           <td>
                             <span className={`badge ${f.status === 'Completed' ? 'badge-success' : f.status === 'Stitching' ? 'badge-gst' : 'badge-neutral'}`}>
@@ -2014,7 +2134,7 @@ export default function App() {
                       ))}
                       {fabrics.length === 0 && (
                         <tr>
-                          <td colSpan="7" className="text-center text-muted">No fabric rolls logged.</td>
+                          <td colSpan="8" className="text-center text-muted">No fabric rolls logged.</td>
                         </tr>
                       )}
                     </tbody>
@@ -2040,6 +2160,10 @@ export default function App() {
                       <div className="mobile-card-detail">
                         <span className="mobile-card-detail-label">Qty Received</span>
                         <span className="mobile-card-detail-value">{f.quantityReceived} Pcs</span>
+                      </div>
+                      <div className="mobile-card-detail">
+                        <span className="mobile-card-detail-label">Qty Remaining</span>
+                        <span className="mobile-card-detail-value" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>{getRemainingFabricQty(f._id, f.quantityReceived)} Pcs</span>
                       </div>
                       <div className="mobile-card-detail">
                         <span className="mobile-card-detail-label">Received Date</span>
@@ -2541,9 +2665,36 @@ export default function App() {
                 </div>
 
                 {billWithGst && (
-                  <div className="form-group">
+                  <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <label htmlFor="bill-gst-input">GST Tax Amount (₹)</label>
                     <input type="number" id="bill-gst-input" min="0" step="any" placeholder="0.00" value={billGstAmount} onChange={(e) => handleGstAmountChange(e.target.value)} style={{ fontSize: '16px', padding: '12px 14px', fontWeight: 600 }} />
+                    {(() => {
+                      const clientObj = clients.find(c => c._id === billClient);
+                      const gstin = clientObj?.gstin || "";
+                      const isLocal = gstin.trim().startsWith("33") || !gstin.trim(); // Default TN (33) or empty B2C local
+                      const halfGst = (parseFloat(billGstAmount) || 0) / 2;
+                      return (
+                        <div style={{ padding: '10px 14px', borderRadius: 'var(--radius-sm)', backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px' }}>
+                          {isLocal ? (
+                            <>
+                              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span>CGST (2.5%)</span>
+                                <strong style={{ color: '#ffffff' }}>{formatCurrency(halfGst)}</strong>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span>SGST (2.5%)</span>
+                                <strong style={{ color: '#ffffff' }}>{formatCurrency(halfGst)}</strong>
+                              </div>
+                            </>
+                          ) : (
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <span>IGST (5%)</span>
+                              <strong style={{ color: '#ffffff' }}>{formatCurrency(parseFloat(billGstAmount) || 0)}</strong>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
 
@@ -2694,12 +2845,31 @@ export default function App() {
                 </div>
                 <div className="form-group">
                   <label htmlFor="stitch-fabric">Select Fabric Roll *</label>
-                  <select id="stitch-fabric" required style={{ fontSize: '15px', padding: '12px 14px' }}>
+                  <select id="stitch-fabric" required value={selectedFabricId} onChange={(e) => setSelectedFabricId(e.target.value)} style={{ fontSize: '15px', padding: '12px 14px' }}>
                     <option value="">-- Choose Fabric Roll --</option>
-                    {fabrics.map(fab => (
-                      <option key={fab._id} value={fab._id}>{fab.fabricType} ({fab.color})</option>
-                    ))}
+                    {fabrics.map(fab => {
+                      const rem = getRemainingFabricQty(fab._id, fab.quantityReceived);
+                      // If we are editing this assignment, add its pieces back to remaining count for disable check
+                      const addedBack = editingStitching && editingStitching.fabricId === fab._id ? editingStitching.piecesStitched : 0;
+                      const disableCheckVal = rem + addedBack;
+                      return (
+                        <option key={fab._id} value={fab._id} disabled={disableCheckVal <= 0}>
+                          {fab.fabricType} ({fab.color}) — {rem} Pcs left
+                        </option>
+                      );
+                    })}
                   </select>
+                  {selectedFabricId && (() => {
+                    const fab = fabrics.find(f => f._id === selectedFabricId);
+                    if (!fab) return null;
+                    const rem = getRemainingFabricQty(fab._id, fab.quantityReceived);
+                    return (
+                      <div className="small" style={{ marginTop: '6px', color: rem <= 0 ? 'var(--color-destructive)' : 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px' }}>
+                        <i className="ph ph-info"></i>
+                        <span>Roll Total: {fab.quantityReceived} Pcs | <strong>{rem} Pcs remaining</strong></span>
+                      </div>
+                    );
+                  })()}
                 </div>
                 <div className="form-row">
                   <div className="form-group">
