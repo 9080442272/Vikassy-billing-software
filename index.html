@@ -27,6 +27,80 @@
 </head>
 <body>
 
+  <!-- Premium Login/Register Authentication Screen -->
+  <div id="auth-screen" class="auth-overlay-wrapper">
+    <div class="auth-container-card">
+      <div class="auth-brand-logo">
+        <i class="ph-fill ph-wallet"></i>
+      </div>
+      
+      <!-- Login Box -->
+      <div id="auth-login-box" class="auth-box active">
+        <h2>Welcome Back</h2>
+        <p class="auth-desc">Sign in to your Varahi Exports Accounting Suite.</p>
+        <form id="login-form-element" onsubmit="handleUserLogin(event)" style="display:flex; flex-direction:column; gap:16px; margin-top:24px; width:100%;">
+          <div class="form-group" style="width: 100%;">
+            <label for="login-username">Username</label>
+            <div class="input-with-icon">
+              <i class="ph ph-user icon-leading"></i>
+              <input type="text" id="login-username" required placeholder="Enter username" style="padding-left: 44px; width: 100%;">
+            </div>
+          </div>
+          <div class="form-group" style="width: 100%;">
+            <label for="login-password">Password</label>
+            <div class="input-with-icon">
+              <i class="ph ph-lock icon-leading"></i>
+              <input type="password" id="login-password" required placeholder="••••••••" style="padding-left: 44px; width: 100%;">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="padding:14px; font-weight:700; width:100%; justify-content:center; font-size:15px; margin-top:8px;">Sign In</button>
+        </form>
+        <p class="auth-toggle-text" style="text-align:center; font-size:12px; margin-top:20px; color:var(--color-text-secondary);">
+          Don't have an account? <a href="#" onclick="toggleAuthForms(event, 'register')" style="color:var(--color-primary); font-weight:600; text-decoration:none;">Create Account</a>
+        </p>
+      </div>
+      
+      <!-- Register Box -->
+      <div id="auth-register-box" class="auth-box">
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+          <h2 style="font-size: 22px;">Create Account</h2>
+          <span id="setup-badge" class="badge" style="background-color:rgba(124,58,237,0.1); color:var(--color-primary); border:1px solid rgba(124,58,237,0.25); font-size:10px; padding:4px 8px; border-radius:12px; display:none;">✨ First-Time Setup</span>
+        </div>
+        <p class="auth-desc">Register administrative credentials to manage billing records.</p>
+        <form id="register-form-element" onsubmit="handleUserRegistration(event)" style="display:flex; flex-direction:column; gap:12px; margin-top:20px; width:100%;">
+          <div class="form-row" style="width: 100%;">
+            <div class="form-group">
+              <label for="reg-username">Username *</label>
+              <input type="text" id="reg-username" required placeholder="e.g. admin">
+            </div>
+            <div class="form-group">
+              <label for="reg-fullname">Full Name *</label>
+              <input type="text" id="reg-fullname" required placeholder="e.g. Owner">
+            </div>
+          </div>
+          <div class="form-group" style="width: 100%;">
+            <label for="reg-email">Email Address</label>
+            <input type="email" id="reg-email" placeholder="e.g. varahi.export@gmail.com" style="width: 100%;">
+          </div>
+          <div class="form-row" style="width: 100%;">
+            <div class="form-group">
+              <label for="reg-password">Password *</label>
+              <input type="password" id="reg-password" required placeholder="••••••••">
+            </div>
+            <div class="form-group">
+              <label for="reg-confirm-password">Confirm Password *</label>
+              <input type="password" id="reg-confirm-password" required placeholder="••••••••">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="padding:14px; font-weight:700; width:100%; justify-content:center; font-size:15px; margin-top:8px;">Register Account</button>
+        </form>
+        <p class="auth-toggle-text" style="text-align:center; font-size:12px; margin-top:20px; color:var(--color-text-secondary);">
+          Already have an account? <a href="#" onclick="toggleAuthForms(event, 'login')" style="color:var(--color-primary); font-weight:600; text-decoration:none;">Sign In</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
   <!-- Premium Framer Motion-Style Splash Screen -->
   <div id="app-splash-screen" class="splash-screen">
     <div class="splash-content">
@@ -114,9 +188,9 @@
         <i class="ph ph-briefcase"></i>
         <span>CEO Log</span>
       </button>
-      <button class="nav-item mobile-hidden-nav" data-tab="ai-advisor">
-        <i class="ph ph-sparkle"></i>
-        <span>AI Advisor</span>
+      <button class="nav-item mobile-hidden-nav" data-tab="account">
+        <i class="ph ph-user-gear"></i>
+        <span>Account</span>
       </button>
       <button class="nav-item mobile-only-nav" onclick="openMoreMenu()">
         <i class="ph ph-dots-three-outline"></i>
@@ -124,10 +198,10 @@
       </button>
     </nav>
     
-    <div class="user-profile">
-      <div class="avatar">VK</div>
+    <div class="user-profile" onclick="document.querySelector('.nav-item[data-tab=\'account\']').click()">
+      <div class="avatar" id="sidebar-avatar">VK</div>
       <div class="profile-info">
-        <span class="user-name">Vikassy</span>
+        <span class="user-name" id="sidebar-user-name">Guest</span>
         <span class="user-role">Administrator</span>
       </div>
     </div>
@@ -656,6 +730,74 @@
           </div>
         </div>
 
+      </div>
+    </section>
+
+    <!-- ACCOUNT SETTINGS VIEW -->
+    <section id="account-view" class="tab-view">
+      <header class="view-header">
+        <div>
+          <h1>Account Settings</h1>
+          <p class="subtitle">Update user profile information, change passcodes, or exit active session.</p>
+        </div>
+      </header>
+
+      <div class="grid-layout-2" style="grid-template-columns: 1.2fr 1fr; gap:24px; margin-top:24px;">
+        <!-- Left Side: Profile Information card -->
+        <div class="card bg-surface border" style="padding: 24px;">
+          <h3 style="margin-bottom:16px; display:flex; align-items:center; gap:8px;"><i class="ph ph-user-circle text-primary"></i> Edit Profile Info</h3>
+          <form id="profile-form" onsubmit="saveProfileDetails(event)" style="display:flex; flex-direction:column; gap:16px;">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="profile-username">Username (Non-editable)</label>
+                <input type="text" id="profile-username" readonly style="background-color: var(--color-muted); color: var(--color-text-secondary); cursor: not-allowed;">
+              </div>
+              <div class="form-group">
+                <label for="profile-fullname">Full Name *</label>
+                <input type="text" id="profile-fullname" required placeholder="e.g. Vikassy Manager">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="profile-email">Email Address</label>
+              <input type="email" id="profile-email" placeholder="e.g. varahi.export@gmail.com">
+            </div>
+            <button type="submit" class="btn btn-primary" style="align-self:flex-start; margin-top:8px;">Update Profile Info</button>
+          </form>
+        </div>
+
+        <!-- Right Side: Security settings / log out card -->
+        <div class="card bg-surface border" style="padding: 24px; display:flex; flex-direction:column; justify-content:space-between;">
+          <div>
+            <h3 style="margin-bottom:16px; display:flex; align-items:center; gap:8px;"><i class="ph ph-lock text-primary"></i> Change Password</h3>
+            <form id="password-form" onsubmit="updateUserPassword(event)" style="display:flex; flex-direction:column; gap:16px;">
+              <div class="form-group">
+                <label for="profile-old-pwd">Current Password *</label>
+                <input type="password" id="profile-old-pwd" required placeholder="••••••••">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="profile-new-pwd">New Password *</label>
+                  <input type="password" id="profile-new-pwd" required placeholder="••••••••">
+                </div>
+                <div class="form-group">
+                  <label for="profile-confirm-pwd">Confirm New Password *</label>
+                  <input type="password" id="profile-confirm-pwd" required placeholder="••••••••">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary" style="align-self:flex-start; margin-top:8px;">Change Password</button>
+            </form>
+          </div>
+
+          <div style="margin-top: 24px; border-top: 1px solid var(--color-border); padding-top: 20px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <h4 style="color: var(--color-destructive); font-size:14px; font-weight:700;">Account Session</h4>
+              <p class="text-muted" style="font-size:11px; margin-top:2px;">Sign out of the current billing session.</p>
+            </div>
+            <button class="btn btn-secondary" onclick="logUserOut()" style="border-color: var(--color-destructive); color: var(--color-destructive); font-weight:600;">
+              <i class="ph ph-sign-out"></i> Log Out
+            </button>
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -1457,6 +1599,15 @@
             <div style="flex:1;">
               <div style="font-weight:600; font-size:14px;">AI Advisor</div>
               <div class="text-muted" style="font-size:11px;">AI business health audits & reports</div>
+            </div>
+            <i class="ph ph-caret-right text-muted"></i>
+          </a>
+
+          <a class="more-menu-item" onclick="triggerMobileTab('account')" style="display:flex; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--color-border); cursor:pointer; color:var(--color-text-primary); text-decoration:none;">
+            <i class="ph ph-user-gear" style="font-size:22px; color:var(--color-primary);"></i>
+            <div style="flex:1;">
+              <div style="font-weight:600; font-size:14px;">Account Settings</div>
+              <div class="text-muted" style="font-size:11px;">Manage your profile, password & security</div>
             </div>
             <i class="ph ph-caret-right text-muted"></i>
           </a>

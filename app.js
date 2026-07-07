@@ -32,14 +32,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderClients();
     renderBills();
     
-    // Restore last active tab to prevent defaulting to Dashboard on reload/actions
-    const lastActiveTab = localStorage.getItem('lastActiveTab') || 'dashboard';
-    const activeNavItem = document.querySelector(`.nav-item[data-tab="${lastActiveTab}"]`);
-    if (activeNavItem) {
-      activeNavItem.click();
-    } else {
-      updateDashboard();
-    }
+    // Initialize PWA user authentication checking
+    await initUserAuthentication();
     
     console.log('App initialized successfully');
   } catch (error) {
@@ -2473,4 +2467,245 @@ function triggerPwaInstall() {
     }
     pwaDeferredPrompt = null;
   });
+}
+
+// ==========================================
+// USER AUTHENTICATION & SESSION MANAGEMENT
+// ==========================================
+let currentLoggedUser = null;
+
+async function initUserAuthentication() {
+  // Wait a small delay to let DB instance load if async race condition
+  await new Promise(r => setTimeout(r, 100));
+  
+  const users = await window.db.users.getAll();
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  const lastUser = localStorage.getItem('currentUser');
+  
+  if (users.length === 0) {
+    // First-Time setup - show registration overlay
+    showAuthOverlay('register', true);
+    return;
+  }
+  
+  if (isLoggedIn && lastUser) {
+    const user = users.find(u => u.username === lastUser);
+    if (user) {
+      currentLoggedUser = user;
+      setupUserSession(user);
+      
+      // Restore last active tab
+      const lastActiveTab = localStorage.getItem('lastActiveTab') || 'dashboard';
+      const activeNavItem = document.querySelector(`.nav-item[data-tab="${lastActiveTab}"]`);
+      if (activeNavItem) {
+        activeNavItem.click();
+      } else {
+        updateDashboard();
+      }
+      return;
+    }
+  }
+  
+  // Show login screen
+  showAuthOverlay('login', false);
+}
+
+function showAuthOverlay(mode = 'login', isFirstTime = false) {
+  const overlay = document.getElementById('auth-screen');
+  if (overlay) overlay.classList.add('active');
+  
+  if (mode === 'register') {
+    toggleAuthForms(null, 'register');
+    const badge = document.getElementById('setup-badge');
+    if (badge) {
+      badge.style.display = isFirstTime ? 'inline-block' : 'none';
+    }
+  } else {
+    toggleAuthForms(null, 'login');
+  }
+}
+
+function hideAuthOverlay() {
+  const overlay = document.getElementById('auth-screen');
+  if (overlay) overlay.classList.remove('active');
+}
+
+function toggleAuthForms(e, targetMode) {
+  if (e) e.preventDefault();
+  
+  const loginBox = document.getElementById('auth-login-box');
+  const registerBox = document.getElementById('auth-register-box');
+  
+  if (targetMode === 'register') {
+    if (loginBox) loginBox.classList.remove('active');
+    if (registerBox) registerBox.classList.add('active');
+  } else {
+    if (loginBox) loginBox.classList.add('active');
+    if (registerBox) registerBox.classList.remove('active');
+  }
+}
+
+function setupUserSession(user) {
+  // Update profile avatar & username elements
+  const avatarText = user.fullName ? user.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'US';
+  const sidebarAvatar = document.getElementById('sidebar-avatar');
+  const sidebarUser = document.getElementById('sidebar-user-name');
+  
+  if (sidebarAvatar) sidebarAvatar.textContent = avatarText;
+  if (sidebarUser) sidebarUser.textContent = user.fullName || user.username;
+  
+  // Pre-fill profile settings forms
+  const profileUser = document.getElementById('profile-username');
+  const profileFull = document.getElementById('profile-fullname');
+  const profileEmail = document.getElementById('profile-email');
+  
+  if (profileUser) profileUser.value = user.username;
+  if (profileFull) profileFull.value = user.fullName || '';
+  if (profileEmail) profileEmail.value = user.email || '';
+}
+
+async function handleUserRegistration(event) {
+  event.preventDefault();
+  
+  const username = document.getElementById('reg-username').value.trim();
+  const fullName = document.getElementById('reg-fullname').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const confirmPassword = document.getElementById('reg-confirm-password').value;
+  
+  if (password !== confirmPassword) {
+    alert("Error: Passwords do not match!");
+    return;
+  }
+  
+  try {
+    const existing = await window.db.users.getByUsername(username);
+    if (existing) {
+      alert("Error: Username is already registered!");
+      return;
+    }
+    
+    const userRecord = { username, password, email, fullName };
+    await window.db.users.register(userRecord);
+    
+    // Auto-login after successful registration
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('currentUser', username);
+    currentLoggedUser = userRecord;
+    
+    setupUserSession(userRecord);
+    hideAuthOverlay();
+    
+    // Navigate to dashboard
+    const dashboardNavItem = document.querySelector('.nav-item[data-tab="dashboard"]');
+    if (dashboardNavItem) dashboardNavItem.click();
+    
+    alert(`Success: Account "${username}" registered and logged in successfully!`);
+  } catch (error) {
+    console.error('Registration failed:', error);
+    alert('Failed to register account: ' + error.message);
+  }
+}
+
+async function handleUserLogin(event) {
+  event.preventDefault();
+  
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  
+  try {
+    const user = await window.db.users.getByUsername(username);
+    if (!user || user.password !== password) {
+      alert("Error: Invalid username or password!");
+      return;
+    }
+    
+    // Login successful
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('currentUser', username);
+    currentLoggedUser = user;
+    
+    setupUserSession(user);
+    hideAuthOverlay();
+    
+    // Restore tab
+    const lastActiveTab = localStorage.getItem('lastActiveTab') || 'dashboard';
+    const activeNavItem = document.querySelector(`.nav-item[data-tab="${lastActiveTab}"]`);
+    if (activeNavItem) {
+      activeNavItem.click();
+    } else {
+      updateDashboard();
+    }
+  } catch (error) {
+    console.error('Login failed:', error);
+    alert('Failed to verify credentials: ' + error.message);
+  }
+}
+
+async function saveProfileDetails(event) {
+  event.preventDefault();
+  if (!currentLoggedUser) return;
+  
+  const fullName = document.getElementById('profile-fullname').value.trim();
+  const email = document.getElementById('profile-email').value.trim();
+  
+  try {
+    currentLoggedUser.fullName = fullName;
+    currentLoggedUser.email = email;
+    
+    await window.db.users.update(currentLoggedUser);
+    setupUserSession(currentLoggedUser);
+    
+    alert("Success: Profile details updated successfully!");
+  } catch (error) {
+    console.error('Profile update failed:', error);
+    alert('Failed to update profile: ' + error.message);
+  }
+}
+
+async function updateUserPassword(event) {
+  event.preventDefault();
+  if (!currentLoggedUser) return;
+  
+  const oldPwd = document.getElementById('profile-old-pwd').value;
+  const newPwd = document.getElementById('profile-new-pwd').value;
+  const confirmPwd = document.getElementById('profile-confirm-pwd').value;
+  
+  if (oldPwd !== currentLoggedUser.password) {
+    alert("Error: Incorrect current password!");
+    return;
+  }
+  
+  if (newPwd !== confirmPwd) {
+    alert("Error: New passwords do not match!");
+    return;
+  }
+  
+  try {
+    currentLoggedUser.password = newPwd;
+    await window.db.users.update(currentLoggedUser);
+    
+    // Clear form inputs
+    document.getElementById('profile-old-pwd').value = '';
+    document.getElementById('profile-new-pwd').value = '';
+    document.getElementById('profile-confirm-pwd').value = '';
+    
+    alert("Success: Password changed successfully!");
+  } catch (error) {
+    console.error('Password update failed:', error);
+    alert('Failed to update password: ' + error.message);
+  }
+}
+
+function logUserOut() {
+  localStorage.removeItem('isLoggedIn');
+  localStorage.removeItem('currentUser');
+  currentLoggedUser = null;
+  
+  // Reset fields
+  document.getElementById('login-username').value = '';
+  document.getElementById('login-password').value = '';
+  
+  // Show auth overlay
+  showAuthOverlay('login', false);
 }

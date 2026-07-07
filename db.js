@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'AccountingSoftwareDB';
-const DB_VERSION = 3; // Upgraded to v3 to support CEO activity tracking
+const DB_VERSION = 4; // Upgraded to v4 to support user accounts and login authentication
 let dbInstance = null;
 
 function initDB() {
@@ -79,6 +79,14 @@ function initDB() {
         ceoStore.createIndex('date', 'date', { unique: false });
         ceoStore.createIndex('focusArea', 'focusArea', { unique: false });
         console.log('Created ceo_activities object store');
+      }
+
+      // Create Users Store
+      if (!db.objectStoreNames.contains('users')) {
+        const userStore = db.createObjectStore('users', { keyPath: 'id', autoIncrement: true });
+        userStore.createIndex('username', 'username', { unique: true });
+        userStore.createIndex('email', 'email', { unique: false });
+        console.log('Created users object store');
       }
     };
   });
@@ -449,6 +457,52 @@ const db = {
       return new Promise((resolve, reject) => {
         const request = store.delete(Number(id));
         request.onsuccess = () => resolve(true);
+        request.onerror = (e) => reject(e.target.error);
+      });
+    }
+  },
+
+  users: {
+    async register(user) {
+      const store = await getStore('users', 'readwrite');
+      return new Promise((resolve, reject) => {
+        const record = {
+          username: user.username || '',
+          password: user.password || '',
+          email: user.email || '',
+          fullName: user.fullName || '',
+          createdAt: new Date().toISOString()
+        };
+        const request = store.add(record);
+        request.onsuccess = (e) => resolve(e.target.result);
+        request.onerror = (e) => reject(e.target.error);
+      });
+    },
+
+    async getByUsername(username) {
+      const store = await getStore('users', 'readonly');
+      const index = store.index('username');
+      return new Promise((resolve, reject) => {
+        const request = index.get(username);
+        request.onsuccess = (e) => resolve(e.target.result);
+        request.onerror = (e) => reject(e.target.error);
+      });
+    },
+
+    async getAll() {
+      const store = await getStore('users', 'readonly');
+      return new Promise((resolve, reject) => {
+        const request = store.getAll();
+        request.onsuccess = (e) => resolve(e.target.result);
+        request.onerror = (e) => reject(e.target.error);
+      });
+    },
+
+    async update(user) {
+      const store = await getStore('users', 'readwrite');
+      return new Promise((resolve, reject) => {
+        const request = store.put(user);
+        request.onsuccess = (e) => resolve(e.target.result);
         request.onerror = (e) => reject(e.target.error);
       });
     }

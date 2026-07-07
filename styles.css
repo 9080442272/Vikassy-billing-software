@@ -2214,3 +2214,104 @@ input:checked + .slider:before {
   to { width: 100%; }
 }
 
+/* ==========================================
+   AUTHENTICATION & LOGIN OVERLAY SCREEN
+   ========================================== */
+.auth-overlay-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(11, 15, 25, 0.9); /* Translucent midnight */
+  backdrop-filter: blur(16px);
+  z-index: 10000; /* Cover splash screen (9999) */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.auth-overlay-wrapper.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.auth-container-card {
+  width: 100%;
+  max-width: 440px;
+  background: rgba(22, 28, 45, 0.85); /* Premium glass panel styling */
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  padding: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-brand-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-md);
+  background: var(--gradient-primary);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #ffffff;
+  font-size: 32px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 16px rgba(124, 58, 237, 0.4);
+}
+
+.auth-box {
+  width: 100%;
+  display: none;
+}
+
+.auth-box.active {
+  display: block;
+}
+
+.auth-box h2 {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  color: #ffffff;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.auth-desc {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.input-with-icon {
+  position: relative;
+  width: 100%;
+}
+
+.input-with-icon .icon-leading {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-secondary);
+  font-size: 18px;
+}
+
+/* User profile clickability styling */
+.user-profile {
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+.user-profile:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-md);
+}
+
