@@ -569,8 +569,8 @@ export default function App() {
     const name = document.getElementById('employee-name').value.trim();
     const phone = document.getElementById('employee-phone').value.trim();
     const role = document.getElementById('employee-role').value;
-    const stitchRate = parseFloat(document.getElementById('employee-rate').value) || 0;
-    const salary = parseFloat(document.getElementById('employee-salary').value) || 0;
+    const stitchRate = 0;
+    const salary = 0;
 
     try {
       if (editingEmployee) {
@@ -603,8 +603,6 @@ export default function App() {
       document.getElementById('employee-name').value = emp.name;
       document.getElementById('employee-phone').value = emp.phone || '';
       document.getElementById('employee-role').value = emp.role;
-      document.getElementById('employee-rate').value = emp.stitchRate;
-      document.getElementById('employee-salary').value = emp.salary;
     }, 50);
   };
 
@@ -2438,16 +2436,6 @@ export default function App() {
                     <option value="Packaging staff">Packaging staff</option>
                     <option value="Supervisor">Supervisor</option>
                   </select>
-                </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="employee-rate">Stitching Rate per Piece (₹)</label>
-                    <input type="number" id="employee-rate" min="0" step="any" placeholder="0.00" />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="employee-salary">Monthly Salary Basis (₹)</label>
-                    <input type="number" id="employee-salary" min="0" step="any" placeholder="0.00" />
-                  </div>
                 </div>
               </div>
               <div className="modal-footer" style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
