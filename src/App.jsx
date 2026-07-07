@@ -937,9 +937,7 @@ export default function App() {
     return (
       <div id="auth-screen" className="auth-overlay-wrapper active">
         <div className="auth-container-card">
-          <div className="auth-brand-logo">
-            <i className="ph-fill ph-wallet"></i>
-          </div>
+
 
           {authMode === 'login' ? (
             <div id="auth-login-box" className="auth-box active">
@@ -977,12 +975,7 @@ export default function App() {
             </div>
           ) : (
             <div id="auth-register-box" className="auth-box active">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                <h2 style={{ fontSize: '22px' }}>Create Account</h2>
-                {isFirstTimeSetup && (
-                  <span id="setup-badge" className="badge" style={{ backgroundColor: 'rgba(124,58,237,0.1)', color: 'var(--color-primary)', border: '1px solid rgba(124,58,237,0.25)', fontSize: '10px', padding: '4px 8px', borderRadius: '12px', display: 'inline-block' }}>✨ First-Time Setup</span>
-                )}
-              </div>
+              <h2>Create Account</h2>
               <p className="auth-desc">Register administrative credentials to manage billing records.</p>
               <form id="register-form-element" onSubmit={handleRegistrationSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '20px', width: '100%' }}>
                 <div className="form-group" style={{ width: '100%' }}>
