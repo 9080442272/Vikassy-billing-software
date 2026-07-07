@@ -206,12 +206,15 @@ export default function App() {
     if (rawUsers.length > 0) {
       const storedUser = localStorage.getItem('currentUser');
       if (isLoggedIn && storedUser) {
-        const matchingUser = rawUsers.find(u => u.username === storedUser);
-        if (matchingUser) {
-          setCurrentLoggedUser(matchingUser);
-          setIsFirstTimeSetup(false);
-        } else {
-          logUserOut();
+        // If user profile is already populated in state, bypass cache query checks to avoid mutation delay logout loops
+        if (!currentLoggedUser) {
+          const matchingUser = rawUsers.find(u => u.username === storedUser);
+          if (matchingUser) {
+            setCurrentLoggedUser(matchingUser);
+            setIsFirstTimeSetup(false);
+          } else {
+            logUserOut();
+          }
         }
       } else {
         setIsLoggedIn(false);
@@ -219,9 +222,12 @@ export default function App() {
         setIsFirstTimeSetup(false);
       }
     } else {
-      setIsFirstTimeSetup(true);
-      setAuthMode('register');
-      setIsLoggedIn(false);
+      // Empty database - only route to first-time signup if not already logged in
+      if (!isLoggedIn) {
+        setIsFirstTimeSetup(true);
+        setAuthMode('register');
+        setIsLoggedIn(false);
+      }
     }
 
     return () => {
@@ -841,15 +847,18 @@ export default function App() {
     }
 
     try {
-      await registerUser({
+      const newUser = {
         username: userVal,
         fullName: userVal,
         email: emailVal,
         password: passVal
-      });
+      };
+
+      await registerUser(newUser);
 
       localStorage.setItem('isLoggedIn', 'true');
       localStorage.setItem('currentUser', userVal);
+      setCurrentLoggedUser(newUser); // Save user locally to avoid query lag logout loops
       setIsLoggedIn(true);
       setIsFirstTimeSetup(false);
     } catch (err) {
