@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Varahi Export | Premium Accounting & GST Billing SaaS</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   
   <!-- PWA Mobile Web App Configuration -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -55,6 +56,15 @@
           </div>
           <button type="submit" class="btn btn-primary" style="padding:14px; font-weight:700; width:100%; justify-content:center; font-size:15px; margin-top:8px;">Sign In</button>
         </form>
+
+        <div style="display:flex; align-items:center; gap:8px; width:100%; margin-top:20px;">
+          <hr style="flex:1; border:0; border-top:1px solid rgba(255,255,255,0.08);">
+          <span style="font-size:11px; color:var(--color-text-secondary); text-transform:uppercase;">or</span>
+          <hr style="flex:1; border:0; border-top:1px solid rgba(255,255,255,0.08);">
+        </div>
+        
+        <div id="google-signin-btn-login" style="margin-top:16px; width:100%; display:flex; justify-content:center;"></div>
+
         <p class="auth-toggle-text" style="text-align:center; font-size:12px; margin-top:20px; color:var(--color-text-secondary);">
           Don't have an account? <a href="#" onclick="toggleAuthForms(event, 'register')" style="color:var(--color-primary); font-weight:600; text-decoration:none;">Create Account</a>
         </p>
@@ -94,6 +104,15 @@
           </div>
           <button type="submit" class="btn btn-primary" style="padding:14px; font-weight:700; width:100%; justify-content:center; font-size:15px; margin-top:8px;">Register Account</button>
         </form>
+
+        <div style="display:flex; align-items:center; gap:8px; width:100%; margin-top:16px;">
+          <hr style="flex:1; border:0; border-top:1px solid rgba(255,255,255,0.08);">
+          <span style="font-size:11px; color:var(--color-text-secondary); text-transform:uppercase;">or</span>
+          <hr style="flex:1; border:0; border-top:1px solid rgba(255,255,255,0.08);">
+        </div>
+        
+        <div id="google-signin-btn-register" style="margin-top:12px; width:100%; display:flex; justify-content:center;"></div>
+
         <p class="auth-toggle-text" style="text-align:center; font-size:12px; margin-top:20px; color:var(--color-text-secondary);">
           Already have an account? <a href="#" onclick="toggleAuthForms(event, 'login')" style="color:var(--color-primary); font-weight:600; text-decoration:none;">Sign In</a>
         </p>

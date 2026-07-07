@@ -2478,6 +2478,9 @@ async function initUserAuthentication() {
   // Wait a small delay to let DB instance load if async race condition
   await new Promise(r => setTimeout(r, 100));
   
+  // Initialize Google Sign-in OAuth clients
+  initializeGoogleAuth();
+  
   const users = await window.db.users.getAll();
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   const lastUser = localStorage.getItem('currentUser');
@@ -2547,11 +2550,17 @@ function toggleAuthForms(e, targetMode) {
 
 function setupUserSession(user) {
   // Update profile avatar & username elements
-  const avatarText = user.fullName ? user.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'US';
   const sidebarAvatar = document.getElementById('sidebar-avatar');
   const sidebarUser = document.getElementById('sidebar-user-name');
   
-  if (sidebarAvatar) sidebarAvatar.textContent = avatarText;
+  if (sidebarAvatar) {
+    if (user.avatarPicture) {
+      sidebarAvatar.innerHTML = `<img src="${user.avatarPicture}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+    } else {
+      const avatarText = user.fullName ? user.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'US';
+      sidebarAvatar.textContent = avatarText;
+    }
+  }
   if (sidebarUser) sidebarUser.textContent = user.fullName || user.username;
   
   // Pre-fill profile settings forms
@@ -2703,9 +2712,129 @@ function logUserOut() {
   currentLoggedUser = null;
   
   // Reset fields
-  document.getElementById('login-username').value = '';
-  document.getElementById('login-password').value = '';
+  const loginUserEl = document.getElementById('login-username');
+  const loginPassEl = document.getElementById('login-password');
+  if (loginUserEl) loginUserEl.value = '';
+  if (loginPassEl) loginPassEl.value = '';
+  
+  // Reset sidebar avatar image
+  const sidebarAvatar = document.getElementById('sidebar-avatar');
+  if (sidebarAvatar) sidebarAvatar.innerHTML = 'US';
   
   // Show auth overlay
   showAuthOverlay('login', false);
+}
+
+// ==========================================
+// GOOGLE SIGN-IN OAUTH HANDLERS
+// ==========================================
+function initializeGoogleAuth() {
+  if (typeof google === 'undefined') {
+    // Retry loading in a brief moment if Google GIS client library hasn't finished loading yet
+    setTimeout(initializeGoogleAuth, 400);
+    return;
+  }
+  
+  // Default Client ID configured for web application testing origin
+  const clientId = "470877995175-98uq9m0k20l9eaf27p2j9r6r8r0j1qkr.apps.googleusercontent.com";
+  
+  google.accounts.id.initialize({
+    client_id: clientId,
+    callback: handleGoogleAuthResponse
+  });
+  
+  renderGoogleButtons();
+}
+
+function renderGoogleButtons() {
+  const loginBtnDiv = document.getElementById('google-signin-btn-login');
+  if (loginBtnDiv) {
+    google.accounts.id.renderButton(loginBtnDiv, {
+      theme: 'outline',
+      size: 'large',
+      width: 320,
+      text: 'signin_with',
+      shape: 'pill'
+    });
+  }
+
+  const registerBtnDiv = document.getElementById('google-signin-btn-register');
+  if (registerBtnDiv) {
+    google.accounts.id.renderButton(registerBtnDiv, {
+      theme: 'outline',
+      size: 'large',
+      width: 320,
+      text: 'signup_with',
+      shape: 'pill'
+    });
+  }
+}
+
+async function handleGoogleAuthResponse(response) {
+  try {
+    const payload = decodeJwt(response.credential);
+    const googleUserId = `google_${payload.sub}`;
+    const email = payload.email || '';
+    const fullName = payload.name || '';
+    const picture = payload.picture || '';
+    
+    // Query local database store for account
+    let user = await window.db.users.getByUsername(googleUserId);
+    
+    if (!user) {
+      // Auto-register new Google user details in IndexedDB
+      user = {
+        username: googleUserId,
+        password: `google_oauth_bypass_${Math.random().toString(36).slice(-8)}`,
+        email: email,
+        fullName: fullName,
+        avatarPicture: picture,
+        createdAt: new Date().toISOString()
+      };
+      await window.db.users.register(user);
+    } else {
+      // Keep avatar picture updated if Google updates it
+      if (picture && user.avatarPicture !== picture) {
+        user.avatarPicture = picture;
+        await window.db.users.update(user);
+      }
+    }
+    
+    // Establish login session flags
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('currentUser', user.username);
+    currentLoggedUser = user;
+    
+    setupUserSession(user);
+    hideAuthOverlay();
+    
+    // Restore tab
+    const lastActiveTab = localStorage.getItem('lastActiveTab') || 'dashboard';
+    const activeNavItem = document.querySelector(`.nav-item[data-tab="${lastActiveTab}"]`);
+    if (activeNavItem) {
+      activeNavItem.click();
+    } else {
+      updateDashboard();
+    }
+    
+    alert(`Welcome, ${fullName}! Logged in successfully with Google.`);
+  } catch (error) {
+    console.error('Google Sign-In failed:', error);
+    alert('Google Sign-In failed: ' + error.message);
+  }
+}
+
+// Local Base64 JWT decoder payload utility
+function decodeJwt(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    console.error("JWT decode error:", e);
+    throw new Error("Invalid JWT token received from IDP");
+  }
 }
