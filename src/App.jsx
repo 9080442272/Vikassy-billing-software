@@ -120,7 +120,15 @@ export default function App() {
   const [currentLoggedUser, setCurrentLoggedUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('isLoggedIn') === 'true');
   const [isFirstTimeSetup, setIsFirstTimeSetup] = useState(false);
-  const [authMode, setAuthMode] = useState('login'); // login / register
+  const [authMode, setAuthMode] = useState('login'); // login / register / forgot
+
+  // Forgot password form states
+  const [forgotUsername, setForgotUsername] = useState('');
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotPassword, setForgotPassword] = useState('');
+  const [forgotConfirmPassword, setForgotConfirmPassword] = useState('');
+  const [forgotStep, setForgotStep] = useState(1); // 1 = verify, 2 = reset
+  const [resetUserRecord, setResetUserRecord] = useState(null);
 
   // Modal Open States
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
@@ -866,6 +874,54 @@ export default function App() {
     }
   };
 
+  const handleForgotVerify = async (e) => {
+    e.preventDefault();
+    const user = users.find(u => u.username === forgotUsername.trim());
+    if (!user) {
+      alert("Error: Username not found!");
+      return;
+    }
+    if (user.email && user.email.toLowerCase() !== forgotEmail.trim().toLowerCase()) {
+      alert("Error: Incorrect registered email address!");
+      return;
+    }
+    // Details match!
+    setResetUserRecord(user);
+    setForgotStep(2);
+  };
+
+  const handleForgotReset = async (e) => {
+    e.preventDefault();
+    if (forgotPassword !== forgotConfirmPassword) {
+      alert("Error: Passwords do not match!");
+      return;
+    }
+
+    try {
+      await updateUser({
+        id: resetUserRecord._id,
+        username: resetUserRecord.username,
+        password: forgotPassword,
+        fullName: resetUserRecord.fullName || '',
+        email: resetUserRecord.email || '',
+        avatarPicture: resetUserRecord.avatarPicture || '',
+        createdAt: resetUserRecord.createdAt
+      });
+
+      alert("Success: Password reset successfully! You can now log in.");
+      // Reset states & go back to login
+      setAuthMode('login');
+      setForgotStep(1);
+      setForgotUsername('');
+      setForgotEmail('');
+      setForgotPassword('');
+      setForgotConfirmPassword('');
+      setResetUserRecord(null);
+    } catch (err) {
+      alert("Failed to reset password: " + err.message);
+    }
+  };
+
   // --- AI Advisor Chat triggers ---
   const triggerAIAnalysis = () => {
     if (bills.length === 0) {
@@ -973,6 +1029,7 @@ export default function App() {
                     <input type="password" id="login-password" required placeholder="••••••••" style={{ paddingLeft: '44px', width: '100%' }} />
                   </div>
                 </div>
+                <a href="#" onClick={(e) => { e.preventDefault(); setAuthMode('forgot'); }} style={{ alignSelf: 'flex-end', fontSize: '11px', color: 'var(--color-primary)', textDecoration: 'none', marginTop: '-8px', marginBottom: '8px', fontWeight: 600 }}>Forgot Password?</a>
                 <button type="submit" className="btn btn-primary" style={{ padding: '14px', fontWeight: 700, width: '100%', justifyContent: 'center', fontSize: '15px', marginTop: '8px' }}>Sign In</button>
               </form>
 
@@ -988,7 +1045,7 @@ export default function App() {
                 Don't have an account? <a href="#" onClick={(e) => { e.preventDefault(); setAuthMode('register'); }} style={{ color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}>Create Account</a>
               </p>
             </div>
-          ) : (
+          ) : authMode === 'register' ? (
             <div id="auth-register-box" className="auth-box active">
               <h2>Create Account</h2>
               <p className="auth-desc">Register administrative credentials to manage billing records.</p>
@@ -1024,6 +1081,77 @@ export default function App() {
 
               <p className="auth-toggle-text" style={{ textAlign: 'center', fontSize: '12px', marginTop: '20px', color: 'var(--color-text-secondary)' }}>
                 Already have an account? <a href="#" onClick={(e) => { e.preventDefault(); setAuthMode('login'); }} style={{ color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}>Sign In</a>
+              </p>
+            </div>
+          ) : (
+            <div id="auth-forgot-box" className="auth-box active">
+              <h2>Reset Password</h2>
+              <p className="auth-desc">
+                {forgotStep === 1 
+                  ? "Verify your username and registered email address." 
+                  : "Enter your new password below."}
+              </p>
+
+              {forgotStep === 1 ? (
+                <form onSubmit={handleForgotVerify} style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '24px', width: '100%' }}>
+                  <div className="form-group" style={{ width: '100%' }}>
+                    <label htmlFor="forgot-username">Username</label>
+                    <input 
+                      type="text" 
+                      id="forgot-username" 
+                      required 
+                      placeholder="Enter your username" 
+                      value={forgotUsername} 
+                      onChange={(e) => setForgotUsername(e.target.value)} 
+                      style={{ width: '100%' }} 
+                    />
+                  </div>
+                  <div className="form-group" style={{ width: '100%' }}>
+                    <label htmlFor="forgot-email">Registered Email Address</label>
+                    <input 
+                      type="email" 
+                      id="forgot-email" 
+                      required 
+                      placeholder="e.g. varahi.export@gmail.com" 
+                      value={forgotEmail} 
+                      onChange={(e) => setForgotEmail(e.target.value)} 
+                      style={{ width: '100%' }} 
+                    />
+                  </div>
+                  <button type="submit" className="btn btn-primary" style={{ padding: '14px', fontWeight: 700, width: '100%', justifyContent: 'center', fontSize: '15px', marginTop: '8px' }}>Verify Details</button>
+                </form>
+              ) : (
+                <form onSubmit={handleForgotReset} style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '24px', width: '100%' }}>
+                  <div className="form-group" style={{ width: '100%' }}>
+                    <label htmlFor="forgot-new-pwd">New Password</label>
+                    <input 
+                      type="password" 
+                      id="forgot-new-pwd" 
+                      required 
+                      placeholder="••••••••" 
+                      value={forgotPassword} 
+                      onChange={(e) => setForgotPassword(e.target.value)} 
+                      style={{ width: '100%' }} 
+                    />
+                  </div>
+                  <div className="form-group" style={{ width: '100%' }}>
+                    <label htmlFor="forgot-confirm-new-pwd">Confirm New Password</label>
+                    <input 
+                      type="password" 
+                      id="forgot-confirm-new-pwd" 
+                      required 
+                      placeholder="••••••••" 
+                      value={forgotConfirmPassword} 
+                      onChange={(e) => setForgotConfirmPassword(e.target.value)} 
+                      style={{ width: '100%' }} 
+                    />
+                  </div>
+                  <button type="submit" className="btn btn-primary" style={{ padding: '14px', fontWeight: 700, width: '100%', justifyContent: 'center', fontSize: '15px', marginTop: '8px' }}>Reset Password</button>
+                </form>
+              )}
+
+              <p className="auth-toggle-text" style={{ textAlign: 'center', fontSize: '12px', marginTop: '20px', color: 'var(--color-text-secondary)' }}>
+                Back to <a href="#" onClick={(e) => { e.preventDefault(); setAuthMode('login'); setForgotStep(1); }} style={{ color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}>Sign In</a>
               </p>
             </div>
           )}
