@@ -876,13 +876,9 @@ export default function App() {
 
   const handleForgotVerify = async (e) => {
     e.preventDefault();
-    const user = users.find(u => u.username === forgotUsername.trim());
+    const user = users.find(u => u.email && u.email.trim().toLowerCase() === forgotEmail.trim().toLowerCase());
     if (!user) {
-      alert("Error: Username not found!");
-      return;
-    }
-    if (user.email && user.email.toLowerCase() !== forgotEmail.trim().toLowerCase()) {
-      alert("Error: Incorrect registered email address!");
+      alert("Error: No account found with this registered email address!");
       return;
     }
     // Details match!
@@ -1088,24 +1084,12 @@ export default function App() {
               <h2>Reset Password</h2>
               <p className="auth-desc">
                 {forgotStep === 1 
-                  ? "Verify your username and registered email address." 
+                  ? "Verify your registered email address." 
                   : "Enter your new password below."}
               </p>
 
               {forgotStep === 1 ? (
                 <form onSubmit={handleForgotVerify} style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '24px', width: '100%' }}>
-                  <div className="form-group" style={{ width: '100%' }}>
-                    <label htmlFor="forgot-username">Username</label>
-                    <input 
-                      type="text" 
-                      id="forgot-username" 
-                      required 
-                      placeholder="Enter your username" 
-                      value={forgotUsername} 
-                      onChange={(e) => setForgotUsername(e.target.value)} 
-                      style={{ width: '100%' }} 
-                    />
-                  </div>
                   <div className="form-group" style={{ width: '100%' }}>
                     <label htmlFor="forgot-email">Registered Email Address</label>
                     <input 
