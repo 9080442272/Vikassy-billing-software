@@ -2448,11 +2448,12 @@ export default function App() {
                       <option value="Checking staff">Checking staff</option>
                       <option value="Packaging staff">Packaging staff</option>
                       <option value="Supervisor">Supervisor</option>
+                      <option value="Signer">Signer</option>
                     </select>
                   </div>
                   <div className="form-group">
                     <label htmlFor="employee-subcategory">Sub Category / Specialization</label>
-                    <input type="text" id="employee-subcategory" placeholder="e.g. Jeans, T-shirt, Collar" />
+                    <input type="text" id="employee-subcategory" placeholder="e.g. Signer" />
                   </div>
                 </div>
               </div>
