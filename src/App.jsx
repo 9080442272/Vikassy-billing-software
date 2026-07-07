@@ -1486,7 +1486,7 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="table-card bg-surface border">
+              <div className="table-card bg-surface border" style={{ padding: '24px' }}>
                 <h3>Client Concentration Risk</h3>
                 <p className="small text-muted" style={{ marginBottom: '16px' }}>Assess dependency share.</p>
                 <div className="table-responsive desktop-table-container">
