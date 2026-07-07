@@ -825,7 +825,6 @@ export default function App() {
   const handleRegistrationSubmit = async (e) => {
     e.preventDefault();
     const userVal = document.getElementById('reg-username').value.trim();
-    const nameVal = document.getElementById('reg-fullname').value.trim();
     const emailVal = document.getElementById('reg-email').value.trim();
     const passVal = document.getElementById('reg-password').value;
     const confVal = document.getElementById('reg-confirm-password').value;
@@ -838,7 +837,7 @@ export default function App() {
     try {
       await registerUser({
         username: userVal,
-        fullName: nameVal,
+        fullName: userVal,
         email: emailVal,
         password: passVal
       });
@@ -986,15 +985,9 @@ export default function App() {
               </div>
               <p className="auth-desc">Register administrative credentials to manage billing records.</p>
               <form id="register-form-element" onSubmit={handleRegistrationSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '20px', width: '100%' }}>
-                <div className="form-row" style={{ width: '100%' }}>
-                  <div className="form-group">
-                    <label htmlFor="reg-username">Username *</label>
-                    <input type="text" id="reg-username" required placeholder="e.g. admin" />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="reg-fullname">Full Name *</label>
-                    <input type="text" id="reg-fullname" required placeholder="e.g. Owner" />
-                  </div>
+                <div className="form-group" style={{ width: '100%' }}>
+                  <label htmlFor="reg-username">Username *</label>
+                  <input type="text" id="reg-username" required placeholder="e.g. admin" style={{ width: '100%' }} />
                 </div>
                 <div className="form-group" style={{ width: '100%' }}>
                   <label htmlFor="reg-email">Email Address</label>
