@@ -2163,26 +2163,36 @@ export default function App() {
             </header>
 
             {/* Statistics indicators */}
-            <div className="highlights-grid" style={{ marginBottom: '24px' }}>
-              <div className="highlight-card bg-surface border">
-                <div className="icon" style={{ backgroundColor: 'rgba(124,58,237,0.08)', color: 'var(--color-primary)' }}><i className="ph ph-check-square"></i></div>
-                <div>
-                  <span className="title text-muted">Accomplishments Logged</span>
-                  <h3 className="value">{ceoActivities.length} logs</h3>
+            <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', marginBottom: '24px' }}>
+              <div className="metric-card">
+                <div className="metric-card-header">
+                  <span className="metric-label">Accomplishments Logged</span>
+                  <div className="metric-icon purple"><i className="ph ph-check-square"></i></div>
+                </div>
+                <div className="metric-value">{ceoActivities.length} logs</div>
+                <div className="metric-footer">
+                  <span>Operational logs book</span>
                 </div>
               </div>
-              <div className="highlight-card bg-surface border">
-                <div className="icon" style={{ backgroundColor: 'rgba(16,185,129,0.08)', color: 'var(--color-success)' }}><i className="ph ph-clock"></i></div>
-                <div>
-                  <span className="title text-muted">Cumulative Hours</span>
-                  <h3 className="value">{ceoActivities.reduce((s, a) => s + a.hoursSpent, 0)} Hrs</h3>
+              <div className="metric-card">
+                <div className="metric-card-header">
+                  <span className="metric-label">Cumulative Hours</span>
+                  <div className="metric-icon purple" style={{ color: 'var(--color-success)', backgroundColor: 'rgba(16,185,129,0.1)' }}><i className="ph ph-clock"></i></div>
+                </div>
+                <div className="metric-value">{ceoActivities.reduce((s, a) => s + a.hoursSpent, 0)} Hrs</div>
+                <div className="metric-footer">
+                  <span>Total logged effort</span>
                 </div>
               </div>
-              <div className="highlight-card bg-surface border">
-                <div className="icon" style={{ backgroundColor: 'rgba(245,158,11,0.08)', color: 'var(--color-primary)' }}><i className="ph ph-sparkle"></i></div>
-                <div>
-                  <span className="title text-muted">Critical Milestones</span>
-                  <h3 className="value">{ceoActivities.filter(a => a.isCritical).length} Milestones</h3>
+              <div className="metric-card">
+                <div className="metric-card-header">
+                  <span className="metric-label">Critical Milestones</span>
+                  <div className="metric-icon gold"><i className="ph ph-sparkle"></i></div>
+                </div>
+                <div className="metric-value">{ceoActivities.filter(a => a.isCritical).length} Milestones</div>
+                <div className="metric-footer">
+                  <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>⭐ Critical</span>
+                  <span>high impact records</span>
                 </div>
               </div>
             </div>
