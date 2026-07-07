@@ -38,6 +38,7 @@ export default defineSchema({
     name: v.string(),
     phone: v.optional(v.string()),
     role: v.string(),
+    subCategory: v.optional(v.string()),
     stitchRate: v.number(),
     salary: v.number(),
     createdAt: v.string(),

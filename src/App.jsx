@@ -569,6 +569,7 @@ export default function App() {
     const name = document.getElementById('employee-name').value.trim();
     const phone = document.getElementById('employee-phone').value.trim();
     const role = document.getElementById('employee-role').value;
+    const subCategory = document.getElementById('employee-subcategory').value.trim();
     const stitchRate = 0;
     const salary = 0;
 
@@ -576,12 +577,12 @@ export default function App() {
       if (editingEmployee) {
         await updateEmployeeMutation({
           id: editingEmployee._id,
-          name, phone, role, stitchRate, salary,
+          name, phone, role, subCategory, stitchRate, salary,
           createdAt: editingEmployee.createdAt
         });
         alert("Employee details updated successfully!");
       } else {
-        await addEmployeeMutation({ name, phone, role, stitchRate, salary });
+        await addEmployeeMutation({ name, phone, role, subCategory, stitchRate, salary });
         alert("Employee registered successfully!");
       }
       closeEmployeeModal();
@@ -603,6 +604,7 @@ export default function App() {
       document.getElementById('employee-name').value = emp.name;
       document.getElementById('employee-phone').value = emp.phone || '';
       document.getElementById('employee-role').value = emp.role;
+      document.getElementById('employee-subcategory').value = emp.subCategory || '';
     }, 50);
   };
 
@@ -1732,7 +1734,12 @@ export default function App() {
                       <tr key={emp._id}>
                         <td className="font-semibold">{emp.name}</td>
                         <td>{emp.phone || '-'}</td>
-                        <td><span className="badge" style={{ backgroundColor: 'rgba(124,58,237,0.08)', color: 'var(--color-primary)' }}>{emp.role}</span></td>
+                        <td>
+                          <span className="badge" style={{ backgroundColor: 'rgba(124,58,237,0.08)', color: 'var(--color-primary)', marginRight: '6px' }}>{emp.role}</span>
+                          {emp.subCategory && (
+                            <span className="badge" style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'var(--color-text-secondary)', border: '1px solid rgba(255,255,255,0.08)' }}>{emp.subCategory}</span>
+                          )}
+                        </td>
                         <td className="text-right">{formatCurrency(emp.stitchRate)}</td>
                         <td className="text-right">{formatCurrency(emp.salary)}</td>
                         <td className="text-right">
@@ -1756,7 +1763,12 @@ export default function App() {
                 <div key={emp._id} className="mobile-card">
                   <div className="mobile-card-header">
                     <div className="mobile-card-title">{emp.name}</div>
-                    <span className="badge" style={{ backgroundColor: 'rgba(124,58,237,0.08)', color: 'var(--color-primary)', border: '1px solid rgba(124,58,237,0.15)', fontSize: '10px', padding: '2px 6px', borderRadius: '8px' }}>{emp.role}</span>
+                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                      <span className="badge" style={{ backgroundColor: 'rgba(124,58,237,0.08)', color: 'var(--color-primary)', border: '1px solid rgba(124,58,237,0.15)', fontSize: '10px', padding: '2px 6px', borderRadius: '8px' }}>{emp.role}</span>
+                      {emp.subCategory && (
+                        <span className="badge" style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'var(--color-text-secondary)', border: '1px solid rgba(255,255,255,0.08)', fontSize: '10px', padding: '2px 6px', borderRadius: '8px' }}>{emp.subCategory}</span>
+                      )}
+                    </div>
                   </div>
                   <div className="mobile-card-body">
                     <div className="mobile-card-detail">
@@ -2428,14 +2440,20 @@ export default function App() {
                     <input type="tel" id="employee-phone" placeholder="e.g. +91 99999 88888" />
                   </div>
                 </div>
-                <div className="form-group">
-                  <label htmlFor="employee-role">Staff Role *</label>
-                  <select id="employee-role" required style={{ fontSize: '15px', padding: '12px 14px' }}>
-                    <option value="Stitcher">Stitcher</option>
-                    <option value="Checking staff">Checking staff</option>
-                    <option value="Packaging staff">Packaging staff</option>
-                    <option value="Supervisor">Supervisor</option>
-                  </select>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="employee-role">Staff Role *</label>
+                    <select id="employee-role" required style={{ fontSize: '15px', padding: '12px 14px', width: '100%' }}>
+                      <option value="Stitcher">Stitcher</option>
+                      <option value="Checking staff">Checking staff</option>
+                      <option value="Packaging staff">Packaging staff</option>
+                      <option value="Supervisor">Supervisor</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="employee-subcategory">Sub Category / Specialization</label>
+                    <input type="text" id="employee-subcategory" placeholder="e.g. Jeans, T-shirt, Collar" />
+                  </div>
                 </div>
               </div>
               <div className="modal-footer" style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
