@@ -90,7 +90,8 @@ export default function App() {
   const fabrics = useQuery(api.fabrics.getAll) || [];
   const stitching = useQuery(api.stitching.getAll) || [];
   const ceoActivities = useQuery(api.ceoActivities.getAll) || [];
-  const users = useQuery(api.users.getAll) || [];
+  const rawUsers = useQuery(api.users.getAll);
+  const users = rawUsers || [];
 
   // --- Convex Cloud Mutations ---
   const registerUser = useMutation(api.users.register);
@@ -191,6 +192,9 @@ export default function App() {
 
   // --- Google OAuth initialization and session checks ---
   useEffect(() => {
+    // If Convex query is still loading in the background, wait
+    if (rawUsers === undefined) return;
+
     // Listen for custom install prompts
     const handleInstallPrompt = (e) => {
       e.preventDefault();
@@ -198,11 +202,11 @@ export default function App() {
     };
     window.addEventListener('beforeinstallprompt', handleInstallPrompt);
 
-    // Verify user session
-    if (users.length > 0) {
+    // Verify user session details once users array loaded
+    if (rawUsers.length > 0) {
       const storedUser = localStorage.getItem('currentUser');
       if (isLoggedIn && storedUser) {
-        const matchingUser = users.find(u => u.username === storedUser);
+        const matchingUser = rawUsers.find(u => u.username === storedUser);
         if (matchingUser) {
           setCurrentLoggedUser(matchingUser);
           setIsFirstTimeSetup(false);
@@ -211,8 +215,10 @@ export default function App() {
         }
       } else {
         setIsLoggedIn(false);
+        setAuthMode('login');
+        setIsFirstTimeSetup(false);
       }
-    } else if (users.length === 0 && users !== undefined) {
+    } else {
       setIsFirstTimeSetup(true);
       setAuthMode('register');
       setIsLoggedIn(false);
@@ -221,7 +227,7 @@ export default function App() {
     return () => {
       window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
     };
-  }, [users, isLoggedIn]);
+  }, [rawUsers, isLoggedIn]);
 
   // Initialize Google Identity Services
   useEffect(() => {
