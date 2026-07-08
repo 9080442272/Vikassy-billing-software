@@ -90,6 +90,7 @@ export default function App() {
   const fabrics = useQuery(api.fabrics.getAll) || [];
   const stitching = useQuery(api.stitching.getAll) || [];
   const ceoActivities = useQuery(api.ceoActivities.getAll) || [];
+  const expenses = useQuery(api.expenses.getAll) || [];
   const rawUsers = useQuery(api.users.getAll);
   const users = rawUsers || [];
 
@@ -114,6 +115,9 @@ export default function App() {
   const addCeoActivityMutation = useMutation(api.ceoActivities.add);
   const updateCeoActivityMutation = useMutation(api.ceoActivities.update);
   const deleteCeoActivityMutation = useMutation(api.ceoActivities.remove);
+  const addExpenseMutation = useMutation(api.expenses.add);
+  const updateExpenseMutation = useMutation(api.expenses.update);
+  const deleteExpenseMutation = useMutation(api.expenses.remove);
 
   // Set to true to temporarily bypass authentication for dev / client reviews
   const BYPASS_AUTH = true;
@@ -180,6 +184,10 @@ export default function App() {
   const [billAttachmentData, setBillAttachmentData] = useState(null);
   const [billAttachmentName, setBillAttachmentName] = useState('');
   const [selectedFabricId, setSelectedFabricId] = useState('');
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [editingExpense, setEditingExpense] = useState(null);
+  const [expenseSearch, setExpenseSearch] = useState('');
+  const [selectedOrderFilter, setSelectedOrderFilter] = useState('all');
 
   // --- AI Chat Advisor state values ---
   const [chatMessages, setChatMessages] = useState([
@@ -718,6 +726,57 @@ export default function App() {
     setEditingCeo(null);
   };
 
+  // Expenses CRUD
+  const handleExpenseSubmit = async (e) => {
+    e.preventDefault();
+    const date = document.getElementById('expense-date').value;
+    const category = document.getElementById('expense-category').value;
+    const amount = parseFloat(document.getElementById('expense-amount').value) || 0;
+    const description = document.getElementById('expense-desc').value.trim();
+    const billIdVal = document.getElementById('expense-bill-id').value;
+    const billId = billIdVal ? billIdVal : undefined;
+
+    try {
+      if (editingExpense) {
+        await updateExpenseMutation({
+          id: editingExpense._id,
+          date, category, amount, description, billId,
+          createdAt: editingExpense.createdAt
+        });
+        alert("Expense record updated!");
+      } else {
+        await addExpenseMutation({ date, category, amount, description, billId });
+        alert("Expense logged successfully!");
+      }
+      closeExpenseModal();
+    } catch (err) {
+      alert("Error saving expense: " + err.message);
+    }
+  };
+
+  const deleteExpense = async (id) => {
+    if (confirm("Are you sure you want to delete this expense record?")) {
+      await deleteExpenseMutation({ id });
+    }
+  };
+
+  const openEditExpense = (exp) => {
+    setEditingExpense(exp);
+    setIsExpenseModalOpen(true);
+    setTimeout(() => {
+      document.getElementById('expense-date').value = exp.date;
+      document.getElementById('expense-category').value = exp.category;
+      document.getElementById('expense-amount').value = exp.amount;
+      document.getElementById('expense-desc').value = exp.description;
+      document.getElementById('expense-bill-id').value = exp.billId || "";
+    }, 50);
+  };
+
+  const closeExpenseModal = () => {
+    setIsExpenseModalOpen(false);
+    setEditingExpense(null);
+  };
+
   // Stitching Assignment Actions
   const handleStitchingSubmit = async (e) => {
     e.preventDefault();
@@ -1189,6 +1248,26 @@ export default function App() {
     printContent("Fabric Roll Inventory Ledger", headers, rows);
   };
 
+  // Export Expenses list to PDF report
+  const handleExportExpensesPDF = () => {
+    if (expenses.length === 0) {
+      alert("No expense records to export!");
+      return;
+    }
+    const headers = ["Expense Date", "Category", "Description", "Linked Invoice", "Amount"];
+    const rows = expenses.map(exp => {
+      const bill = bills.find(b => b._id === exp.billId);
+      return [
+        formatDate(exp.date),
+        exp.category,
+        exp.description,
+        bill ? bill.billNumber : 'General Overhead',
+        formatCurrency(exp.amount)
+      ];
+    });
+    printContent("Operational Expenses Ledger", headers, rows);
+  };
+
   // Seed demo data for empty database setup
   const handleSeedDemoData = async () => {
     try {
@@ -1263,7 +1342,7 @@ export default function App() {
       });
 
       // 4. Seed Bills
-      await addBillMutation({
+      const billId1 = await addBillMutation({
         clientId: clientId1,
         billNumber: "VE-2026-001",
         date: "2026-07-02",
@@ -1277,7 +1356,7 @@ export default function App() {
         totalAmount: 89000
       });
 
-      await addBillMutation({
+      const billId2 = await addBillMutation({
         clientId: clientId2,
         billNumber: "VE-2026-002",
         date: "2026-07-05",
@@ -1289,6 +1368,35 @@ export default function App() {
         subtotal: 52500,
         totalGst: 0,
         totalAmount: 52000
+      });
+
+      // Seed Expenses
+      await addExpenseMutation({
+        billId: billId1,
+        category: "Transportation",
+        amount: 3500,
+        description: "Auto delivery charges for Sri Varahi order",
+        date: "2026-07-03"
+      });
+      await addExpenseMutation({
+        billId: billId1,
+        category: "Employee Salaries",
+        amount: 8000,
+        description: "Denim stitcher bonus allocations",
+        date: "2026-07-04"
+      });
+      await addExpenseMutation({
+        billId: billId2,
+        category: "Petrol",
+        amount: 1200,
+        description: "Coimbatore client dispatch delivery van fuel",
+        date: "2026-07-06"
+      });
+      await addExpenseMutation({
+        category: "Operations",
+        amount: 4500,
+        description: "Monthly workshop power generator servicing fee",
+        date: "2026-07-07"
       });
 
       // 5. Seed CEO Activity Logs
@@ -1310,7 +1418,7 @@ export default function App() {
         isCritical: false
       });
 
-      alert("🎉 Demo data seeded successfully! The dashboard is now populated.");
+      alert("🎉 Demo data seeded successfully! The dashboard and expenses are now populated.");
     } catch (err) {
       alert("Error seeding demo data: " + err.message);
     }
@@ -1492,6 +1600,10 @@ export default function App() {
           <button className={`nav-item ${activeTab === 'fabrics' ? 'active' : ''}`} onClick={() => handleTabChange('fabrics')}>
             <i className="ph ph-scissors"></i>
             <span>Fabrics</span>
+          </button>
+          <button className={`nav-item ${activeTab === 'expenses' ? 'active' : ''}`} onClick={() => handleTabChange('expenses')}>
+            <i className="ph ph-coins"></i>
+            <span>Expenses</span>
           </button>
           <button className={`nav-item mobile-hidden-nav ${activeTab === 'ceo-tracker' ? 'active' : ''}`} onClick={() => handleTabChange('ceo-tracker')}>
             <i className="ph ph-briefcase"></i>
@@ -2537,6 +2649,307 @@ export default function App() {
           </section>
         )}
 
+        {/* ==================== EXPENSES VIEW ==================== */}
+        {activeTab === 'expenses' && (() => {
+          const totalExpenseAmt = expenses.reduce((s, e) => s + e.amount, 0);
+          const totalRevenue = bills.reduce((s, b) => s + b.subtotal, 0);
+          const netProfitTotal = totalRevenue - totalExpenseAmt;
+          const avgMargin = totalRevenue > 0 ? (netProfitTotal / totalRevenue) * 100 : 0;
+
+          // Find top category
+          const categoriesMap = expenses.reduce((acc, exp) => {
+            acc[exp.category] = (acc[exp.category] || 0) + exp.amount;
+            return acc;
+          }, {});
+          let topCat = "None";
+          let maxVal = 0;
+          Object.entries(categoriesMap).forEach(([cat, val]) => {
+            if (val > maxVal) {
+              maxVal = val;
+              topCat = cat;
+            }
+          });
+
+          return (
+            <section id="expenses-view" className="tab-view active">
+              <header className="view-header">
+                <div>
+                  <h1>Expenses & Profit Analyzer</h1>
+                  <p className="subtitle">Record operational costs (transportation, salaries, petrol) and analyze net profits by order.</p>
+                </div>
+                <button className="btn btn-primary" onClick={() => setIsExpenseModalOpen(true)}>
+                  <i className="ph ph-plus-circle"></i> Log Expense
+                </button>
+              </header>
+
+              {/* Expenses Metrics Summary */}
+              <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', marginBottom: '24px' }}>
+                <div className="metric-card">
+                  <div className="metric-card-header">
+                    <span className="metric-label">Total Expenses</span>
+                    <div className="metric-icon purple" style={{ color: 'var(--color-destructive)', backgroundColor: 'rgba(239,68,68,0.1)' }}><i className="ph ph-trend-down"></i></div>
+                  </div>
+                  <div className="metric-value">{formatCurrency(totalExpenseAmt)}</div>
+                  <div className="metric-footer">
+                    <span>Cumulative overhead</span>
+                  </div>
+                </div>
+                <div className="metric-card">
+                  <div className="metric-card-header">
+                    <span className="metric-label">Overall Net Margin</span>
+                    <div className="metric-icon purple" style={{ color: avgMargin >= 50 ? 'var(--color-success)' : avgMargin >= 25 ? 'var(--color-primary)' : 'var(--color-warning)', backgroundColor: 'rgba(16,185,129,0.1)' }}><i className="ph ph-chart-line-up"></i></div>
+                  </div>
+                  <div className="metric-value">{avgMargin.toFixed(1)}%</div>
+                  <div className="metric-footer">
+                    <span>Revenue vs Expenses</span>
+                  </div>
+                </div>
+                <div className="metric-card">
+                  <div className="metric-card-header">
+                    <span className="metric-label">Top Expense Category</span>
+                    <div className="metric-icon gold"><i className="ph ph-tag"></i></div>
+                  </div>
+                  <div className="metric-value">{topCat}</div>
+                  <div className="metric-footer">
+                    <span>{formatCurrency(maxVal)} total spent</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid-layout-2" style={{ gridTemplateColumns: '1.4fr 1fr', gap: '24px' }}>
+                {/* Left Column: Expenses Ledger Book */}
+                <div className="table-card bg-surface border desktop-table-container" style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3 style={{ margin: 0 }}>Expenses Ledger Book</h3>
+                    <div className="search-filter-row" style={{ display: 'flex', gap: '12px', margin: 0 }}>
+                      <div className="search-input-wrapper" style={{ minWidth: '220px' }}>
+                        <i className="ph ph-magnifying-glass"></i>
+                        <input type="text" placeholder="Search expenses..." value={expenseSearch} onChange={(e) => setExpenseSearch(e.target.value)} />
+                      </div>
+                      <button className="btn btn-secondary" onClick={handleExportExpensesPDF} title="Export Expenses to PDF">
+                        <i className="ph ph-file-pdf"></i> Export PDF
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="table-responsive">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Category</th>
+                          <th>Description</th>
+                          <th>Linked Order</th>
+                          <th className="text-right">Amount</th>
+                          <th className="text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {expenses.filter(e => e.category.toLowerCase().includes(expenseSearch.toLowerCase()) || e.description.toLowerCase().includes(expenseSearch.toLowerCase())).map(exp => {
+                          const bill = bills.find(b => b._id === exp.billId);
+                          return (
+                            <tr key={exp._id}>
+                              <td>{formatDate(exp.date)}</td>
+                              <td>
+                                <span className={`badge ${
+                                  exp.category === 'Transportation' ? 'badge-gst' :
+                                  exp.category === 'Petrol' ? 'badge-neutral' :
+                                  exp.category === 'Employee Salaries' ? 'badge-success' : 'badge-primary'
+                                }`}>
+                                  {exp.category}
+                                </span>
+                              </td>
+                              <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={exp.description}>
+                                {exp.description}
+                              </td>
+                              <td>
+                                {bill ? (
+                                  <span className="font-semibold text-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                    <i className="ph ph-receipt" style={{ fontSize: '12px' }}></i> {bill.billNumber}
+                                  </span>
+                                ) : (
+                                  <span className="text-muted" style={{ fontSize: '12px' }}>General Overhead</span>
+                                )}
+                              </td>
+                              <td className="text-right font-semibold text-red" style={{ color: 'var(--color-destructive)' }}>{formatCurrency(exp.amount)}</td>
+                              <td className="text-right">
+                                <button className="btn-icon" onClick={() => openEditExpense(exp)}><i className="ph ph-pencil-simple"></i></button>
+                                <button className="btn-icon text-red" onClick={() => deleteExpense(exp._id)}><i className="ph ph-trash"></i></button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                        {expenses.length === 0 && (
+                          <tr>
+                            <td colSpan="6" className="text-center text-muted">No expenses recorded. Log transportation, salaries, or petrol costs to calculate actual margins.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Right Column: Order Profitability Analyzer */}
+                <div className="table-card bg-surface border" style={{ padding: '24px', alignSelf: 'start' }}>
+                  <h3 style={{ marginBottom: '8px' }}>Order Profitability Analyzer</h3>
+                  <p className="small text-muted" style={{ marginBottom: '16px' }}>Select an invoice order to calculate net operational profits.</p>
+                  
+                  <div className="form-group" style={{ marginBottom: '20px' }}>
+                    <label htmlFor="profit-order-select">Choose Active Order / Invoice</label>
+                    <select
+                      id="profit-order-select"
+                      value={selectedOrderFilter}
+                      onChange={(e) => setSelectedOrderFilter(e.target.value)}
+                      style={{ fontSize: '15px', padding: '12px 14px', width: '100%', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-primary)' }}
+                    >
+                      <option value="all">-- Select Recorded Order --</option>
+                      {bills.map(b => {
+                        const c = clients.find(cl => cl._id === b.clientId);
+                        return (
+                          <option key={b._id} value={b._id}>
+                            {b.billNumber} ({c ? c.name : 'Unknown Client'})
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+
+                  {selectedOrderFilter === 'all' ? (
+                    <div className="text-center text-muted" style={{ padding: '32px 16px', border: '1px dashed var(--color-border)', borderRadius: 'var(--radius-md)' }}>
+                      <i className="ph ph-chart-pie" style={{ fontSize: '32px', color: 'var(--color-primary)', marginBottom: '12px', display: 'block' }}></i>
+                      <span>Select an invoice from the dropdown above to audit specific transportation, fuel, and operational margins.</span>
+                    </div>
+                  ) : (() => {
+                    const billObj = bills.find(b => b._id === selectedOrderFilter);
+                    if (!billObj) return null;
+                    const clientObj = clients.find(cl => cl._id === billObj.clientId);
+                    const linkedExpenses = expenses.filter(e => e.billId === billObj._id);
+                    const totalLinkedCost = linkedExpenses.reduce((sum, e) => sum + e.amount, 0);
+                    const netProfit = billObj.subtotal - totalLinkedCost;
+                    const profitPct = billObj.subtotal > 0 ? (netProfit / billObj.subtotal) * 100 : 0;
+                    
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ padding: '16px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-muted)', border: '1px solid var(--color-border)' }}>
+                          <div style={{ fontSize: '11px', textTransform: 'uppercase', fontWeight: 700, color: 'var(--color-primary)', marginBottom: '8px' }}>Order Valuation Summary</div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                            <span className="text-muted">Client Name:</span>
+                            <span style={{ fontWeight: 600 }}>{clientObj ? clientObj.name : 'Unknown Client'}</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                            <span className="text-muted">Order Date:</span>
+                            <span>{formatDate(billObj.date)}</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span className="text-muted">Bill Number:</span>
+                            <span style={{ fontWeight: 600 }}>{billObj.billNumber}</span>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                            <span className="text-muted">Order Subtotal (A):</span>
+                            <strong className="text-primary">{formatCurrency(billObj.subtotal)}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                            <span className="text-muted">Total Expenses Linked (B):</span>
+                            <strong style={{ color: 'var(--color-destructive)' }}>-{formatCurrency(totalLinkedCost)}</strong>
+                          </div>
+                          <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                            <span className="font-semibold">Actual Net Profit:</span>
+                            <strong style={{ color: netProfit >= 0 ? 'var(--color-success)' : 'var(--color-destructive)', fontSize: '16px' }}>
+                              {formatCurrency(netProfit)}
+                            </strong>
+                          </div>
+                        </div>
+
+                        {/* Margin Progress Gauge */}
+                        <div style={{ marginTop: '8px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px' }}>
+                            <span className="font-medium">Net Profit Margin</span>
+                            <span style={{ fontWeight: 700, color: profitPct >= 50 ? 'var(--color-success)' : profitPct >= 20 ? 'var(--color-primary)' : 'var(--color-destructive)' }}>{profitPct.toFixed(1)}%</span>
+                          </div>
+                          <div className="progress-bar-container" style={{ height: '8px' }}>
+                            <div
+                              className="progress-bar"
+                              style={{
+                                width: `${Math.min(Math.max(0, profitPct), 100)}%`,
+                                backgroundColor: profitPct >= 50 ? 'var(--color-success)' : profitPct >= 20 ? 'var(--color-primary)' : 'var(--color-destructive)'
+                              }}
+                            ></div>
+                          </div>
+                          <div className="small text-muted" style={{ marginTop: '6px', fontSize: '11px', fontStyle: 'italic' }}>
+                            {profitPct >= 50 ? '🟢 Outstanding healthy profit margin!' : profitPct >= 20 ? '🟡 Moderate profit margin. Assess overhead costs.' : '🔴 Low/Negative margin. Operational expenses are critical!'}
+                          </div>
+                        </div>
+
+                        {/* Linked Expenses Breakdown List */}
+                        <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '16px' }}>
+                          <div style={{ fontSize: '11px', textTransform: 'uppercase', fontWeight: 700, color: 'var(--color-primary)', marginBottom: '10px' }}>Linked Expenses Breakdown</div>
+                          {linkedExpenses.length === 0 ? (
+                            <div className="small text-muted text-center" style={{ padding: '8px 0' }}>No expenses logged for this order. Use the Log Expense button to add transportation or petrol costs.</div>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '180px', overflowY: 'auto', paddingRight: '4px' }}>
+                              {linkedExpenses.map(e => (
+                                <div key={e._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', padding: '6px 8px', borderRadius: '4px', backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
+                                  <div>
+                                    <span style={{ fontWeight: 600, display: 'block' }}>{e.category}</span>
+                                    <span className="text-muted" style={{ fontSize: '10px' }}>{e.description}</span>
+                                  </div>
+                                  <span style={{ fontWeight: 600, color: 'var(--color-destructive)' }}>-{formatCurrency(e.amount)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* Mobile Cards rendering for expenses */}
+              <div className="mobile-cards-container">
+                {expenses.filter(e => e.category.toLowerCase().includes(expenseSearch.toLowerCase()) || e.description.toLowerCase().includes(expenseSearch.toLowerCase())).map(exp => {
+                  const bill = bills.find(b => b._id === exp.billId);
+                  return (
+                    <div key={exp._id} className="mobile-card">
+                      <div className="mobile-card-header">
+                        <div className="mobile-card-title">{exp.category}</div>
+                        <span style={{ fontWeight: 700, color: 'var(--color-destructive)', fontSize: '14px' }}>-{formatCurrency(exp.amount)}</span>
+                      </div>
+                      <div className="mobile-card-body">
+                        <div className="mobile-card-detail">
+                          <span className="mobile-card-detail-label">Date</span>
+                          <span className="mobile-card-detail-value">{formatDate(exp.date)}</span>
+                        </div>
+                        <div className="mobile-card-detail">
+                          <span className="mobile-card-detail-label">Linked Order</span>
+                          <span className="mobile-card-detail-value font-semibold text-primary">{bill ? bill.billNumber : 'General Overhead'}</span>
+                        </div>
+                        <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', padding: '0 4px', lineHeight: '1.4' }}>
+                          <strong>Details: </strong>{exp.description}
+                        </div>
+                      </div>
+                      <div className="mobile-card-footer">
+                        <button className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => openEditExpense(exp)}>
+                          <i className="ph ph-pencil-simple"></i> Edit
+                        </button>
+                        <button className="btn btn-secondary text-red" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => deleteExpense(exp._id)}>
+                          <i className="ph ph-trash"></i> Delete
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+                {expenses.length === 0 && (
+                  <div className="text-center text-muted" style={{ padding: '16px' }}>No expenses recorded.</div>
+                )}
+              </div>
+            </section>
+          );
+        })()}
+
         {/* ==================== ACCOUNT VIEW ==================== */}
         {activeTab === 'account' && (
           <section id="account-view" className="tab-view active">
@@ -3066,6 +3479,71 @@ export default function App() {
         </div>
       )}
 
+      {/* ==================== EXPENSE REGISTRATION MODAL ==================== */}
+      {isExpenseModalOpen && (
+        <div id="expense-modal" className="modal-overlay active">
+          <div className="modal-card">
+            <div className="modal-header">
+              <h3>{editingExpense ? 'Edit Expense Record' : 'Record Expense Details'}</h3>
+              <button className="btn-close" onClick={closeExpenseModal}><i className="ph ph-x"></i></button>
+            </div>
+            <form id="expense-form" onSubmit={handleExpenseSubmit}>
+              <div className="modal-body" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="expense-date">Expense Date *</label>
+                    <input type="date" id="expense-date" required defaultValue={new Date().toISOString().split('T')[0]} />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="expense-category">Category *</label>
+                    <select id="expense-category" required style={{ fontSize: '15px', padding: '12px 14px' }}>
+                      <option value="Transportation">Transportation (Auto)</option>
+                      <option value="Petrol">Petrol / Fuel</option>
+                      <option value="Employee Salaries">Employee Salaries</option>
+                      <option value="Materials">Materials & Fabrics</option>
+                      <option value="Operations">Operations / Power</option>
+                      <option value="Others">Others / Overheads</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="expense-amount">Amount (₹) *</label>
+                  <input type="number" id="expense-amount" min="0" step="any" required placeholder="0.00" style={{ fontSize: '16px', padding: '12px 14px', fontWeight: 600 }} />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="expense-bill-id">Link to Customer Order / Invoice (Optional)</label>
+                  <select id="expense-bill-id" style={{ fontSize: '15px', padding: '12px 14px' }}>
+                    <option value="">-- No Linked Order (General Overhead) --</option>
+                    {bills.map(b => {
+                      const c = clients.find(cl => cl._id === b.clientId);
+                      return (
+                        <option key={b._id} value={b._id}>
+                          {b.billNumber} ({c ? c.name : 'Unknown Client'}) — {formatCurrency(b.subtotal)}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <div className="small text-muted" style={{ marginTop: '4px', fontSize: '11px' }}>
+                    Linking this expense will allocate the cost to that specific invoice to calculate actual order profitability.
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="expense-desc">Description / Notes *</label>
+                  <input type="text" id="expense-desc" required placeholder="e.g. Auto fare to pandian nagar delivery unit" />
+                </div>
+              </div>
+              <div className="modal-footer" style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button type="button" className="btn btn-secondary" onClick={closeExpenseModal}>Cancel</button>
+                <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 600 }}>Save Expense Record</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* ==================== MOCK RECEIPT SCAN DIALOG ==================== */}
       {isScanModalOpen && (
         <div id="scan-modal" className="modal-overlay active">
@@ -3147,6 +3625,15 @@ export default function App() {
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 600, fontSize: '14px' }}>CEO Log</div>
                     <div className="text-muted" style={{ fontSize: '11px' }}>CEO performance tracking & owner analytics</div>
+                  </div>
+                  <i className="ph ph-caret-right text-muted"></i>
+                </a>
+
+                <a className="more-menu-item" onClick={() => handleTabChange('expenses')} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 24px', borderBottom: '1px solid var(--color-border)', cursor: 'pointer', color: 'var(--color-text-primary)', textDecoration: 'none' }}>
+                  <i className="ph ph-coins" style={{ fontSize: '22px', color: 'var(--color-primary)' }}></i>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 600, fontSize: '14px' }}>Expenses</div>
+                    <div className="text-muted" style={{ fontSize: '11px' }}>Track order transportation, fuel & operational costs</div>
                   </div>
                   <i className="ph ph-caret-right text-muted"></i>
                 </a>

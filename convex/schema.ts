@@ -76,6 +76,15 @@ export default defineSchema({
     createdAt: v.string(),
   }),
 
+  expenses: defineTable({
+    billId: v.optional(v.string()),
+    category: v.string(),
+    amount: v.number(),
+    description: v.string(),
+    date: v.string(),
+    createdAt: v.string(),
+  }).index("by_billId", ["billId"]),
+
   users: defineTable({
     username: v.string(),
     password: v.string(),
