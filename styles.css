@@ -2417,16 +2417,17 @@ input:checked + .slider:before {
 .floating-chatbot-container {
   position: fixed;
   bottom: 24px;
-  left: 284px; /* 260px sidebar width + 24px spacing */
+  right: 24px; /* Float on the right side of the main workspace */
   z-index: 1100;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: flex-end; /* Align chatbot cards to the right borders */
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 768px) {
   .floating-chatbot-container {
-    left: 24px;
+    bottom: 72px; /* Positioned directly above the 56px mobile navigation bar */
+    right: 16px;
   }
 }
 
