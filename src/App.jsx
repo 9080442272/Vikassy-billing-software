@@ -1831,21 +1831,30 @@ export default function App() {
                 <h3 style={{ margin: 0 }}>System Operations Activity Feed</h3>
                 <span className="badge badge-success">Live Syncing</span>
               </div>
-              <div className="activities-feed">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
                 {getRecentActivities().map((act) => (
-                  <div key={act.id} className="activity-item">
-                    <div className="activity-icon-bullet"><i className={`ph ${act.icon}`}></i></div>
-                    <div className="activity-details">
-                      <div className="activity-title-row">
-                        <span className="activity-text">{act.text}</span>
-                        <span className="activity-time">{formatRelativeTime(act.time)}</span>
-                      </div>
-                      <div className="activity-subtitle">{act.subtitle}</div>
+                  <div key={act.id} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                    <div style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '8px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: act.color || 'var(--color-primary)',
+                      flexShrink: 0
+                    }}>
+                      <i className={`ph ${act.icon}`} style={{ fontSize: '18px' }}></i>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#ffffff' }}>{act.title}</span>
+                      <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: '1.4' }}>{act.desc}</span>
                     </div>
                   </div>
                 ))}
                 {getRecentActivities().length === 0 && (
-                  <div className="text-center text-muted" style={{ padding: '16px' }}>No recent operations logged. Seed demo data to see audits.</div>
+                  <div className="text-center text-muted" style={{ padding: '16px', fontSize: '12px' }}>No recent operations logged. Seed demo data to see audits.</div>
                 )}
               </div>
             </div>
