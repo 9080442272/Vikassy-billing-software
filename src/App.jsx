@@ -1660,6 +1660,9 @@ export default function App() {
                 <p className="subtitle">Monitor your business performance, client revenues, and GST filings.</p>
               </div>
               <div className="header-actions">
+                <button className="btn btn-secondary" onClick={handleSeedDemoData} title="Seed Mock Database Entries">
+                  <i className="ph ph-database"></i> Seed Data
+                </button>
                 <button className="btn btn-primary" onClick={() => setIsBillModalOpen(true)}>
                   <i className="ph ph-plus-circle"></i> New Bill
                 </button>
@@ -1668,29 +1671,6 @@ export default function App() {
                 </button>
               </div>
             </header>
-
-            {/* Welcome banner greeting */}
-            <div className="welcome-banner" style={{
-              padding: '20px 24px',
-              borderRadius: 'var(--radius-lg)',
-              background: 'linear-gradient(135deg, rgba(124,58,237,0.12) 0%, rgba(139,92,246,0.03) 100%)',
-              border: '1px solid rgba(124,58,237,0.2)',
-              marginBottom: '24px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '16px',
-              position: 'relative',
-              overflow: 'hidden'
-            }}>
-              <div>
-                <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '6px', color: '#ffffff' }}>Welcome back, {currentLoggedUser?.fullName || currentLoggedUser?.username || 'Owner'}! 👋</h2>
-                <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-secondary)' }}>Manage your billing invoices, fabrics stocks ledger, CEO performance audits, and stitching crew payouts.</p>
-              </div>
-              <button className="btn btn-accent" onClick={handleSeedDemoData} style={{ flexShrink: 0 }}>
-                <i className="ph ph-database"></i> Seed Demo Data
-              </button>
-            </div>
 
             {/* Statistics Grid Panel */}
             <div className="metrics-grid" style={{ marginBottom: '24px' }}>
