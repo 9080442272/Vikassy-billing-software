@@ -3577,15 +3577,6 @@ export default function App() {
                   <i className="ph ph-caret-right text-muted"></i>
                 </a>
 
-                <a className="more-menu-item" onClick={() => { setIsMobileMenuOpen(false); handleTabChange('dashboard'); setIsChatOpen(true); }} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 24px', borderBottom: '1px solid var(--color-border)', cursor: 'pointer', color: 'var(--color-text-primary)', textDecoration: 'none' }}>
-                  <i className="ph ph-sparkle" style={{ fontSize: '22px', color: 'var(--color-primary)' }}></i>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 600, fontSize: '14px' }}>AI Advisor (Chat)</div>
-                    <div className="text-muted" style={{ fontSize: '11px' }}>Open floating chat advisor on home screen</div>
-                  </div>
-                  <i className="ph ph-caret-right text-muted"></i>
-                </a>
-
                 <a className="more-menu-item" onClick={() => handleTabChange('account')} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 24px', borderBottom: '1px solid var(--color-border)', cursor: 'pointer', color: 'var(--color-text-primary)', textDecoration: 'none' }}>
                   <i className="ph ph-user-gear" style={{ fontSize: '22px', color: 'var(--color-primary)' }}></i>
                   <div style={{ flex: 1 }}>
