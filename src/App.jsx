@@ -188,6 +188,7 @@ export default function App() {
   const [editingExpense, setEditingExpense] = useState(null);
   const [expenseSearch, setExpenseSearch] = useState('');
   const [selectedOrderFilter, setSelectedOrderFilter] = useState('all');
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // --- AI Chat Advisor state values ---
   const [chatMessages, setChatMessages] = useState([
@@ -261,6 +262,18 @@ export default function App() {
       window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
     };
   }, [rawUsers, isLoggedIn]);
+
+  // Auto-scroll AI Advisor chat logs to the bottom on new messages
+  useEffect(() => {
+    if (isChatOpen) {
+      setTimeout(() => {
+        const chatContainer = document.getElementById('ai-chat-logs');
+        if (chatContainer) {
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+      }, 50);
+    }
+  }, [chatMessages, isChatOpen]);
 
   // Initialize Google Identity Services
   useEffect(() => {
@@ -1639,7 +1652,8 @@ export default function App() {
 
         {/* ==================== DASHBOARD VIEW ==================== */}
         {activeTab === 'dashboard' && (
-          <section id="dashboard-view" className="tab-view active">
+          <>
+            <section id="dashboard-view" className="tab-view active">
             <header className="view-header">
               <div>
                 <h1>Financial Overview</h1>
@@ -1663,76 +1677,69 @@ export default function App() {
               border: '1px solid rgba(124,58,237,0.2)',
               marginBottom: '24px',
               display: 'flex',
-              flexDirection: 'column',
-              gap: '4px'
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '16px',
+              position: 'relative',
+              overflow: 'hidden'
             }}>
-              <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#ffffff' }}>Vanakkam, {currentLoggedUser?.fullName || 'CEO'}! 👋</h2>
-              <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: '1.4' }}>
-                Here is your real-time operations status stream for **Varahi Exports**. Everything is running stably.
-              </p>
-              {bills.length === 0 && fabrics.length === 0 && employees.length === 0 && (
-                <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-start' }}>
-                  <p style={{ fontSize: '12px', color: '#A78BFA', fontWeight: 500 }}>
-                    💡 Your database is empty. Would you like to seed mock demo data to explore the dashboard instantly?
-                  </p>
-                  <button className="btn btn-secondary" onClick={handleSeedDemoData} style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 16px',
-                    fontSize: '12px',
-                    borderColor: 'rgba(124,58,237,0.4)',
-                    color: '#ffffff'
-                  }}>
-                    <i className="ph ph-sparkle"></i> Seed Demo Data
-                  </button>
-                </div>
-              )}
+              <div>
+                <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '6px', color: '#ffffff' }}>Welcome back, {currentLoggedUser?.fullName || currentLoggedUser?.username || 'Owner'}! 👋</h2>
+                <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-secondary)' }}>Manage your billing invoices, fabrics stocks ledger, CEO performance audits, and stitching crew payouts.</p>
+              </div>
+              <button className="btn btn-accent" onClick={handleSeedDemoData} style={{ flexShrink: 0 }}>
+                <i className="ph ph-database"></i> Seed Demo Data
+              </button>
             </div>
 
-            {/* Dashboard highlights grid */}
-            <div className="metrics-grid">
+            {/* Statistics Grid Panel */}
+            <div className="metrics-grid" style={{ marginBottom: '24px' }}>
+              {/* Total Billing */}
               <div className="metric-card">
                 <div className="metric-card-header">
                   <span className="metric-label">Total Billing</span>
-                  <div className="metric-icon purple"><i className="ph ph-currency-inr"></i></div>
+                  <div className="metric-icon purple"><i className="ph ph-receipt"></i></div>
                 </div>
-                <div className="metric-value text-primary">{formatCurrency(bills.reduce((s, b) => s + b.totalAmount, 0))}</div>
+                <div className="metric-value">{formatCurrency(bills.reduce((sum, b) => sum + b.totalAmount, 0))}</div>
                 <div className="metric-footer">
-                  <span style={{ color: 'var(--color-success)', fontWeight: 600 }}><i className="ph ph-arrow-up-right"></i> Stable</span>
-                  <span>Synced in Cloud</span>
+                  <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>Active</span>
+                  <span>across client portfolios</span>
                 </div>
               </div>
+
+              {/* Invoices Logged */}
               <div className="metric-card">
                 <div className="metric-card-header">
                   <span className="metric-label">Invoices Logged</span>
-                  <div className="metric-icon gold"><i className="ph ph-receipt"></i></div>
+                  <div className="metric-icon purple"><i className="ph ph-file-text"></i></div>
                 </div>
-                <div className="metric-value">{bills.length} Bills</div>
+                <div className="metric-value">{bills.length} Records</div>
                 <div className="metric-footer">
-                  <span style={{ color: 'var(--color-success)', fontWeight: 600 }}><i className="ph ph-trend-up"></i> Active</span>
-                  <span>Transaction ledger</span>
+                  <span>Audit-ready entries</span>
                 </div>
               </div>
+
+              {/* Active Fabric Rolls */}
               <div className="metric-card">
                 <div className="metric-card-header">
                   <span className="metric-label">Active Fabric Rolls</span>
-                  <div className="metric-icon purple" style={{ color: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)' }}><i className="ph ph-package"></i></div>
+                  <div className="metric-icon gold"><i className="ph ph-scissors"></i></div>
                 </div>
-                <div className="metric-value">{fabrics.filter(f => f.status === 'Stored' || f.status === 'Stitching').length} Rolls</div>
+                <div className="metric-value">{fabrics.filter(f => f.status !== 'Completed').length} Rolls</div>
                 <div className="metric-footer">
-                  <span>{fabrics.filter(f => f.status === 'Stitching').length} allocated in stitching</span>
+                  <span>Currently assigned / stored</span>
                 </div>
               </div>
+
+              {/* CEO Work Logs */}
               <div className="metric-card">
                 <div className="metric-card-header">
-                  <span className="metric-label">CEO Work Logs</span>
-                  <div className="metric-icon gold" style={{ color: '#EF4444', backgroundColor: 'rgba(239,68,68,0.1)' }}><i className="ph ph-briefcase"></i></div>
+                  <span className="metric-label">CEO Work logs</span>
+                  <div className="metric-icon purple" style={{ color: 'var(--color-success)', backgroundColor: 'rgba(16,185,129,0.1)' }}><i className="ph ph-clock"></i></div>
                 </div>
                 <div className="metric-value">{ceoActivities.reduce((s, a) => s + a.hoursSpent, 0)} Hrs</div>
                 <div className="metric-footer">
-                  <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>{ceoActivities.filter(a => a.isCritical).length} Milestones</span>
-                  <span>logged today</span>
+                  <span>Cumulative hours logged</span>
                 </div>
               </div>
             </div>
@@ -1754,104 +1761,137 @@ export default function App() {
                     <thead>
                       <tr>
                         <th>Client</th>
-                        <th className="text-right">Billing Volume</th>
-                        <th className="text-right">Percentage Share</th>
+                        <th>Billing Volume</th>
+                        <th className="text-right">Share %</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {Object.entries(
-                        bills.reduce((acc, b) => {
-                          const c = clients.find(cl => cl._id === b.clientId);
-                          const name = c ? c.name : 'Unknown';
-                          acc[name] = (acc[name] || 0) + b.totalAmount;
+                      {(() => {
+                        const totalSales = bills.reduce((s, b) => s + b.totalAmount, 0);
+                        const clientTotals = bills.reduce((acc, b) => {
+                          acc[b.clientId] = (acc[b.clientId] || 0) + b.totalAmount;
                           return acc;
-                        }, {})
-                      ).map(([name, sum]) => {
-                        const total = bills.reduce((s, b) => s + b.totalAmount, 0) || 1;
-                        const pct = (sum / total) * 100;
-                        return (
-                          <tr key={name}>
-                            <td className="font-semibold">{name}</td>
-                            <td className="text-right">{formatCurrency(sum)}</td>
-                            <td className="text-right font-medium text-primary">{pct.toFixed(1)}%</td>
+                        }, {});
+                        const sortedData = Object.entries(clientTotals).map(([id, sales]) => {
+                          const clObj = clients.find(c => c._id === id);
+                          return {
+                            name: clObj ? clObj.name : 'Unknown Client',
+                            sales,
+                            pct: totalSales > 0 ? (sales / totalSales) * 100 : 0
+                          };
+                        }).sort((a, b) => b.sales - a.sales);
+
+                        return sortedData.map((row, idx) => (
+                          <tr key={idx}>
+                            <td className="font-semibold">{row.name}</td>
+                            <td>{formatCurrency(row.sales)}</td>
+                            <td className="text-right font-medium text-primary">{row.pct.toFixed(1)}%</td>
                           </tr>
-                        );
-                      })}
-                      {bills.length === 0 && (
-                        <tr>
-                          <td colSpan="3" className="text-center text-muted">No billing summaries computed.</td>
-                        </tr>
-                      )}
+                        ));
+                      })()}
                     </tbody>
                   </table>
                 </div>
+
                 <div className="mobile-cards-container">
-                  {Object.entries(
-                    bills.reduce((acc, b) => {
-                      const c = clients.find(cl => cl._id === b.clientId);
-                      const name = c ? c.name : 'Unknown';
-                      acc[name] = (acc[name] || 0) + b.totalAmount;
+                  {(() => {
+                    const totalSales = bills.reduce((s, b) => s + b.totalAmount, 0);
+                    const clientTotals = bills.reduce((acc, b) => {
+                      acc[b.clientId] = (acc[b.clientId] || 0) + b.totalAmount;
                       return acc;
-                    }, {})
-                  ).map(([name, sum]) => {
-                    const total = bills.reduce((s, b) => s + b.totalAmount, 0) || 1;
-                    const pct = (sum / total) * 100;
-                    return (
-                      <div key={name} style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '12px', borderRadius: '8px', backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--color-border)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                          <span style={{ fontWeight: 600 }}>{name}</span>
-                          <span style={{ color: 'var(--color-primary)', fontWeight: 600 }}>{pct.toFixed(1)}%</span>
+                    }, {});
+                    const sortedData = Object.entries(clientTotals).map(([id, sales]) => {
+                      const clObj = clients.find(c => c._id === id);
+                      return {
+                        name: clObj ? clObj.name : 'Unknown Client',
+                        sales,
+                        pct: totalSales > 0 ? (sales / totalSales) * 100 : 0
+                      };
+                    }).sort((a, b) => b.sales - a.sales);
+
+                    return sortedData.map((row, idx) => (
+                      <div key={idx} style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '10px', marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+                          <span style={{ fontWeight: 600 }}>{row.name}</span>
+                          <span className="text-primary" style={{ fontWeight: 700 }}>{row.pct.toFixed(1)}%</span>
                         </div>
-                        <div style={{ height: '6px', width: '100%', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
-                          <div style={{ height: '100%', width: `${pct}%`, backgroundColor: 'var(--color-primary)', borderRadius: '3px' }}></div>
-                        </div>
-                        <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', textAlign: 'right' }}>
-                          {formatCurrency(sum)}
+                        <div className="progress-bar-container" style={{ height: '6px' }}>
+                          <div className="progress-bar" style={{ width: `${row.pct}%` }}></div>
                         </div>
                       </div>
-                    );
-                  })}
-                  {bills.length === 0 && (
-                    <div className="text-center text-muted" style={{ padding: '16px' }}>No billing summaries computed.</div>
-                  )}
+                    ));
+                  })()}
                 </div>
               </div>
             </div>
 
-            <div className="charts-grid">
-              <div className="table-card bg-surface border" style={{ padding: '24px' }}>
-                <h3 style={{ marginBottom: '4px' }}>Recent System Activities</h3>
-                <p className="small text-muted" style={{ marginBottom: '20px' }}>Real-time operations stream across Varahi Exports.</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {getRecentActivities().map((act) => (
-                    <div key={act.id} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                      <div style={{
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: '8px',
-                        backgroundColor: 'rgba(255,255,255,0.03)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: act.color,
-                        flexShrink: 0
-                      }}>
-                        <i className={`ph ${act.icon}`} style={{ fontSize: '18px' }}></i>
+            {/* System activity logs feed */}
+            <div className="table-card bg-surface border" style={{ padding: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h3 style={{ margin: 0 }}>System Operations Activity Feed</h3>
+                <span className="badge badge-success">Live Syncing</span>
+              </div>
+              <div className="activities-feed">
+                {getRecentActivities().map((act) => (
+                  <div key={act.id} className="activity-item">
+                    <div className="activity-icon-bullet"><i className={`ph ${act.icon}`}></i></div>
+                    <div className="activity-details">
+                      <div className="activity-title-row">
+                        <span className="activity-text">{act.text}</span>
+                        <span className="activity-time">{formatRelativeTime(act.time)}</span>
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#ffffff' }}>{act.title}</span>
-                        <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: '1.4' }}>{act.desc}</span>
-                      </div>
+                      <div className="activity-subtitle">{act.subtitle}</div>
                     </div>
-                  ))}
-                  {getRecentActivities().length === 0 && (
-                    <div className="text-center text-muted" style={{ padding: '16px', fontSize: '12px' }}>No system logs generated yet.</div>
-                  )}
-                </div>
+                  </div>
+                ))}
+                {getRecentActivities().length === 0 && (
+                  <div className="text-center text-muted" style={{ padding: '16px' }}>No recent operations logged. Seed demo data to see audits.</div>
+                )}
               </div>
             </div>
           </section>
-        )}
+
+          {/* Floating Chatbot Widget on Home Screen */}
+          <div className="floating-chatbot-container no-print">
+            {isChatOpen && (
+              <div className="chatbot-window-card">
+                <div className="chat-header" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-muted)' }}>
+                  <div className="chat-ai-avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(124,58,237,0.1)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}><i className="ph-fill ph-sparkle"></i></div>
+                  <div style={{ flex: 1 }}>
+                    <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 600 }}>AI Financial Advisor</h4>
+                    <p className="small text-green" style={{ margin: 0, fontSize: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}><span className="pulse-dot" style={{ width: '6px', height: '6px', backgroundColor: 'var(--color-success)', borderRadius: '50%', display: 'inline-block' }}></span> Online & connected</p>
+                  </div>
+                  <button className="btn btn-accent btn-sm" onClick={triggerAIAnalysis} style={{ fontSize: '10px', padding: '4px 8px', display: 'inline-flex', alignItems: 'center', gap: '4px', border: '1px solid rgba(124, 58, 237, 0.2)', marginRight: '6px' }}><i className="ph ph-sparkle"></i> Analysis</button>
+                  <button className="btn-close" onClick={() => setIsChatOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--color-text-secondary)', cursor: 'pointer', fontSize: '16px' }}><i className="ph ph-x"></i></button>
+                </div>
+
+                <div className="chat-logs" id="ai-chat-logs" style={{ height: '260px', overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: 'var(--color-surface)' }}>
+                  {chatMessages.map((msg, i) => (
+                    <div className={`chat-message ${msg.role}`} key={i} style={{ alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%', padding: '8px 12px', borderRadius: 'var(--radius-md)', fontSize: '12px', lineHeight: 1.4, backgroundColor: msg.role === 'user' ? 'var(--color-primary)' : 'var(--color-muted)', color: msg.role === 'user' ? '#ffffff' : 'var(--color-text-primary)' }}>
+                      <p style={{ margin: 0 }}>{msg.text}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="suggestion-chips" style={{ padding: '8px 12px', display: 'flex', gap: '4px', flexWrap: 'wrap', borderTop: '1px solid var(--color-border)', backgroundColor: 'var(--color-muted)' }}>
+                  <button className="chip" style={{ fontSize: '10px', padding: '4px 8px', borderRadius: '12px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-secondary)', cursor: 'pointer' }} onClick={() => sendQuickMessage('Provide complete cash flow review')}>Cash Flow</button>
+                  <button className="chip" style={{ fontSize: '10px', padding: '4px 8px', borderRadius: '12px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-secondary)', cursor: 'pointer' }} onClick={() => sendQuickMessage('Who is my top client by sales?')}>Top Client</button>
+                  <button className="chip" style={{ fontSize: '10px', padding: '4px 8px', borderRadius: '12px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-secondary)', cursor: 'pointer' }} onClick={() => sendQuickMessage('Do I have client concentration risk?')}>Risk Audit</button>
+                </div>
+
+                <form className="chat-input-form" onSubmit={sendChatMessage} style={{ display: 'flex', gap: '8px', padding: '8px 12px', borderTop: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)' }}>
+                  <input type="text" placeholder="Ask finances..." value={chatInput} onChange={(e) => setChatInput(e.target.value)} required style={{ flex: 1, fontSize: '12px', padding: '8px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-muted)', color: 'var(--color-text-primary)' }} />
+                  <button type="submit" className="btn btn-accent btn-icon-square" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><i className="ph-fill ph-paper-plane-right"></i></button>
+                </form>
+              </div>
+            )}
+
+            <div className="floating-chat-trigger" onClick={() => setIsChatOpen(!isChatOpen)}>
+              {isChatOpen ? <i className="ph ph-x"></i> : <i className="ph ph-sparkle"></i>}
+            </div>
+          </div>
+        </>
+      )}
 
         {/* ==================== CLIENTS VIEW ==================== */}
         {activeTab === 'clients' && (
@@ -2555,96 +2595,6 @@ export default function App() {
               {ceoActivities.length === 0 && (
                 <div className="text-center text-muted" style={{ padding: '24px' }}>No activity records logged.</div>
               )}
-            </div>
-          </section>
-        )}
-
-        {/* ==================== AI ADVISOR VIEW ==================== */}
-        {activeTab === 'ai-advisor' && (
-          <section id="ai-advisor-view" className="tab-view active">
-            <header className="view-header">
-              <div>
-                <h1>AI Business Intelligence</h1>
-                <p className="subtitle">Get strategic financial advice, growth forecasts, and risk assessments generated directly from your ledger data.</p>
-              </div>
-              <button className="btn btn-accent" onClick={triggerAIAnalysis}>
-                <i className="ph ph-sparkle"></i> Run AI Analysis
-              </button>
-            </header>
-
-            <div className="ai-intelligence-grid">
-              {/* Left Side: Analysis cards */}
-              <div className="ai-analysis-main">
-                {/* Health Score Card */}
-                <div className="ai-card health-score-card">
-                  <div className="health-header">
-                    <h3>Varahi Export Health Score</h3>
-                    <span className="badge badge-gst font-medium" id="ai-health-status">{aiHealthStatus}</span>
-                  </div>
-                  <div className="health-body">
-                    <div className="health-score-gauge">
-                      <div className="gauge-center">
-                        <span id="ai-health-percentage">{aiHealthScore}</span>
-                        <span className="label">Health Index</span>
-                      </div>
-                    </div>
-                    <div className="health-summary-text">
-                      <h4>Executive Summary</h4>
-                      <p id="ai-summary-text">{aiSummary}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bullet Recommendations */}
-                <div className="ai-card recommendations-card" style={{ marginTop: '24px' }}>
-                  <h3>Strategic Recommendations</h3>
-                  <hr className="divider" />
-                  <div className="recommendations-list" id="ai-recommendations-list">
-                    {aiRecommendations.map((r, i) => (
-                      <div className="recommendation-item empty-state" key={i}>
-                        <div className="icon"><i className={`ph ${r.icon}`}></i></div>
-                        <div>
-                          <h5>{r.title}</h5>
-                          <p>{r.desc}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Side: Chat Assistant */}
-              <div className="ai-chat-sidebar">
-                <div className="ai-card chat-card">
-                  <div className="chat-header">
-                    <div className="chat-ai-avatar"><i className="ph-fill ph-sparkle"></i></div>
-                    <div>
-                      <h4>Interactive Financial Advisor</h4>
-                      <p className="small text-green"><span className="pulse-dot"></span> Online & connected to database</p>
-                    </div>
-                  </div>
-
-                  <div className="chat-logs" id="ai-chat-logs" style={{ height: '320px', overflowY: 'auto', padding: '16px' }}>
-                    {chatMessages.map((msg, i) => (
-                      <div className={`chat-message ${msg.role}`} key={i}>
-                        <p>{msg.text}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="suggestion-chips" style={{ padding: '8px 16px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                    <button className="chip" onClick={() => sendQuickMessage('Provide complete cash flow review')}>Cash Flow Review</button>
-                    <button className="chip" onClick={() => sendQuickMessage('Who is my top client by sales?')}>Top Client Analysis</button>
-                    <button className="chip" onClick={() => sendQuickMessage('Do I have client concentration risk?')}>Concentration Risk</button>
-                    <button className="chip" onClick={() => sendQuickMessage('Forecast next month sales')}>Sales Forecast</button>
-                  </div>
-
-                  <form className="chat-input-form" onSubmit={sendChatMessage}>
-                    <input type="text" placeholder="Ask about your financial status..." value={chatInput} onChange={(e) => setChatInput(e.target.value)} required />
-                    <button type="submit" className="btn btn-accent btn-icon-square"><i className="ph-fill ph-paper-plane-right"></i></button>
-                  </form>
-                </div>
-              </div>
             </div>
           </section>
         )}
@@ -3638,11 +3588,11 @@ export default function App() {
                   <i className="ph ph-caret-right text-muted"></i>
                 </a>
 
-                <a className="more-menu-item" onClick={() => handleTabChange('ai-advisor')} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 24px', borderBottom: '1px solid var(--color-border)', cursor: 'pointer', color: 'var(--color-text-primary)', textDecoration: 'none' }}>
+                <a className="more-menu-item" onClick={() => { setIsMobileMenuOpen(false); handleTabChange('dashboard'); setIsChatOpen(true); }} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 24px', borderBottom: '1px solid var(--color-border)', cursor: 'pointer', color: 'var(--color-text-primary)', textDecoration: 'none' }}>
                   <i className="ph ph-sparkle" style={{ fontSize: '22px', color: 'var(--color-primary)' }}></i>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 600, fontSize: '14px' }}>AI Advisor</div>
-                    <div className="text-muted" style={{ fontSize: '11px' }}>AI business health audits & reports</div>
+                    <div style={{ fontWeight: 600, fontSize: '14px' }}>AI Advisor (Chat)</div>
+                    <div className="text-muted" style={{ fontSize: '11px' }}>Open floating chat advisor on home screen</div>
                   </div>
                   <i className="ph ph-caret-right text-muted"></i>
                 </a>
