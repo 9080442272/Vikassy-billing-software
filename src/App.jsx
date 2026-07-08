@@ -1065,89 +1065,128 @@ export default function App() {
     return Math.max(0, totalReceived - totalStitched);
   };
 
-  // Export Invoices list to CSV file
-  const handleExportInvoicesCSV = () => {
+  // Helper to open print-friendly PDF page for ledgers
+  const printContent = (title, headers, rows) => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      alert("Please allow popups to export PDFs!");
+      return;
+    }
+    
+    const htmlRows = rows.map(row => `
+      <tr>
+        ${row.map(cell => `<td style="border: 1px solid #ddd; padding: 10px; font-size: 11px; color: #333; line-height: 1.4;">${cell}</td>`).join('')}
+      </tr>
+    `).join('');
+
+    const htmlHeaders = headers.map(header => `
+      <th style="border: 1px solid #ddd; padding: 12px 10px; background-color: #f5f5f5; font-weight: bold; font-size: 12px; text-align: left; color: #000; text-transform: uppercase;">${header}</th>
+    `).join('');
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>${title}</title>
+          <style>
+            body { font-family: 'Inter', -apple-system, sans-serif; padding: 40px; margin: 0; background-color: #fff; color: #000; }
+            h1 { font-size: 20px; font-weight: 800; margin: 0 0 4px 0; letter-spacing: -0.5px; }
+            p { font-size: 11px; color: #666; margin: 0; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            @media print {
+              body { padding: 0; }
+              @page { size: A4 portrait; margin: 15mm; }
+            }
+          </style>
+        </head>
+        <body>
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #000; padding-bottom: 16px; margin-bottom: 20px;">
+            <div>
+              <h1>VARAHI EXPORTS</h1>
+              <p style="margin-bottom: 4px;">8/2933 A, Karuparayan Kovil, Pandian Nagar, Tirupur - 641603</p>
+              <p style="margin-bottom: 4px;">Mob: 9994685525 | Email: varahi.export@gmail.com</p>
+              <p>GSTIN/UIN: 33CKMPS0071D1ZC | State: Tamil Nadu (33)</p>
+            </div>
+            <div style="text-align: right;">
+              <h2 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 700; color: #7c3aed; text-transform: uppercase; letter-spacing: 0.5px;">${title}</h2>
+              <p>Generated: ${new Date().toLocaleDateString('en-IN')}</p>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>${htmlHeaders}</tr>
+            </thead>
+            <tbody>
+              ${htmlRows}
+            </tbody>
+          </table>
+          <script>
+            window.onload = function() {
+              window.print();
+              setTimeout(function() { window.close(); }, 500);
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  // Export Invoices list to PDF report
+  const handleExportInvoicesPDF = () => {
     if (bills.length === 0) {
       alert("No invoice records to export!");
       return;
     }
-    const headers = ["Invoice Number", "Client Name", "Invoice Date", "Tax Scheme", "Subtotal (INR)", "GST Tax (INR)", "Discount (INR)", "Grand Total (INR)"];
+    const headers = ["Invoice Number", "Client Name", "Invoice Date", "Tax Scheme", "Subtotal", "GST Tax", "Discount", "Grand Total"];
     const rows = bills.map(b => {
       const c = clients.find(cl => cl._id === b.clientId);
       return [
         b.billNumber,
         c ? c.name : 'Unknown Client',
-        b.date,
-        b.billType === 'with-gst' ? 'With GST (5%)' : 'Without GST',
-        b.subtotal,
-        b.totalGst,
-        b.discount,
-        b.totalAmount
+        formatDate(b.date),
+        b.billType === 'with-gst' ? 'GST (5%)' : 'No GST',
+        formatCurrency(b.subtotal),
+        formatCurrency(b.totalGst),
+        formatCurrency(b.discount),
+        formatCurrency(b.totalAmount)
       ];
     });
-
-    const csvContent = [headers.join(","), ...rows.map(e => e.map(val => `"${val}"`).join(","))].join("\n");
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `Varahi_Exports_Invoices_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    printContent("Invoices Billing Ledger", headers, rows);
   };
 
-  // Export Stitching Crew list to CSV file
-  const handleExportEmployeesCSV = () => {
+  // Export Stitching Crew list to PDF report
+  const handleExportEmployeesPDF = () => {
     if (employees.length === 0) {
       alert("No employee records to export!");
       return;
     }
-    const headers = ["Employee Name", "Phone", "Staff Role", "Sub Category / Specialization"];
+    const headers = ["Employee Name", "Phone", "Staff Role", "Specialization"];
     const rows = employees.map(emp => [
       emp.name,
-      emp.phone || '',
+      emp.phone || 'N/A',
       emp.role,
-      emp.subCategory || ''
+      emp.subCategory || '-'
     ]);
-
-    const csvContent = [headers.join(","), ...rows.map(e => e.map(val => `"${val}"`).join(","))].join("\n");
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `Varahi_Exports_Stitching_Crew_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    printContent("Stitching Crew Directory", headers, rows);
   };
 
-  // Export Fabrics Inventory Stock list to CSV file
-  const handleExportFabricsCSV = () => {
+  // Export Fabrics Inventory Stock list to PDF report
+  const handleExportFabricsPDF = () => {
     if (fabrics.length === 0) {
       alert("No fabric roll records to export!");
       return;
     }
-    const headers = ["Received Date", "Fabric Type", "Color", "Qty Received (Pcs)", "Qty Remaining (Pcs)", "Supplier", "Status"];
+    const headers = ["Received Date", "Fabric Type", "Color", "Qty Received", "Qty Remaining", "Supplier", "Status"];
     const rows = fabrics.map(f => [
-      f.receivedDate,
+      formatDate(f.receivedDate),
       f.fabricType,
       f.color,
-      f.quantityReceived,
-      getRemainingFabricQty(f._id, f.quantityReceived),
+      `${f.quantityReceived} Pcs`,
+      `${getRemainingFabricQty(f._id, f.quantityReceived)} Pcs`,
       f.supplier,
       f.status
     ]);
-
-    const csvContent = [headers.join(","), ...rows.map(e => e.map(val => `"${val}"`).join(","))].join("\n");
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `Varahi_Exports_Fabrics_Stock_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    printContent("Fabric Roll Inventory Ledger", headers, rows);
   };
 
   // Seed demo data for empty database setup
@@ -1833,8 +1872,8 @@ export default function App() {
                 <i className="ph ph-magnifying-glass"></i>
                 <input type="text" placeholder="Search bills by invoice number..." value={billSearch} onChange={(e) => setBillSearch(e.target.value)} />
               </div>
-              <button className="btn btn-secondary" onClick={handleExportInvoicesCSV} title="Export Invoices to CSV">
-                <i className="ph ph-file-csv"></i> Export CSV
+              <button className="btn btn-secondary" onClick={handleExportInvoicesPDF} title="Export Invoices to PDF">
+                <i className="ph ph-file-pdf"></i> Export PDF
               </button>
             </div>
 
@@ -1971,8 +2010,8 @@ export default function App() {
                 <i className="ph ph-magnifying-glass"></i>
                 <input type="text" placeholder="Search employees by name..." value={employeeSearch} onChange={(e) => setEmployeeSearch(e.target.value)} />
               </div>
-              <button className="btn btn-secondary" onClick={handleExportEmployeesCSV} title="Export Stitching Crew to CSV">
-                <i className="ph ph-file-csv"></i> Export CSV
+              <button className="btn btn-secondary" onClick={handleExportEmployeesPDF} title="Export Stitching Crew to PDF">
+                <i className="ph ph-file-pdf"></i> Export PDF
               </button>
             </div>
 
@@ -2084,8 +2123,8 @@ export default function App() {
                 <i className="ph ph-magnifying-glass"></i>
                 <input type="text" placeholder="Search rolls by color, supplier, or fabric..." value={fabricSearch} onChange={(e) => setFabricSearch(e.target.value)} />
               </div>
-              <button className="btn btn-secondary" onClick={handleExportFabricsCSV} title="Export Fabric Stocks to CSV">
-                <i className="ph ph-file-csv"></i> Export CSV
+              <button className="btn btn-secondary" onClick={handleExportFabricsPDF} title="Export Fabric Stocks to PDF">
+                <i className="ph ph-file-pdf"></i> Export PDF
               </button>
             </div>
 
