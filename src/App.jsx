@@ -3022,21 +3022,30 @@ export default function App() {
 
         {/* ==================== CALENDAR SCHEDULER VIEW ==================== */}
         {activeTab === 'calendar' && (() => {
-          // Generate 7 weekly dates centered around the selected date
+          // Helper to get local YYYY-MM-DD string safely avoiding timezone-offset shifts
+          const toLocalDateStr = (dObj) => {
+            const year = dObj.getFullYear();
+            const month = String(dObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dObj.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+          };
+
+          // Generate 7 weekly dates centered around the selected date timezone-safely
           const getWeeklyDates = () => {
             const dates = [];
-            const center = new Date(selectedCalendarDate);
-            // Show 3 days before and 3 days after
+            const [y, m, d] = selectedCalendarDate.split('-').map(Number);
+            const center = new Date(y, m - 1, d);
             for (let i = -3; i <= 3; i++) {
-              const d = new Date(center);
-              d.setDate(center.getDate() + i);
-              dates.push(d);
+              const dateObj = new Date(center);
+              dateObj.setDate(center.getDate() + i);
+              dates.push(dateObj);
             }
             return dates;
           };
 
           const weeklyDates = getWeeklyDates();
-          const selectedDateObj = new Date(selectedCalendarDate);
+          const [selYear, selMonth, selDay] = selectedCalendarDate.split('-').map(Number);
+          const selectedDateObj = new Date(selYear, selMonth - 1, selDay);
           const monthYearString = selectedDateObj.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
           // Filter upcoming orders for the selected date
@@ -3073,7 +3082,7 @@ export default function App() {
               return { label: 'Upcoming Delivery', value: 'No orders', desc: 'No pending orders scheduled in the system' };
             }
 
-            const todayStr = new Date().toISOString().split('T')[0];
+            const todayStr = toLocalDateStr(new Date());
             const futureOrders = upcomingOrders
               .filter(o => o.deliveryDate >= todayStr)
               .sort((a, b) => a.deliveryDate.localeCompare(b.deliveryDate));
@@ -3083,8 +3092,10 @@ export default function App() {
             }
 
             const nextOrder = futureOrders[0];
-            const diffTime = new Date(nextOrder.deliveryDate) - new Date(todayStr);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const nextOrderDate = new Date(nextOrder.deliveryDate.split('-')[0], nextOrder.deliveryDate.split('-')[1] - 1, nextOrder.deliveryDate.split('-')[2]);
+            const todayDate = new Date(todayStr.split('-')[0], todayStr.split('-')[1] - 1, todayStr.split('-')[2]);
+            const diffTime = nextOrderDate - todayDate;
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
             if (diffDays === 0) {
               return { label: 'Upcoming Delivery', value: 'TODAY', desc: `Client: ${nextOrder.clientName} (${formatCurrency(nextOrder.estimatedValue)})` };
@@ -3125,15 +3136,17 @@ export default function App() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <i className="ph ph-caret-left" style={{ cursor: 'pointer', color: 'var(--color-text-primary)', fontSize: '18px' }} onClick={() => {
-                          const d = new Date(selectedCalendarDate);
-                          d.setDate(d.getDate() - 1);
-                          setSelectedCalendarDate(d.toISOString().split('T')[0]);
+                          const [y, m, d] = selectedCalendarDate.split('-').map(Number);
+                          const dateObj = new Date(y, m - 1, d);
+                          dateObj.setDate(dateObj.getDate() - 1);
+                          setSelectedCalendarDate(toLocalDateStr(dateObj));
                         }}></i>
                         <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--color-text-primary)' }}>{monthYearString}</h3>
                         <i className="ph ph-caret-right" style={{ cursor: 'pointer', color: 'var(--color-text-primary)', fontSize: '18px' }} onClick={() => {
-                          const d = new Date(selectedCalendarDate);
-                          d.setDate(d.getDate() + 1);
-                          setSelectedCalendarDate(d.toISOString().split('T')[0]);
+                          const [y, m, d] = selectedCalendarDate.split('-').map(Number);
+                          const dateObj = new Date(y, m - 1, d);
+                          dateObj.setDate(dateObj.getDate() + 1);
+                          setSelectedCalendarDate(toLocalDateStr(dateObj));
                         }}></i>
                       </div>
                       <div style={{ position: 'relative', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
@@ -3153,9 +3166,9 @@ export default function App() {
                     {/* Days list grid */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', textAlign: 'center' }}>
                       {weeklyDates.map((date, idx) => {
-                        const dateStr = date.toISOString().split('T')[0];
+                        const dateStr = toLocalDateStr(date);
                         const isSelected = dateStr === selectedCalendarDate;
-                        const isToday = dateStr === new Date().toISOString().split('T')[0];
+                        const isToday = dateStr === toLocalDateStr(new Date());
                         const hasOrders = upcomingOrders.some(o => o.deliveryDate === dateStr);
                         const dayChar = date.toLocaleDateString('en-US', { weekday: 'short' })[0];
                         const dayNum = date.getDate();
@@ -3169,6 +3182,9 @@ export default function App() {
                           numberBg = 'var(--color-primary)';
                           numberColor = '#ffffff';
                           numberWeight = '700';
+                          if (hasOrders) {
+                            numberBorder = '2px dashed #f43f5e';
+                          }
                         } else if (hasOrders) {
                           numberBorder = '2px dashed #f43f5e';
                           numberColor = '#f43f5e';
