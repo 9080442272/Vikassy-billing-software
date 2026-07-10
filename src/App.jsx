@@ -1741,11 +1741,11 @@ export default function App() {
             <i className="ph ph-scissors"></i>
             <span>Fabrics</span>
           </button>
-          <button className={`nav-item ${activeTab === 'expenses' ? 'active' : ''}`} onClick={() => handleTabChange('expenses')}>
+          <button className={`nav-item mobile-hidden-nav ${activeTab === 'expenses' ? 'active' : ''}`} onClick={() => handleTabChange('expenses')}>
             <i className="ph ph-coins"></i>
             <span>Expenses</span>
           </button>
-          <button className={`nav-item ${activeTab === 'calendar' ? 'active' : ''}`} onClick={() => handleTabChange('calendar')}>
+          <button className={`nav-item mobile-hidden-nav ${activeTab === 'calendar' ? 'active' : ''}`} onClick={() => handleTabChange('calendar')}>
             <i className="ph ph-calendar"></i>
             <span>Calendar</span>
           </button>
