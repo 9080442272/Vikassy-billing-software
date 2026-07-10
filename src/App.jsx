@@ -91,6 +91,7 @@ export default function App() {
   const stitching = useQuery(api.stitching.getAll) || [];
   const ceoActivities = useQuery(api.ceoActivities.getAll) || [];
   const expenses = useQuery(api.expenses.getAll) || [];
+  const upcomingOrders = useQuery(api.upcomingOrders.getAll) || [];
   const rawUsers = useQuery(api.users.getAll);
   const users = rawUsers || [];
 
@@ -118,6 +119,9 @@ export default function App() {
   const addExpenseMutation = useMutation(api.expenses.add);
   const updateExpenseMutation = useMutation(api.expenses.update);
   const deleteExpenseMutation = useMutation(api.expenses.remove);
+  const addUpcomingOrderMutation = useMutation(api.upcomingOrders.add);
+  const updateUpcomingOrderMutation = useMutation(api.upcomingOrders.update);
+  const deleteUpcomingOrderMutation = useMutation(api.upcomingOrders.remove);
 
   // Set to true to temporarily bypass authentication for dev / client reviews
   const BYPASS_AUTH = true;
@@ -189,6 +193,10 @@ export default function App() {
   const [expenseSearch, setExpenseSearch] = useState('');
   const [selectedOrderFilter, setSelectedOrderFilter] = useState('all');
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isUpcomingOrderModalOpen, setIsUpcomingOrderModalOpen] = useState(false);
+  const [editingUpcomingOrder, setEditingUpcomingOrder] = useState(null);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [orderSearchKeyword, setOrderSearchKeyword] = useState('');
 
   // --- AI Chat Advisor state values ---
   const [chatMessages, setChatMessages] = useState([
@@ -788,6 +796,82 @@ export default function App() {
   const closeExpenseModal = () => {
     setIsExpenseModalOpen(false);
     setEditingExpense(null);
+  };
+
+  // Upcoming Orders CRUD
+  const handleUpcomingOrderSubmit = async (e) => {
+    e.preventDefault();
+    const clientName = document.getElementById('up-client-name').value.trim();
+    const orderTitle = document.getElementById('up-order-title').value.trim();
+    const deliveryDate = document.getElementById('up-delivery-date').value;
+    const estimatedValue = parseFloat(document.getElementById('up-val').value) || 0;
+    const status = document.getElementById('up-status').value;
+    const notes = document.getElementById('up-notes').value.trim();
+
+    // Link client ID if matching existing
+    const matchingClient = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase());
+    const clientId = matchingClient ? matchingClient._id : undefined;
+
+    try {
+      if (editingUpcomingOrder) {
+        await updateUpcomingOrderMutation({
+          id: editingUpcomingOrder._id,
+          clientId, clientName, orderTitle, deliveryDate, estimatedValue, status, notes,
+          createdAt: editingUpcomingOrder.createdAt
+        });
+        alert("Upcoming order updated!");
+      } else {
+        await addUpcomingOrderMutation({
+          clientId, clientName, orderTitle, deliveryDate, estimatedValue, status, notes
+        });
+        alert("Upcoming order scheduled successfully!");
+      }
+      closeUpcomingOrderModal();
+    } catch (err) {
+      alert("Error scheduling order: " + err.message);
+    }
+  };
+
+  const deleteUpcomingOrder = async (id) => {
+    if (confirm("Cancel and delete this upcoming order?")) {
+      await deleteUpcomingOrderMutation({ id });
+    }
+  };
+
+  const updateUpcomingOrderStatus = async (order, newStatus) => {
+    try {
+      await updateUpcomingOrderMutation({
+        id: order._id,
+        clientId: order.clientId,
+        clientName: order.clientName,
+        orderTitle: order.orderTitle,
+        deliveryDate: order.deliveryDate,
+        estimatedValue: order.estimatedValue,
+        status: newStatus,
+        notes: order.notes,
+        createdAt: order.createdAt
+      });
+    } catch (err) {
+      alert("Error updating order status: " + err.message);
+    }
+  };
+
+  const openEditUpcomingOrder = (order) => {
+    setEditingUpcomingOrder(order);
+    setIsUpcomingOrderModalOpen(true);
+    setTimeout(() => {
+      document.getElementById('up-client-name').value = order.clientName;
+      document.getElementById('up-order-title').value = order.orderTitle;
+      document.getElementById('up-delivery-date').value = order.deliveryDate;
+      document.getElementById('up-val').value = order.estimatedValue;
+      document.getElementById('up-status').value = order.status;
+      document.getElementById('up-notes').value = order.notes || "";
+    }, 50);
+  };
+
+  const closeUpcomingOrderModal = () => {
+    setIsUpcomingOrderModalOpen(false);
+    setEditingUpcomingOrder(null);
   };
 
   // Stitching Assignment Actions
@@ -1412,6 +1496,49 @@ export default function App() {
         date: "2026-07-07"
       });
 
+      // Seed Upcoming Company Orders relative to today
+      const getRelativeDateString = (daysOffset) => {
+        const d = new Date();
+        d.setDate(d.getDate() + daysOffset);
+        return d.toISOString().split('T')[0];
+      };
+
+      await addUpcomingOrderMutation({
+        clientName: "Sri Varahi Exports",
+        orderTitle: "1000 Pcs Premium Denim Jackets",
+        deliveryDate: getRelativeDateString(1),
+        estimatedValue: 120000,
+        status: "In Production",
+        notes: "Fabric rolls received. Stitchers assigned piece rates."
+      });
+
+      await addUpcomingOrderMutation({
+        clientName: "Karthik Apparels",
+        orderTitle: "500 Pcs Linen Shirts Navy Blue",
+        deliveryDate: getRelativeDateString(3),
+        estimatedValue: 65000,
+        status: "Planned",
+        notes: "Arrival of raw linen yarn roll scheduled next week."
+      });
+
+      await addUpcomingOrderMutation({
+        clientName: "Varnam Silks",
+        orderTitle: "250 Pcs Silk Jackets",
+        deliveryDate: getRelativeDateString(7),
+        estimatedValue: 90000,
+        status: "Planned",
+        notes: "Custom design blueprints pending approval from Varnam manager."
+      });
+
+      await addUpcomingOrderMutation({
+        clientName: "Sri Varahi Exports",
+        orderTitle: "CEO Performance Audit Jackets",
+        deliveryDate: getRelativeDateString(14),
+        estimatedValue: 45000,
+        status: "Planned",
+        notes: "Verify sticher payouts bonuses audit guidelines."
+      });
+
       // 5. Seed CEO Activity Logs
       await addCeoActivityMutation({
         date: "2026-07-06",
@@ -1617,6 +1744,10 @@ export default function App() {
           <button className={`nav-item ${activeTab === 'expenses' ? 'active' : ''}`} onClick={() => handleTabChange('expenses')}>
             <i className="ph ph-coins"></i>
             <span>Expenses</span>
+          </button>
+          <button className={`nav-item ${activeTab === 'calendar' ? 'active' : ''}`} onClick={() => handleTabChange('calendar')}>
+            <i className="ph ph-calendar"></i>
+            <span>Calendar</span>
           </button>
           <button className={`nav-item mobile-hidden-nav ${activeTab === 'ceo-tracker' ? 'active' : ''}`} onClick={() => handleTabChange('ceo-tracker')}>
             <i className="ph ph-briefcase"></i>
@@ -2889,6 +3020,834 @@ export default function App() {
           );
         })()}
 
+        {/* ==================== CALENDAR SCHEDULER VIEW ==================== */}
+        {activeTab === 'calendar' && (() => {
+          // Generate 7 weekly dates centered around the selected date
+          const getWeeklyDates = () => {
+            const dates = [];
+            const center = new Date(selectedCalendarDate);
+            // Show 3 days before and 3 days after
+            for (let i = -3; i <= 3; i++) {
+              const d = new Date(center);
+              d.setDate(center.getDate() + i);
+              dates.push(d);
+            }
+            return dates;
+          };
+
+          const weeklyDates = getWeeklyDates();
+          const selectedDateObj = new Date(selectedCalendarDate);
+          const monthYearString = selectedDateObj.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+          // Filter upcoming orders for the selected date
+          const selectedDateOrders = upcomingOrders.filter(o => o.deliveryDate === selectedCalendarDate);
+
+          // All upcoming orders matching search keyword
+          const searchedOrders = upcomingOrders.filter(o => 
+            (o.clientName.toLowerCase().includes(orderSearchKeyword.toLowerCase()) ||
+             o.orderTitle.toLowerCase().includes(orderSearchKeyword.toLowerCase()) ||
+             (o.notes && o.notes.toLowerCase().includes(orderSearchKeyword.toLowerCase())))
+          );
+
+          // Sum values
+          const selectedDateTotalVal = selectedDateOrders.reduce((sum, o) => sum + o.estimatedValue, 0);
+          const totalPlannedPipeline = upcomingOrders.reduce((sum, o) => sum + o.estimatedValue, 0);
+          const inProductionCount = upcomingOrders.filter(o => o.status === 'In Production').length;
+
+          // Helper for status badges
+          const getStatusClass = (status) => {
+            switch(status) {
+              case 'Delivered': return 'badge-success';
+              case 'In Production': return 'badge-primary';
+              case 'Ready for Dispatch': return 'badge-accent';
+              default: return 'badge-neutral';
+            }
+          };
+
+          const handleDateClick = (dateStr) => {
+            setSelectedCalendarDate(dateStr);
+          };
+
+          return (
+            <section id="calendar-view" className="tab-view active" style={{ maxWidth: '480px', margin: '0 auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              
+              {/* Inspiration top calendar strip */}
+              <div style={{ backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-lg)', padding: '16px', border: '1px solid var(--color-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                {/* Header month and icons */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <i className="ph ph-caret-left text-muted" style={{ cursor: 'pointer' }} onClick={() => {
+                      const d = new Date(selectedCalendarDate);
+                      d.setDate(d.getDate() - 1);
+                      setSelectedCalendarDate(d.toISOString().split('T')[0]);
+                    }}></i>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#ffffff' }}>{monthYearString}</h3>
+                    <i className="ph ph-caret-right text-muted" style={{ cursor: 'pointer' }} onClick={() => {
+                      const d = new Date(selectedCalendarDate);
+                      d.setDate(d.getDate() + 1);
+                      setSelectedCalendarDate(d.toISOString().split('T')[0]);
+                    }}></i>
+                  </div>
+                  <div style={{ position: 'relative', cursor: 'pointer' }}>
+                    <i className="ph ph-calendar-blank" style={{ fontSize: '20px', color: 'var(--color-primary)' }} onClick={() => {
+                      document.getElementById('calendar-picker-input').showPicker();
+                    }}></i>
+                    <input 
+                      type="date" 
+                      id="calendar-picker-input" 
+                      value={selectedCalendarDate} 
+                      onChange={(e) => setSelectedCalendarDate(e.target.value)} 
+                      style={{ position: 'absolute', opacity: 0, right: 0, top: 0, width: '20px', height: '20px', cursor: 'pointer' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Days list grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', textAlign: 'center' }}>
+                  {weeklyDates.map((date, idx) => {
+                    const dateStr = date.toISOString().split('T')[0];
+                    const isSelected = dateStr === selectedCalendarDate;
+                    const isToday = dateStr === new Date().toISOString().split('T')[0];
+                    const dayChar = date.toLocaleDateString('en-US', { weekday: 'short' })[0];
+                    const dayNum = date.getDate();
+
+                    return (
+                      <div key={idx} onClick={() => handleDateClick(dateStr)} style={{ cursor: 'pointer', padding: '6px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--color-text-secondary)', textTransform: 'uppercase' }}>
+                          {isToday ? 'TODAY' : dayChar}
+                        </span>
+                        <div style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '14px',
+                          fontWeight: isSelected ? '700' : '500',
+                          border: isSelected ? '2px dashed var(--color-accent)' : 'none',
+                          backgroundColor: isSelected ? 'rgba(124, 58, 237, 0.1)' : 'transparent',
+                          color: isSelected ? 'var(--color-accent)' : '#ffffff'
+                        }}>
+                          {dayNum}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Cyan Gradient Hero banner */}
+              <div className="welcome-banner" style={{
+                padding: '24px 20px',
+                borderRadius: 'var(--radius-xl)',
+                background: 'linear-gradient(135deg, #0f766e 0%, #115e59 50%, #134e4a 100%)',
+                border: '1px solid rgba(20, 184, 166, 0.3)',
+                boxShadow: '0 8px 24px rgba(13, 148, 136, 0.2)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                gap: '12px'
+              }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: '#2dd4bf', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  Orders Status Summary
+                </span>
+                <h2 style={{ fontSize: '26px', fontWeight: 800, margin: 0, color: '#ffffff', lineHeight: 1.2 }}>
+                  {selectedDateOrders.length === 0 ? 'No Scheduled Orders' : `${selectedDateOrders.length} Company Order${selectedDateOrders.length > 1 ? 's' : ''}`}
+                </h2>
+                <p style={{ margin: 0, fontSize: '13px', color: '#ccfbf1', opacity: 0.9 }}>
+                  {selectedDateOrders.length === 0 
+                    ? `No deliveries or production tasks planned for ${formatDate(selectedCalendarDate)}`
+                    : `Planned value: ${formatCurrency(selectedDateTotalVal)}`
+                  }
+                </p>
+                <button 
+                  className="btn" 
+                  onClick={() => setIsUpcomingOrderModalOpen(true)}
+                  style={{ 
+                    marginTop: '8px', 
+                    borderRadius: '24px', 
+                    padding: '8px 24px', 
+                    backgroundColor: '#ffffff', 
+                    color: '#0f766e', 
+                    fontWeight: 700, 
+                    border: 'none',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  Log Upcoming Order
+                </button>
+              </div>
+
+              {/* Horizontal scroll daily insights */}
+              <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '4px' }} className="no-print">
+                {/* Item 1: Log Order Shortcut */}
+                <div style={{
+                  flexShrink: 0,
+                  width: '120px',
+                  backgroundColor: 'var(--color-surface)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '16px 12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '10px',
+                  textAlign: 'center'
+                }}>
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Log your order</span>
+                  <div 
+                    onClick={() => setIsUpcomingOrderModalOpen(true)}
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '50%',
+                      backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                      color: '#f43f5e',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '20px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    +
+                  </div>
+                </div>
+
+                {/* Item 2: Planned Value */}
+                <div style={{
+                  flexShrink: 0,
+                  width: '135px',
+                  backgroundColor: 'var(--color-surface)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '16px 12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '10px',
+                  textAlign: 'center'
+                }}>
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Planned Value</span>
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                    color: 'var(--color-primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '18px'
+                  }}>
+                    <i className="ph ph-currency-inr"></i>
+                  </div>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>
+                    {formatCurrency(selectedDateTotalVal)}
+                  </span>
+                </div>
+
+                {/* Item 3: Production queue */}
+                <div style={{
+                  flexShrink: 0,
+                  width: '135px',
+                  backgroundColor: 'var(--color-surface)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '16px 12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '10px',
+                  textAlign: 'center'
+                }}>
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Active Queue</span>
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    color: 'var(--color-success)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '18px'
+                  }}>
+                    <i className="ph ph-gear"></i>
+                  </div>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>
+                    {inProductionCount} In Prod.
+                  </span>
+                </div>
+
+                {/* Item 4: Total Revenue pipeline */}
+                <div style={{
+                  flexShrink: 0,
+                  width: '135px',
+                  backgroundColor: 'var(--color-surface)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '16px 12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '10px',
+                  textAlign: 'center'
+                }}>
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Total Pipeline</span>
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    color: 'var(--color-warning)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '18px'
+                  }}>
+                    <i className="ph ph-chart-line-up"></i>
+                  </div>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>
+                    {formatCurrency(totalPlannedPipeline)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Inspiration Search input block */}
+              <div style={{ position: 'relative', width: '100%' }}>
+                <i className="ph ph-magnifying-glass" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-secondary)' }}></i>
+                <input 
+                  type="text" 
+                  placeholder="Search upcoming orders, notes, clients..." 
+                  value={orderSearchKeyword} 
+                  onChange={(e) => setOrderSearchKeyword(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px 12px 42px',
+                    borderRadius: '24px',
+                    border: '1px solid var(--color-border)',
+                    backgroundColor: 'var(--color-surface)',
+                    color: '#ffffff',
+                    fontSize: '14px'
+                  }}
+                />
+              </div>
+
+              {/* Scheduled Orders for Selected Date */}
+              <div>
+                <h4 style={{ fontSize: '14px', fontWeight: 700, margin: '0 0 12px 0', color: 'var(--color-text-secondary)' }}>
+                  Selected Date Schedules ({selectedDateOrders.length})
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {selectedDateOrders.map(o => (
+                    <div key={o._id} style={{
+                      backgroundColor: 'var(--color-surface)',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: 'var(--radius-lg)',
+                      padding: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <h5 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>{o.clientName}</h5>
+                          <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>{o.orderTitle}</span>
+                        </div>
+                        <span className={`badge ${getStatusClass(o.status)}`}>{o.status}</span>
+                      </div>
+                      {o.notes && <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: 1.4 }}>{o.notes}</p>}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '10px', marginTop: '4px' }}>
+                        <span style={{ fontWeight: 700, color: 'var(--color-primary)', fontSize: '14px' }}>{formatCurrency(o.estimatedValue)}</span>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <select 
+                            value={o.status} 
+                            onChange={(e) => updateUpcomingOrderStatus(o, e.target.value)}
+                            style={{ fontSize: '11px', padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: '#ffffff' }}
+                          >
+                            <option value="Planned">Planned</option>
+                            <option value="In Production">In Production</option>
+                            <option value="Ready for Dispatch">Ready for Dispatch</option>
+                            <option value="Delivered">Delivered</option>
+                          </select>
+                          <button className="btn-icon" onClick={() => openEditUpcomingOrder(o)}><i className="ph ph-pencil-simple"></i></button>
+                          <button className="btn-icon text-red" onClick={() => deleteUpcomingOrder(o._id)}><i className="ph ph-trash"></i></button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {selectedDateOrders.length === 0 && (
+                    <div style={{
+                      textAlign: 'center',
+                      padding: '32px 16px',
+                      border: '1px dashed var(--color-border)',
+                      borderRadius: 'var(--radius-lg)',
+                      color: 'var(--color-text-secondary)',
+                      fontSize: '13px'
+                    }}>
+                      No orders planned for this day. Click "Log Upcoming Order" above to schedule.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* All Upcoming Orders / Pipeline list */}
+              <div style={{ marginTop: '12px' }}>
+                <h4 style={{ fontSize: '14px', fontWeight: 700, margin: '0 0 12px 0', color: 'var(--color-text-secondary)' }}>
+                  All Scheduled Orders Pipeline ({searchedOrders.length})
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {searchedOrders.map(o => (
+                    <div key={o._id} style={{
+                      backgroundColor: 'var(--color-surface)',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: 'var(--radius-lg)',
+                      padding: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                      cursor: 'pointer'
+                    }} onClick={() => setSelectedCalendarDate(o.deliveryDate)}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <h5 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#ffffff' }}>{o.clientName}</h5>
+                          <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>{o.orderTitle}</span>
+                        </div>
+                        <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-primary)' }}>{formatDate(o.deliveryDate)}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 600, color: '#ffffff', fontSize: '13px' }}>{formatCurrency(o.estimatedValue)}</span>
+                        <span className={`badge ${getStatusClass(o.status)}`} style={{ fontSize: '10px' }}>{o.status}</span>
+                      </div>
+                    </div>
+                  ))}
+                  {searchedOrders.length === 0 && (
+                    <div className="text-center text-muted" style={{ padding: '16px' }}>No orders matching search keyword.</div>
+                  )}
+                </div>
+              </div>
+
+            </section>
+          );
+        })()}
+
+        {/* ==================== CALENDAR SCHEDULER VIEW ==================== */}
+        {activeTab === 'calendar' && (() => {
+          // Generate 7 weekly dates centered around the selected date
+          const getWeeklyDates = () => {
+            const dates = [];
+            const center = new Date(selectedCalendarDate);
+            // Show 3 days before and 3 days after
+            for (let i = -3; i <= 3; i++) {
+              const d = new Date(center);
+              d.setDate(center.getDate() + i);
+              dates.push(d);
+            }
+            return dates;
+          };
+
+          const weeklyDates = getWeeklyDates();
+          const selectedDateObj = new Date(selectedCalendarDate);
+          const monthYearString = selectedDateObj.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+          // Filter upcoming orders for the selected date
+          const selectedDateOrders = upcomingOrders.filter(o => o.deliveryDate === selectedCalendarDate);
+
+          // All upcoming orders matching search keyword
+          const searchedOrders = upcomingOrders.filter(o => 
+            (o.clientName.toLowerCase().includes(orderSearchKeyword.toLowerCase()) ||
+             o.orderTitle.toLowerCase().includes(orderSearchKeyword.toLowerCase()) ||
+             (o.notes && o.notes.toLowerCase().includes(orderSearchKeyword.toLowerCase())))
+          );
+
+          // Sum values
+          const selectedDateTotalVal = selectedDateOrders.reduce((sum, o) => sum + o.estimatedValue, 0);
+          const totalPlannedPipeline = upcomingOrders.reduce((sum, o) => sum + o.estimatedValue, 0);
+          const inProductionCount = upcomingOrders.filter(o => o.status === 'In Production').length;
+
+          // Helper for status badges
+          const getStatusClass = (status) => {
+            switch(status) {
+              case 'Delivered': return 'badge-success';
+              case 'In Production': return 'badge-primary';
+              case 'Ready for Dispatch': return 'badge-accent';
+              default: return 'badge-neutral';
+            }
+          };
+
+          const handleDateClick = (dateStr) => {
+            setSelectedCalendarDate(dateStr);
+          };
+
+          return (
+            <section id="calendar-view" className="tab-view active" style={{ maxWidth: '480px', margin: '0 auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              
+              {/* Inspiration top calendar strip */}
+              <div style={{ backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-lg)', padding: '16px', border: '1px solid var(--color-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                {/* Header month and icons */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <i className="ph ph-caret-left text-muted" style={{ cursor: 'pointer' }} onClick={() => {
+                      const d = new Date(selectedCalendarDate);
+                      d.setDate(d.getDate() - 1);
+                      setSelectedCalendarDate(d.toISOString().split('T')[0]);
+                    }}></i>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#ffffff' }}>{monthYearString}</h3>
+                    <i className="ph ph-caret-right text-muted" style={{ cursor: 'pointer' }} onClick={() => {
+                      const d = new Date(selectedCalendarDate);
+                      d.setDate(d.getDate() + 1);
+                      setSelectedCalendarDate(d.toISOString().split('T')[0]);
+                    }}></i>
+                  </div>
+                  <div style={{ position: 'relative', cursor: 'pointer' }}>
+                    <i className="ph ph-calendar-blank" style={{ fontSize: '20px', color: 'var(--color-primary)' }} onClick={() => {
+                      document.getElementById('calendar-picker-input').showPicker();
+                    }}></i>
+                    <input 
+                      type="date" 
+                      id="calendar-picker-input" 
+                      value={selectedCalendarDate} 
+                      onChange={(e) => setSelectedCalendarDate(e.target.value)} 
+                      style={{ position: 'absolute', opacity: 0, right: 0, top: 0, width: '20px', height: '20px', cursor: 'pointer' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Days list grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', textAlign: 'center' }}>
+                  {weeklyDates.map((date, idx) => {
+                    const dateStr = date.toISOString().split('T')[0];
+                    const isSelected = dateStr === selectedCalendarDate;
+                    const isToday = dateStr === new Date().toISOString().split('T')[0];
+                    const dayChar = date.toLocaleDateString('en-US', { weekday: 'short' })[0];
+                    const dayNum = date.getDate();
+
+                    return (
+                      <div key={idx} onClick={() => handleDateClick(dateStr)} style={{ cursor: 'pointer', padding: '6px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--color-text-secondary)', textTransform: 'uppercase' }}>
+                          {isToday ? 'TODAY' : dayChar}
+                        </span>
+                        <div style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '14px',
+                          fontWeight: isSelected ? '700' : '500',
+                          border: isSelected ? '2px dashed var(--color-accent)' : 'none',
+                          backgroundColor: isSelected ? 'rgba(124, 58, 237, 0.1)' : 'transparent',
+                          color: isSelected ? 'var(--color-accent)' : '#ffffff'
+                        }}>
+                          {dayNum}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Cyan Gradient Hero banner */}
+              <div className="welcome-banner" style={{
+                padding: '24px 20px',
+                borderRadius: 'var(--radius-xl)',
+                background: 'linear-gradient(135deg, #0f766e 0%, #115e59 50%, #134e4a 100%)',
+                border: '1px solid rgba(20, 184, 166, 0.3)',
+                boxShadow: '0 8px 24px rgba(13, 148, 136, 0.2)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                gap: '12px'
+              }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: '#2dd4bf', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  Orders Status Summary
+                </span>
+                <h2 style={{ fontSize: '26px', fontWeight: 800, margin: 0, color: '#ffffff', lineHeight: 1.2 }}>
+                  {selectedDateOrders.length === 0 ? 'No Scheduled Orders' : `${selectedDateOrders.length} Company Order${selectedDateOrders.length > 1 ? 's' : ''}`}
+                </h2>
+                <p style={{ margin: 0, fontSize: '13px', color: '#ccfbf1', opacity: 0.9 }}>
+                  {selectedDateOrders.length === 0 
+                    ? `No deliveries or production tasks planned for ${formatDate(selectedCalendarDate)}`
+                    : `Planned value: ${formatCurrency(selectedDateTotalVal)}`
+                  }
+                </p>
+                <button 
+                  className="btn" 
+                  onClick={() => setIsUpcomingOrderModalOpen(true)}
+                  style={{ 
+                    marginTop: '8px', 
+                    borderRadius: '24px', 
+                    padding: '8px 24px', 
+                    backgroundColor: '#ffffff', 
+                    color: '#0f766e', 
+                    fontWeight: 700, 
+                    border: 'none',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  Log Upcoming Order
+                </button>
+              </div>
+
+              {/* Horizontal scroll daily insights */}
+              <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '4px' }} className="no-print">
+                {/* Item 1: Log Order Shortcut */}
+                <div style={{
+                  flexShrink: 0,
+                  width: '120px',
+                  backgroundColor: 'var(--color-surface)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '16px 12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '10px',
+                  textAlign: 'center'
+                }}>
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Log your order</span>
+                  <div 
+                    onClick={() => setIsUpcomingOrderModalOpen(true)}
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '50%',
+                      backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                      color: '#f43f5e',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '20px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    +
+                  </div>
+                </div>
+
+                {/* Item 2: Planned Value */}
+                <div style={{
+                  flexShrink: 0,
+                  width: '135px',
+                  backgroundColor: 'var(--color-surface)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '16px 12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '10px',
+                  textAlign: 'center'
+                }}>
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Planned Value</span>
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                    color: 'var(--color-primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '18px'
+                  }}>
+                    <i className="ph ph-currency-inr"></i>
+                  </div>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>
+                    {formatCurrency(selectedDateTotalVal)}
+                  </span>
+                </div>
+
+                {/* Item 3: Production queue */}
+                <div style={{
+                  flexShrink: 0,
+                  width: '135px',
+                  backgroundColor: 'var(--color-surface)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '16px 12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '10px',
+                  textAlign: 'center'
+                }}>
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Active Queue</span>
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    color: 'var(--color-success)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '18px'
+                  }}>
+                    <i className="ph ph-gear"></i>
+                  </div>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>
+                    {inProductionCount} In Prod.
+                  </span>
+                </div>
+
+                {/* Item 4: Total Revenue pipeline */}
+                <div style={{
+                  flexShrink: 0,
+                  width: '135px',
+                  backgroundColor: 'var(--color-surface)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '16px 12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '10px',
+                  textAlign: 'center'
+                }}>
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Total Pipeline</span>
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    color: 'var(--color-warning)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '18px'
+                  }}>
+                    <i className="ph ph-chart-line-up"></i>
+                  </div>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>
+                    {formatCurrency(totalPlannedPipeline)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Inspiration Search input block */}
+              <div style={{ position: 'relative', width: '100%' }}>
+                <i className="ph ph-magnifying-glass" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-secondary)' }}></i>
+                <input 
+                  type="text" 
+                  placeholder="Search upcoming orders, notes, clients..." 
+                  value={orderSearchKeyword} 
+                  onChange={(e) => setOrderSearchKeyword(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px 12px 42px',
+                    borderRadius: '24px',
+                    border: '1px solid var(--color-border)',
+                    backgroundColor: 'var(--color-surface)',
+                    color: '#ffffff',
+                    fontSize: '14px'
+                  }}
+                />
+              </div>
+
+              {/* Scheduled Orders for Selected Date */}
+              <div>
+                <h4 style={{ fontSize: '14px', fontWeight: 700, margin: '0 0 12px 0', color: 'var(--color-text-secondary)' }}>
+                  Selected Date Schedules ({selectedDateOrders.length})
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {selectedDateOrders.map(o => (
+                    <div key={o._id} style={{
+                      backgroundColor: 'var(--color-surface)',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: 'var(--radius-lg)',
+                      padding: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <h5 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>{o.clientName}</h5>
+                          <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>{o.orderTitle}</span>
+                        </div>
+                        <span className={`badge ${getStatusClass(o.status)}`}>{o.status}</span>
+                      </div>
+                      {o.notes && <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: 1.4 }}>{o.notes}</p>}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '10px', marginTop: '4px' }}>
+                        <span style={{ fontWeight: 700, color: 'var(--color-primary)', fontSize: '14px' }}>{formatCurrency(o.estimatedValue)}</span>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <select 
+                            value={o.status} 
+                            onChange={(e) => updateUpcomingOrderStatus(o, e.target.value)}
+                            style={{ fontSize: '11px', padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: '#ffffff' }}
+                          >
+                            <option value="Planned">Planned</option>
+                            <option value="In Production">In Production</option>
+                            <option value="Ready for Dispatch">Ready for Dispatch</option>
+                            <option value="Delivered">Delivered</option>
+                          </select>
+                          <button className="btn-icon" onClick={() => openEditUpcomingOrder(o)}><i className="ph ph-pencil-simple"></i></button>
+                          <button className="btn-icon text-red" onClick={() => deleteUpcomingOrder(o._id)}><i className="ph ph-trash"></i></button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {selectedDateOrders.length === 0 && (
+                    <div style={{
+                      textAlign: 'center',
+                      padding: '32px 16px',
+                      border: '1px dashed var(--color-border)',
+                      borderRadius: 'var(--radius-lg)',
+                      color: 'var(--color-text-secondary)',
+                      fontSize: '13px'
+                    }}>
+                      No orders planned for this day. Click "Log Upcoming Order" above to schedule.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* All Upcoming Orders / Pipeline list */}
+              <div style={{ marginTop: '12px' }}>
+                <h4 style={{ fontSize: '14px', fontWeight: 700, margin: '0 0 12px 0', color: 'var(--color-text-secondary)' }}>
+                  All Scheduled Orders Pipeline ({searchedOrders.length})
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {searchedOrders.map(o => (
+                    <div key={o._id} style={{
+                      backgroundColor: 'var(--color-surface)',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: 'var(--radius-lg)',
+                      padding: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                      cursor: 'pointer'
+                    }} onClick={() => setSelectedCalendarDate(o.deliveryDate)}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <h5 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#ffffff' }}>{o.clientName}</h5>
+                          <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>{o.orderTitle}</span>
+                        </div>
+                        <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-primary)' }}>{formatDate(o.deliveryDate)}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 600, color: '#ffffff', fontSize: '13px' }}>{formatCurrency(o.estimatedValue)}</span>
+                        <span className={`badge ${getStatusClass(o.status)}`} style={{ fontSize: '10px' }}>{o.status}</span>
+                      </div>
+                    </div>
+                  ))}
+                  {searchedOrders.length === 0 && (
+                    <div className="text-center text-muted" style={{ padding: '16px' }}>No orders matching search keyword.</div>
+                  )}
+                </div>
+              </div>
+
+            </section>
+          );
+        })()}
+
         {/* ==================== ACCOUNT VIEW ==================== */}
         {activeTab === 'account' && (
           <section id="account-view" className="tab-view active">
@@ -3483,6 +4442,64 @@ export default function App() {
         </div>
       )}
 
+      {/* ==================== UPCOMING ORDER MODAL ==================== */}
+      {isUpcomingOrderModalOpen && (
+        <div id="upcoming-order-modal" className="modal-overlay active">
+          <div className="modal-card">
+            <div className="modal-header">
+              <h3>{editingUpcomingOrder ? 'Edit Scheduled Company Order' : 'Schedule Upcoming Company Order'}</h3>
+              <button className="btn-close" onClick={closeUpcomingOrderModal}><i className="ph ph-x"></i></button>
+            </div>
+            <form id="upcoming-order-form" onSubmit={handleUpcomingOrderSubmit}>
+              <div className="modal-body" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className="form-group">
+                  <label htmlFor="up-client-name">Client / Customer Name *</label>
+                  <input type="text" id="up-client-name" required placeholder="e.g. Sri Varahi Exports" list="calendar-clients-list" />
+                  <datalist id="calendar-clients-list">
+                    {clients.map(c => <option key={c._id} value={c.name} />)}
+                  </datalist>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="up-order-title">Order Description / Title *</label>
+                  <input type="text" id="up-order-title" required placeholder="e.g. 1000 Pcs Premium Denim Jackets" />
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="up-delivery-date">Target Delivery Date *</label>
+                    <input type="date" id="up-delivery-date" required defaultValue={selectedCalendarDate} />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="up-val">Estimated Value (₹) *</label>
+                    <input type="number" id="up-val" min="0" required placeholder="0.00" style={{ fontWeight: 600 }} />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="up-status">Order Status *</label>
+                  <select id="up-status" required style={{ fontSize: '15px', padding: '12px 14px' }}>
+                    <option value="Planned">Planned</option>
+                    <option value="In Production">In Production</option>
+                    <option value="Ready for Dispatch">Ready for Dispatch</option>
+                    <option value="Delivered">Delivered</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="up-notes">Notes / Guidelines (Optional)</label>
+                  <textarea id="up-notes" rows="3" placeholder="Add specific fabric color rolls requirements or stitch rate payouts details..."></textarea>
+                </div>
+              </div>
+              <div className="modal-footer" style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button type="button" className="btn btn-secondary" onClick={closeUpcomingOrderModal}>Cancel</button>
+                <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 600 }}>Schedule Order</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* ==================== MOCK RECEIPT SCAN DIALOG ==================== */}
       {isScanModalOpen && (
         <div id="scan-modal" className="modal-overlay active">
@@ -3573,6 +4590,15 @@ export default function App() {
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 600, fontSize: '14px' }}>Expenses</div>
                     <div className="text-muted" style={{ fontSize: '11px' }}>Track order transportation, fuel & operational costs</div>
+                  </div>
+                  <i className="ph ph-caret-right text-muted"></i>
+                </a>
+
+                <a className="more-menu-item" onClick={() => handleTabChange('calendar')} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 24px', borderBottom: '1px solid var(--color-border)', cursor: 'pointer', color: 'var(--color-text-primary)', textDecoration: 'none' }}>
+                  <i className="ph ph-calendar" style={{ fontSize: '22px', color: 'var(--color-primary)' }}></i>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 600, fontSize: '14px' }}>Calendar</div>
+                    <div className="text-muted" style={{ fontSize: '11px' }}>Schedule upcoming company orders & dispatches</div>
                   </div>
                   <i className="ph ph-caret-right text-muted"></i>
                 </a>

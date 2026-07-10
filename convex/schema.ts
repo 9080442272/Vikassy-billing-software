@@ -93,4 +93,15 @@ export default defineSchema({
     avatarPicture: v.optional(v.string()),
     createdAt: v.string(),
   }).index("by_username", ["username"]),
+
+  upcoming_orders: defineTable({
+    clientId: v.optional(v.string()),
+    clientName: v.string(),
+    orderTitle: v.string(),
+    deliveryDate: v.string(),
+    estimatedValue: v.number(),
+    status: v.string(),
+    notes: v.optional(v.string()),
+    createdAt: v.string(),
+  }).index("by_deliveryDate", ["deliveryDate"]),
 });

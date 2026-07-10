@@ -15,6 +15,7 @@ import type * as employees from "../employees.js";
 import type * as expenses from "../expenses.js";
 import type * as fabrics from "../fabrics.js";
 import type * as stitching from "../stitching.js";
+import type * as upcomingOrders from "../upcomingOrders.js";
 import type * as users from "../users.js";
 
 import type {
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   expenses: typeof expenses;
   fabrics: typeof fabrics;
   stitching: typeof stitching;
+  upcomingOrders: typeof upcomingOrders;
   users: typeof users;
 }>;
 
