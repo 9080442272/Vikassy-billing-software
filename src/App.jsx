@@ -3163,58 +3163,64 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* Days list grid */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', textAlign: 'center' }}>
-                      {weeklyDates.map((date, idx) => {
-                        const dateStr = toLocalDateStr(date);
-                        const isSelected = dateStr === selectedCalendarDate;
-                        const isToday = dateStr === toLocalDateStr(new Date());
-                        const hasOrders = upcomingOrders.some(o => o.deliveryDate === dateStr);
-                        const dayChar = date.toLocaleDateString('en-US', { weekday: 'short' })[0];
-                        const dayNum = date.getDate();
-
-                        let numberBg = 'transparent';
-                        let numberBorder = 'none';
-                        let numberColor = 'var(--color-text-primary)';
-                        let numberWeight = '500';
-
-                        if (isSelected) {
-                          numberBg = 'var(--color-primary)';
-                          numberColor = '#ffffff';
-                          numberWeight = '700';
-                          if (hasOrders) {
-                            numberBorder = '2px dashed #f43f5e';
-                          }
-                        } else if (hasOrders) {
-                          numberBorder = '2px dashed #f43f5e';
-                          numberColor = '#f43f5e';
-                          numberWeight = '700';
-                        }
-
-                        return (
-                          <div key={idx} onClick={() => handleDateClick(dateStr)} style={{ cursor: 'pointer', padding: '4px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-                            <span style={{ fontSize: '10px', fontWeight: isToday ? '700' : '500', color: isToday ? 'var(--color-primary)' : 'var(--color-text-secondary)' }}>
-                              {dayChar}
-                            </span>
-                            <div style={{
-                              width: '28px',
-                              height: '28px',
-                              borderRadius: '50%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '12px',
-                              fontWeight: numberWeight,
-                              border: numberBorder,
-                              backgroundColor: numberBg,
-                              color: numberColor
-                            }}>
-                              {dayNum}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                     {/* Days list grid */}
+                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '4px', textAlign: 'center', alignItems: 'center' }}>
+                       {weeklyDates.map((date, idx) => {
+                         const dateStr = toLocalDateStr(date);
+                         const isSelected = dateStr === selectedCalendarDate;
+                         const isToday = dateStr === toLocalDateStr(new Date());
+                         const hasOrders = upcomingOrders.some(o => o.deliveryDate === dateStr);
+                         const dayChar = date.toLocaleDateString('en-US', { weekday: 'short' })[0];
+                         const dayNum = date.getDate();
+ 
+                         let numberBg = 'transparent';
+                         let numberBorder = 'none';
+                         let numberColor = 'var(--color-text-primary)';
+                         let numberWeight = '500';
+ 
+                         if (isSelected) {
+                           numberBg = 'var(--color-border)';
+                           numberColor = 'var(--color-text-primary)';
+                           numberWeight = '700';
+                           if (hasOrders) {
+                             numberBorder = '2px dashed #f43f5e';
+                           }
+                         } else if (hasOrders) {
+                           numberBorder = '2px dashed #f43f5e';
+                           numberColor = '#f43f5e';
+                           numberWeight = '700';
+                         }
+ 
+                         return (
+                           <div key={idx} onClick={() => handleDateClick(dateStr)} style={{ cursor: 'pointer', padding: '4px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                             {isToday ? (
+                               <span style={{ fontSize: '8px', fontWeight: '800', color: 'var(--color-text-primary)', textTransform: 'uppercase', letterSpacing: '0.3px', lineHeight: '10px', height: '10px', display: 'block' }}>
+                                 TODAY
+                               </span>
+                             ) : (
+                               <span style={{ fontSize: '10px', fontWeight: '500', color: 'var(--color-text-secondary)', textTransform: 'uppercase', lineHeight: '10px', height: '10px', display: 'block' }}>
+                                 {dayChar}
+                               </span>
+                             )}
+                             <div style={{
+                               width: '28px',
+                               height: '28px',
+                               borderRadius: '50%',
+                               display: 'flex',
+                               alignItems: 'center',
+                               justifyContent: 'center',
+                               fontSize: '12px',
+                               fontWeight: numberWeight,
+                               border: numberBorder,
+                               backgroundColor: numberBg,
+                               color: numberColor
+                             }}>
+                               {dayNum}
+                             </div>
+                           </div>
+                         );
+                       })}
+                     </div>
                   </div>
 
                   {/* Wellness-inspired Hero banner */}
