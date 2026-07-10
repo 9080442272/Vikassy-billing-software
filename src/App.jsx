@@ -3068,6 +3068,35 @@ export default function App() {
             setSelectedCalendarDate(dateStr);
           };
 
+          const getNextDeliveryInfo = () => {
+            if (upcomingOrders.length === 0) {
+              return { label: 'Upcoming Delivery', value: 'No orders', desc: 'No pending orders scheduled in the system' };
+            }
+
+            const todayStr = new Date().toISOString().split('T')[0];
+            const futureOrders = upcomingOrders
+              .filter(o => o.deliveryDate >= todayStr)
+              .sort((a, b) => a.deliveryDate.localeCompare(b.deliveryDate));
+
+            if (futureOrders.length === 0) {
+              return { label: 'Upcoming Delivery', value: 'None pending', desc: 'All planned orders have been delivered' };
+            }
+
+            const nextOrder = futureOrders[0];
+            const diffTime = new Date(nextOrder.deliveryDate) - new Date(todayStr);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 0) {
+              return { label: 'Upcoming Delivery', value: 'TODAY', desc: `Client: ${nextOrder.clientName} (${formatCurrency(nextOrder.estimatedValue)})` };
+            } else if (diffDays === 1) {
+              return { label: 'Upcoming Delivery', value: 'in 1 day', desc: `Client: ${nextOrder.clientName} (${formatCurrency(nextOrder.estimatedValue)})` };
+            } else {
+              return { label: 'Upcoming Delivery', value: `in ${diffDays} days`, desc: `Client: ${nextOrder.clientName} (${formatCurrency(nextOrder.estimatedValue)})` };
+            }
+          };
+
+          const nextDeliveryInfo = getNextDeliveryInfo();
+
           return (
             <section id="calendar-view" className="tab-view active">
               
@@ -3127,8 +3156,24 @@ export default function App() {
                         const dateStr = date.toISOString().split('T')[0];
                         const isSelected = dateStr === selectedCalendarDate;
                         const isToday = dateStr === new Date().toISOString().split('T')[0];
+                        const hasOrders = upcomingOrders.some(o => o.deliveryDate === dateStr);
                         const dayChar = date.toLocaleDateString('en-US', { weekday: 'short' })[0];
                         const dayNum = date.getDate();
+
+                        let numberBg = 'transparent';
+                        let numberBorder = 'none';
+                        let numberColor = 'var(--color-text-primary)';
+                        let numberWeight = '500';
+
+                        if (isSelected) {
+                          numberBg = 'var(--color-primary)';
+                          numberColor = '#ffffff';
+                          numberWeight = '700';
+                        } else if (hasOrders) {
+                          numberBorder = '2px dashed #f43f5e';
+                          numberColor = '#f43f5e';
+                          numberWeight = '700';
+                        }
 
                         return (
                           <div key={idx} onClick={() => handleDateClick(dateStr)} style={{ cursor: 'pointer', padding: '4px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
@@ -3143,10 +3188,10 @@ export default function App() {
                               alignItems: 'center',
                               justifyContent: 'center',
                               fontSize: '12px',
-                              fontWeight: isSelected ? '700' : '500',
-                              border: isSelected ? '2px dashed var(--color-accent)' : 'none',
-                              backgroundColor: isSelected ? 'rgba(124, 58, 237, 0.1)' : 'transparent',
-                              color: isSelected ? 'var(--color-accent)' : 'var(--color-text-primary)'
+                              fontWeight: numberWeight,
+                              border: numberBorder,
+                              backgroundColor: numberBg,
+                              color: numberColor
                             }}>
                               {dayNum}
                             </div>
@@ -3156,9 +3201,9 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Cyan Gradient Hero banner */}
+                  {/* Wellness-inspired Hero banner */}
                   <div className="welcome-banner" style={{
-                    padding: '20px 16px',
+                    padding: '24px 20px',
                     borderRadius: 'var(--radius-lg)',
                     background: 'linear-gradient(135deg, #0f766e 0%, #115e59 50%, #134e4a 100%)',
                     border: '1px solid rgba(20, 184, 166, 0.3)',
@@ -3167,32 +3212,29 @@ export default function App() {
                     flexDirection: 'column',
                     alignItems: 'center',
                     textAlign: 'center',
-                    gap: '10px'
+                    gap: '12px'
                   }}>
-                    <span style={{ fontSize: '11px', fontWeight: 600, color: '#2dd4bf', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                      Orders Status Summary
+                    <span style={{ fontSize: '14px', fontWeight: 600, color: '#2dd4bf', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                      {nextDeliveryInfo.label}
                     </span>
-                    <h2 style={{ fontSize: '20px', fontWeight: 800, margin: 0, color: '#ffffff', lineHeight: 1.2 }}>
-                      {selectedDateOrders.length === 0 ? 'No Scheduled Orders' : `${selectedDateOrders.length} Company Order${selectedDateOrders.length > 1 ? 's' : ''}`}
+                    <h2 style={{ fontSize: '36px', fontWeight: 800, margin: 0, color: '#ffffff', lineHeight: 1.1 }}>
+                      {nextDeliveryInfo.value}
                     </h2>
-                    <p style={{ margin: 0, fontSize: '12px', color: '#ccfbf1', opacity: 0.9 }}>
-                      {selectedDateOrders.length === 0 
-                        ? `No deliveries or production tasks planned for ${formatDate(selectedCalendarDate)}`
-                        : `Planned value: ${formatCurrency(selectedDateTotalVal)}`
-                      }
+                    <p style={{ margin: 0, fontSize: '13px', color: '#ccfbf1', opacity: 0.9 }}>
+                      {nextDeliveryInfo.desc}
                     </p>
                     <button 
                       className="btn" 
                       onClick={() => setIsUpcomingOrderModalOpen(true)}
                       style={{ 
-                        marginTop: '6px', 
+                        marginTop: '8px', 
                         borderRadius: '24px', 
-                        padding: '6px 20px', 
+                        padding: '10px 24px', 
                         backgroundColor: '#ffffff', 
                         color: '#0f766e', 
                         fontWeight: 700, 
                         border: 'none',
-                        fontSize: '12px',
+                        fontSize: '13px',
                         boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                       }}
                     >
