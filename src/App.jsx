@@ -3094,20 +3094,20 @@ export default function App() {
                   <div style={{ backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-lg)', padding: '16px', border: '1px solid var(--color-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
                     {/* Header month and icons */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <i className="ph ph-caret-left text-muted" style={{ cursor: 'pointer' }} onClick={() => {
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <i className="ph ph-caret-left" style={{ cursor: 'pointer', color: 'var(--color-text-primary)', fontSize: '18px' }} onClick={() => {
                           const d = new Date(selectedCalendarDate);
                           d.setDate(d.getDate() - 1);
                           setSelectedCalendarDate(d.toISOString().split('T')[0]);
                         }}></i>
-                        <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>{monthYearString}</h3>
-                        <i className="ph ph-caret-right text-muted" style={{ cursor: 'pointer' }} onClick={() => {
+                        <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--color-text-primary)' }}>{monthYearString}</h3>
+                        <i className="ph ph-caret-right" style={{ cursor: 'pointer', color: 'var(--color-text-primary)', fontSize: '18px' }} onClick={() => {
                           const d = new Date(selectedCalendarDate);
                           d.setDate(d.getDate() + 1);
                           setSelectedCalendarDate(d.toISOString().split('T')[0]);
                         }}></i>
                       </div>
-                      <div style={{ position: 'relative', cursor: 'pointer' }}>
+                      <div style={{ position: 'relative', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
                         <i className="ph ph-calendar-blank" style={{ fontSize: '18px', color: 'var(--color-primary)' }} onClick={() => {
                           document.getElementById('calendar-picker-input').showPicker();
                         }}></i>
@@ -3132,8 +3132,8 @@ export default function App() {
 
                         return (
                           <div key={idx} onClick={() => handleDateClick(dateStr)} style={{ cursor: 'pointer', padding: '4px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-                            <span style={{ fontSize: '10px', fontWeight: 500, color: 'var(--color-text-secondary)' }}>
-                              {isToday ? 'TD' : dayChar}
+                            <span style={{ fontSize: '10px', fontWeight: isToday ? '700' : '500', color: isToday ? 'var(--color-primary)' : 'var(--color-text-secondary)' }}>
+                              {dayChar}
                             </span>
                             <div style={{
                               width: '28px',
@@ -3146,7 +3146,7 @@ export default function App() {
                               fontWeight: isSelected ? '700' : '500',
                               border: isSelected ? '2px dashed var(--color-accent)' : 'none',
                               backgroundColor: isSelected ? 'rgba(124, 58, 237, 0.1)' : 'transparent',
-                              color: isSelected ? 'var(--color-accent)' : '#ffffff'
+                              color: isSelected ? 'var(--color-accent)' : 'var(--color-text-primary)'
                             }}>
                               {dayNum}
                             </div>
@@ -3355,7 +3355,7 @@ export default function App() {
                         borderRadius: '24px',
                         border: '1px solid var(--color-border)',
                         backgroundColor: 'var(--color-surface)',
-                        color: '#ffffff',
+                        color: 'var(--color-text-primary)',
                         fontSize: '14px'
                       }}
                     />
@@ -3379,7 +3379,7 @@ export default function App() {
                         }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <div>
-                              <h5 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>{o.clientName}</h5>
+                              <h5 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--color-text-primary)' }}>{o.clientName}</h5>
                               <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>{o.orderTitle}</span>
                             </div>
                             <span className={`badge ${getStatusClass(o.status)}`}>{o.status}</span>
@@ -3391,7 +3391,7 @@ export default function App() {
                               <select 
                                 value={o.status} 
                                 onChange={(e) => updateUpcomingOrderStatus(o, e.target.value)}
-                                style={{ fontSize: '11px', padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: '#ffffff' }}
+                                style={{ fontSize: '11px', padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-primary)' }}
                               >
                                 <option value="Planned">Planned</option>
                                 <option value="In Production">In Production</option>
@@ -3407,13 +3407,13 @@ export default function App() {
                       {selectedDateOrders.length === 0 && (
                         <div style={{
                           textAlign: 'center',
-                          padding: '32px 16px',
+                          padding: '24px 16px',
                           border: '1px dashed var(--color-border)',
                           borderRadius: 'var(--radius-lg)',
                           color: 'var(--color-text-secondary)',
                           fontSize: '13px'
                         }}>
-                          No orders planned for this day. Click \"Log Upcoming Order\" on the left to schedule.
+                          No company orders scheduled for this date.
                         </div>
                       )}
                     </div>
