@@ -4350,38 +4350,11 @@ export default function App() {
                   <i className="ph ph-caret-right text-muted"></i>
                 </a>
 
-                <a className="more-menu-item" onClick={() => handleTabChange('ceo-tracker')} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 24px', borderBottom: '1px solid var(--color-border)', cursor: 'pointer', color: 'var(--color-text-primary)', textDecoration: 'none' }}>
-                  <i className="ph ph-briefcase" style={{ fontSize: '22px', color: 'var(--color-primary)' }}></i>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 600, fontSize: '14px' }}>CEO Log</div>
-                    <div className="text-muted" style={{ fontSize: '11px' }}>CEO performance tracking & owner analytics</div>
-                  </div>
-                  <i className="ph ph-caret-right text-muted"></i>
-                </a>
-
                 <a className="more-menu-item" onClick={() => handleTabChange('expenses')} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 24px', borderBottom: '1px solid var(--color-border)', cursor: 'pointer', color: 'var(--color-text-primary)', textDecoration: 'none' }}>
                   <i className="ph ph-coins" style={{ fontSize: '22px', color: 'var(--color-primary)' }}></i>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 600, fontSize: '14px' }}>Expenses</div>
                     <div className="text-muted" style={{ fontSize: '11px' }}>Track order transportation, fuel & operational costs</div>
-                  </div>
-                  <i className="ph ph-caret-right text-muted"></i>
-                </a>
-
-                <a className="more-menu-item" onClick={() => handleTabChange('calendar')} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 24px', borderBottom: '1px solid var(--color-border)', cursor: 'pointer', color: 'var(--color-text-primary)', textDecoration: 'none' }}>
-                  <i className="ph ph-calendar" style={{ fontSize: '22px', color: 'var(--color-primary)' }}></i>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 600, fontSize: '14px' }}>Calendar</div>
-                    <div className="text-muted" style={{ fontSize: '11px' }}>Schedule upcoming company orders & dispatches</div>
-                  </div>
-                  <i className="ph ph-caret-right text-muted"></i>
-                </a>
-
-                <a className="more-menu-item" onClick={() => handleTabChange('account')} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 24px', borderBottom: '1px solid var(--color-border)', cursor: 'pointer', color: 'var(--color-text-primary)', textDecoration: 'none' }}>
-                  <i className="ph ph-user-gear" style={{ fontSize: '22px', color: 'var(--color-primary)' }}></i>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 600, fontSize: '14px' }}>Account Settings</div>
-                    <div className="text-muted" style={{ fontSize: '11px' }}>Manage your profile, password & security</div>
                   </div>
                   <i className="ph ph-caret-right text-muted"></i>
                 </a>
