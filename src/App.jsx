@@ -3403,14 +3403,34 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* Days list grid */}
+                    {/* Weekdays Labels Row */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '4px', textAlign: 'center', marginBottom: '8px', alignItems: 'center' }}>
+                      {weeklyDates.map((date, idx) => {
+                        const dateStr = toLocalDateStr(date);
+                        const isToday = dateStr === toLocalDateStr(new Date());
+                        const dayChar = date.toLocaleDateString('en-US', { weekday: 'short' })[0];
+                        return (
+                          <div key={idx} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '12px' }}>
+                            {isToday ? (
+                              <span style={{ fontSize: '8px', fontWeight: '800', color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.3px', lineHeight: '10px' }}>
+                                TODAY
+                              </span>
+                            ) : (
+                              <span style={{ fontSize: '10px', fontWeight: '500', color: 'var(--color-text-secondary)', textTransform: 'uppercase', lineHeight: '10px' }}>
+                                {dayChar}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Date Numbers Row */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '4px', textAlign: 'center', alignItems: 'center' }}>
                       {weeklyDates.map((date, idx) => {
                         const dateStr = toLocalDateStr(date);
                         const isSelected = dateStr === selectedCalendarDate;
-                        const isToday = dateStr === toLocalDateStr(new Date());
                         const hasOrders = upcomingOrders.some(o => o.deliveryDate === dateStr);
-                        const dayChar = date.toLocaleDateString('en-US', { weekday: 'short' })[0];
                         const dayNum = date.getDate();
 
                         let numberBg = 'transparent';
@@ -3432,16 +3452,7 @@ export default function App() {
                         }
 
                         return (
-                          <div key={idx} onClick={() => handleDateClick(dateStr)} style={{ cursor: 'pointer', padding: '4px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-                            {isToday ? (
-                              <span style={{ fontSize: '8px', fontWeight: '800', color: 'var(--color-text-primary)', textTransform: 'uppercase', letterSpacing: '0.3px', lineHeight: '10px', height: '10px', display: 'block' }}>
-                                TODAY
-                              </span>
-                            ) : (
-                              <span style={{ fontSize: '10px', fontWeight: '500', color: 'var(--color-text-secondary)', textTransform: 'uppercase', lineHeight: '10px', height: '10px', display: 'block' }}>
-                                {dayChar}
-                              </span>
-                            )}
+                          <div key={idx} onClick={() => handleDateClick(dateStr)} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                             <div style={{
                               width: '28px',
                               height: '28px',
@@ -3454,6 +3465,7 @@ export default function App() {
                               border: numberBorder,
                               backgroundColor: numberBg,
                               color: numberColor,
+                              boxSizing: 'border-box',
                               transition: 'all 0.2s ease'
                             }}>
                               {dayNum}
@@ -3506,7 +3518,7 @@ export default function App() {
                   </div>
 
                   {/* Horizontal scroll daily insights */}
-                  <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '8px' }} className="no-print custom-scrollbar">
+                  <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '8px', alignItems: 'stretch' }} className="no-print custom-scrollbar">
                     {/* Item 1: Log Order Shortcut */}
                     <div style={{
                       flexShrink: 0,
@@ -3519,6 +3531,7 @@ export default function App() {
                       flexDirection: 'column',
                       alignItems: 'center',
                       gap: '8px',
+                      justifyContent: 'space-between',
                       textAlign: 'center',
                       boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
                       transition: 'all 0.2s ease'
@@ -3543,6 +3556,9 @@ export default function App() {
                       >
                         +
                       </div>
+                      <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-primary)', cursor: 'pointer' }} onClick={() => setIsUpcomingOrderModalOpen(true)}>
+                        Create
+                      </span>
                     </div>
 
                     {/* Item 2: Planned Value */}
@@ -3557,6 +3573,7 @@ export default function App() {
                       flexDirection: 'column',
                       alignItems: 'center',
                       gap: '8px',
+                      justifyContent: 'space-between',
                       textAlign: 'center',
                       boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
                       transition: 'all 0.2s ease'
@@ -3592,6 +3609,7 @@ export default function App() {
                       flexDirection: 'column',
                       alignItems: 'center',
                       gap: '8px',
+                      justifyContent: 'space-between',
                       textAlign: 'center',
                       boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
                       transition: 'all 0.2s ease'
@@ -3627,6 +3645,7 @@ export default function App() {
                       flexDirection: 'column',
                       alignItems: 'center',
                       gap: '8px',
+                      justifyContent: 'space-between',
                       textAlign: 'center',
                       boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
                       transition: 'all 0.2s ease'
