@@ -3371,18 +3371,18 @@ export default function App() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
                   
                   {/* Inspiration top calendar strip */}
-                  <div style={{ backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-lg)', padding: '16px', border: '1px solid var(--color-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                  <div style={{ backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-lg)', padding: '16px', border: '1px solid var(--color-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                     {/* Header month and icons */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <i className="ph ph-caret-left" style={{ cursor: 'pointer', color: 'var(--color-text-primary)', fontSize: '18px' }} onClick={() => {
+                        <i className="ph ph-arrow-left" style={{ cursor: 'pointer', color: 'var(--color-text-primary)', fontSize: '18px' }} onClick={() => {
                           const [y, m, d] = selectedCalendarDate.split('-').map(Number);
                           const dateObj = new Date(y, m - 1, d);
                           dateObj.setDate(dateObj.getDate() - 1);
                           setSelectedCalendarDate(toLocalDateStr(dateObj));
                         }}></i>
                         <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--color-text-primary)' }}>{monthYearString}</h3>
-                        <i className="ph ph-caret-right" style={{ cursor: 'pointer', color: 'var(--color-text-primary)', fontSize: '18px' }} onClick={() => {
+                        <i className="ph ph-arrow-right" style={{ cursor: 'pointer', color: 'var(--color-text-primary)', fontSize: '18px' }} onClick={() => {
                           const [y, m, d] = selectedCalendarDate.split('-').map(Number);
                           const dateObj = new Date(y, m - 1, d);
                           dateObj.setDate(dateObj.getDate() + 1);
@@ -3390,7 +3390,7 @@ export default function App() {
                         }}></i>
                       </div>
                       <div style={{ position: 'relative', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                        <i className="ph ph-calendar-blank" style={{ fontSize: '18px', color: 'var(--color-primary)' }} onClick={() => {
+                        <i className="ph ph-calendar" style={{ fontSize: '18px', color: 'var(--color-primary)' }} onClick={() => {
                           document.getElementById('calendar-picker-input').showPicker();
                         }}></i>
                         <input 
@@ -3403,83 +3403,84 @@ export default function App() {
                       </div>
                     </div>
 
-                     {/* Days list grid */}
-                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '4px', textAlign: 'center', alignItems: 'center' }}>
-                       {weeklyDates.map((date, idx) => {
-                         const dateStr = toLocalDateStr(date);
-                         const isSelected = dateStr === selectedCalendarDate;
-                         const isToday = dateStr === toLocalDateStr(new Date());
-                         const hasOrders = upcomingOrders.some(o => o.deliveryDate === dateStr);
-                         const dayChar = date.toLocaleDateString('en-US', { weekday: 'short' })[0];
-                         const dayNum = date.getDate();
- 
-                         let numberBg = 'transparent';
-                         let numberBorder = 'none';
-                         let numberColor = 'var(--color-text-primary)';
-                         let numberWeight = '500';
- 
-                         if (isSelected) {
-                           numberBg = 'var(--color-border)';
-                           numberColor = 'var(--color-text-primary)';
-                           numberWeight = '700';
-                           if (hasOrders) {
-                             numberBorder = '2px dashed #f43f5e';
-                           }
-                         } else if (hasOrders) {
-                           numberBorder = '2px dashed #f43f5e';
-                           numberColor = '#f43f5e';
-                           numberWeight = '700';
-                         }
- 
-                         return (
-                           <div key={idx} onClick={() => handleDateClick(dateStr)} style={{ cursor: 'pointer', padding: '4px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-                             {isToday ? (
-                               <span style={{ fontSize: '8px', fontWeight: '800', color: 'var(--color-text-primary)', textTransform: 'uppercase', letterSpacing: '0.3px', lineHeight: '10px', height: '10px', display: 'block' }}>
-                                 TODAY
-                               </span>
-                             ) : (
-                               <span style={{ fontSize: '10px', fontWeight: '500', color: 'var(--color-text-secondary)', textTransform: 'uppercase', lineHeight: '10px', height: '10px', display: 'block' }}>
-                                 {dayChar}
-                               </span>
-                             )}
-                             <div style={{
-                               width: '28px',
-                               height: '28px',
-                               borderRadius: '50%',
-                               display: 'flex',
-                               alignItems: 'center',
-                               justifyContent: 'center',
-                               fontSize: '12px',
-                               fontWeight: numberWeight,
-                               border: numberBorder,
-                               backgroundColor: numberBg,
-                               color: numberColor
-                             }}>
-                               {dayNum}
-                             </div>
-                           </div>
-                         );
-                       })}
-                     </div>
+                    {/* Days list grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '4px', textAlign: 'center', alignItems: 'center' }}>
+                      {weeklyDates.map((date, idx) => {
+                        const dateStr = toLocalDateStr(date);
+                        const isSelected = dateStr === selectedCalendarDate;
+                        const isToday = dateStr === toLocalDateStr(new Date());
+                        const hasOrders = upcomingOrders.some(o => o.deliveryDate === dateStr);
+                        const dayChar = date.toLocaleDateString('en-US', { weekday: 'short' })[0];
+                        const dayNum = date.getDate();
+
+                        let numberBg = 'transparent';
+                        let numberBorder = 'none';
+                        let numberColor = 'var(--color-text-secondary)';
+                        let numberWeight = '500';
+
+                        if (isSelected) {
+                          numberBg = 'var(--color-border)';
+                          numberColor = 'var(--color-text-primary)';
+                          numberWeight = '700';
+                          if (hasOrders) {
+                            numberBorder = '2px dashed #f43f5e';
+                          }
+                        } else if (hasOrders) {
+                          numberBorder = '2px dashed #f43f5e';
+                          numberColor = '#f43f5e';
+                          numberWeight = '700';
+                        }
+
+                        return (
+                          <div key={idx} onClick={() => handleDateClick(dateStr)} style={{ cursor: 'pointer', padding: '4px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                            {isToday ? (
+                              <span style={{ fontSize: '8px', fontWeight: '800', color: 'var(--color-text-primary)', textTransform: 'uppercase', letterSpacing: '0.3px', lineHeight: '10px', height: '10px', display: 'block' }}>
+                                TODAY
+                              </span>
+                            ) : (
+                              <span style={{ fontSize: '10px', fontWeight: '500', color: 'var(--color-text-secondary)', textTransform: 'uppercase', lineHeight: '10px', height: '10px', display: 'block' }}>
+                                {dayChar}
+                              </span>
+                            )}
+                            <div style={{
+                              width: '28px',
+                              height: '28px',
+                              borderRadius: '50%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '12px',
+                              fontWeight: numberWeight,
+                              border: numberBorder,
+                              backgroundColor: numberBg,
+                              color: numberColor,
+                              transition: 'all 0.2s ease'
+                            }}>
+                              {dayNum}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   {/* Wellness-inspired Hero banner */}
                   <div className="welcome-banner" style={{
                     padding: '24px 20px',
                     borderRadius: 'var(--radius-lg)',
-                    background: 'linear-gradient(135deg, #0f766e 0%, #115e59 50%, #134e4a 100%)',
+                    background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
                     border: '1px solid rgba(20, 184, 166, 0.3)',
-                    boxShadow: '0 8px 24px rgba(13, 148, 136, 0.2)',
+                    boxShadow: '0 8px 24px rgba(13, 148, 136, 0.15)',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     textAlign: 'center',
                     gap: '12px'
                   }}>
-                    <span style={{ fontSize: '14px', fontWeight: 600, color: '#2dd4bf', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#2dd4bf', textTransform: 'uppercase', letterSpacing: '1px' }}>
                       {nextDeliveryInfo.label}
                     </span>
-                    <h2 style={{ fontSize: '36px', fontWeight: 800, margin: 0, color: '#ffffff', lineHeight: 1.1 }}>
+                    <h2 style={{ fontSize: '36px', fontWeight: 800, margin: 0, color: '#ffffff', lineHeight: 1.1, textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                       {nextDeliveryInfo.value}
                     </h2>
                     <p style={{ margin: 0, fontSize: '13px', color: '#ccfbf1', opacity: 0.9 }}>
@@ -3505,22 +3506,24 @@ export default function App() {
                   </div>
 
                   {/* Horizontal scroll daily insights */}
-                  <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px' }} className="no-print">
+                  <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '8px' }} className="no-print custom-scrollbar">
                     {/* Item 1: Log Order Shortcut */}
                     <div style={{
                       flexShrink: 0,
-                      width: '110px',
+                      width: '115px',
                       backgroundColor: 'var(--color-surface)',
                       border: '1px solid var(--color-border)',
-                      borderRadius: 'var(--radius-md)',
+                      borderRadius: 'var(--radius-lg)',
                       padding: '12px 8px',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
                       gap: '8px',
-                      textAlign: 'center'
+                      textAlign: 'center',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+                      transition: 'all 0.2s ease'
                     }}>
-                      <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Log your order</span>
+                      <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.3px' }}>Log Order</span>
                       <div 
                         onClick={() => setIsUpcomingOrderModalOpen(true)}
                         style={{
@@ -3533,7 +3536,9 @@ export default function App() {
                           alignItems: 'center',
                           justifyContent: 'center',
                           fontSize: '18px',
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          fontWeight: 700,
+                          transition: 'all 0.2s ease'
                         }}
                       >
                         +
@@ -3543,18 +3548,20 @@ export default function App() {
                     {/* Item 2: Planned Value */}
                     <div style={{
                       flexShrink: 0,
-                      width: '120px',
+                      width: '125px',
                       backgroundColor: 'var(--color-surface)',
                       border: '1px solid var(--color-border)',
-                      borderRadius: 'var(--radius-md)',
+                      borderRadius: 'var(--radius-lg)',
                       padding: '12px 8px',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
                       gap: '8px',
-                      textAlign: 'center'
+                      textAlign: 'center',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+                      transition: 'all 0.2s ease'
                     }}>
-                      <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Planned Value</span>
+                      <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.3px' }}>Planned Value</span>
                       <div style={{
                         width: '32px',
                         height: '32px',
@@ -3568,7 +3575,7 @@ export default function App() {
                       }}>
                         <i className="ph ph-currency-inr"></i>
                       </div>
-                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#ffffff' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
                         {formatCurrency(selectedDateTotalVal)}
                       </span>
                     </div>
@@ -3576,18 +3583,20 @@ export default function App() {
                     {/* Item 3: Production queue */}
                     <div style={{
                       flexShrink: 0,
-                      width: '120px',
+                      width: '125px',
                       backgroundColor: 'var(--color-surface)',
                       border: '1px solid var(--color-border)',
-                      borderRadius: 'var(--radius-md)',
+                      borderRadius: 'var(--radius-lg)',
                       padding: '12px 8px',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
                       gap: '8px',
-                      textAlign: 'center'
+                      textAlign: 'center',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+                      transition: 'all 0.2s ease'
                     }}>
-                      <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Active Queue</span>
+                      <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.3px' }}>Active Queue</span>
                       <div style={{
                         width: '32px',
                         height: '32px',
@@ -3601,7 +3610,7 @@ export default function App() {
                       }}>
                         <i className="ph ph-gear"></i>
                       </div>
-                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#ffffff' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
                         {inProductionCount} In Prod.
                       </span>
                     </div>
@@ -3609,18 +3618,20 @@ export default function App() {
                     {/* Item 4: Total Revenue pipeline */}
                     <div style={{
                       flexShrink: 0,
-                      width: '120px',
+                      width: '125px',
                       backgroundColor: 'var(--color-surface)',
                       border: '1px solid var(--color-border)',
-                      borderRadius: 'var(--radius-md)',
+                      borderRadius: 'var(--radius-lg)',
                       padding: '12px 8px',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
                       gap: '8px',
-                      textAlign: 'center'
+                      textAlign: 'center',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+                      transition: 'all 0.2s ease'
                     }}>
-                      <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Total Pipeline</span>
+                      <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.3px' }}>Total Pipeline</span>
                       <div style={{
                         width: '32px',
                         height: '32px',
@@ -3634,7 +3645,7 @@ export default function App() {
                       }}>
                         <i className="ph ph-chart-line-up"></i>
                       </div>
-                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#ffffff' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
                         {formatCurrency(totalPlannedPipeline)}
                       </span>
                     </div>
@@ -3655,12 +3666,16 @@ export default function App() {
                       onChange={(e) => setOrderSearchKeyword(e.target.value)}
                       style={{
                         width: '100%',
-                        padding: '12px 16px 12px 42px',
+                        height: '44px',
+                        padding: '12px 16px 12px 46px',
                         borderRadius: '24px',
                         border: '1px solid var(--color-border)',
                         backgroundColor: 'var(--color-surface)',
                         color: 'var(--color-text-primary)',
-                        fontSize: '14px'
+                        fontSize: '14px',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                        outline: 'none',
+                        transition: 'all 0.2s ease'
                       }}
                     />
                   </div>
@@ -3671,43 +3686,51 @@ export default function App() {
                       Orders Due on {formatDate(selectedCalendarDate)} ({selectedDateOrders.length})
                     </h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {selectedDateOrders.map(o => (
-                        <div key={o._id} style={{
-                          backgroundColor: 'var(--color-surface)',
-                          border: '1px solid var(--color-border)',
-                          borderRadius: 'var(--radius-lg)',
-                          padding: '16px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '8px'
-                        }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div>
-                              <h5 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--color-text-primary)' }}>{o.clientName}</h5>
-                              <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>{o.orderTitle}</span>
+                      {selectedDateOrders.map(o => {
+                        const cardBorderLeft = o.status === 'Delivered' ? '4px solid var(--color-success)' :
+                                               o.status === 'In Production' ? '4px solid #f59e0b' :
+                                               o.status === 'Ready for Dispatch' ? '4px solid var(--color-accent)' :
+                                               '4px solid #3b82f6';
+                        return (
+                          <div key={o._id} style={{
+                            backgroundColor: 'var(--color-surface)',
+                            border: '1px solid var(--color-border)',
+                            borderLeft: cardBorderLeft,
+                            borderRadius: 'var(--radius-lg)',
+                            padding: '16px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '8px',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
+                          }} className="pipeline-card">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                              <div>
+                                <h5 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--color-text-primary)' }}>{o.clientName}</h5>
+                                <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>{o.orderTitle}</span>
+                              </div>
+                              <span className={`badge ${getStatusClass(o.status)}`} style={{ fontSize: '10px' }}>{o.status}</span>
                             </div>
-                            <span className={`badge ${getStatusClass(o.status)}`}>{o.status}</span>
-                          </div>
-                          {o.notes && <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: 1.4 }}>{o.notes}</p>}
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '10px', marginTop: '4px' }}>
-                            <span style={{ fontWeight: 700, color: 'var(--color-primary)', fontSize: '14px' }}>{formatCurrency(o.estimatedValue)}</span>
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                              <select 
-                                value={o.status} 
-                                onChange={(e) => updateUpcomingOrderStatus(o, e.target.value)}
-                                style={{ fontSize: '11px', padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-primary)' }}
-                              >
-                                <option value="Planned">Planned</option>
-                                <option value="In Production">In Production</option>
-                                <option value="Ready for Dispatch">Ready for Dispatch</option>
-                                <option value="Delivered">Delivered</option>
-                              </select>
-                              <button className="btn-icon" onClick={() => openEditUpcomingOrder(o)}><i className="ph ph-pencil-simple"></i></button>
-                              <button className="btn-icon text-red" onClick={() => deleteUpcomingOrder(o._id)}><i className="ph ph-trash"></i></button>
+                            {o.notes && <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: 1.4, fontStyle: 'italic' }}>{o.notes}</p>}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '10px', marginTop: '4px' }}>
+                              <span style={{ fontWeight: 700, color: 'var(--color-primary)', fontSize: '14px' }}>{formatCurrency(o.estimatedValue)}</span>
+                              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                <select 
+                                  value={o.status} 
+                                  onChange={(e) => updateUpcomingOrderStatus(o, e.target.value)}
+                                  style={{ fontSize: '11px', padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-primary)', outline: 'none' }}
+                                >
+                                  <option value="Planned">Planned</option>
+                                  <option value="In Production">In Production</option>
+                                  <option value="Ready for Dispatch">Ready for Dispatch</option>
+                                  <option value="Delivered">Delivered</option>
+                                </select>
+                                <button className="btn-icon" onClick={() => openEditUpcomingOrder(o)}><i className="ph ph-pencil-simple"></i></button>
+                                <button className="btn-icon text-red" onClick={() => deleteUpcomingOrder(o._id)}><i className="ph ph-trash"></i></button>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                       {selectedDateOrders.length === 0 && (
                         <div style={{
                           textAlign: 'center',
@@ -3729,30 +3752,39 @@ export default function App() {
                       All Upcoming Orders Pipeline ({searchedOrders.length})
                     </h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {searchedOrders.map(o => (
-                        <div key={o._id} style={{
-                          backgroundColor: 'var(--color-surface)',
-                          border: '1px solid var(--color-border)',
-                          borderRadius: 'var(--radius-lg)',
-                          padding: '16px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '8px',
-                          cursor: 'pointer'
-                        }} onClick={() => setSelectedCalendarDate(o.deliveryDate)}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div>
-                              <h5 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#ffffff' }}>{o.clientName}</h5>
-                              <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>{o.orderTitle}</span>
+                      {searchedOrders.map(o => {
+                        const cardBorderLeft = o.status === 'Delivered' ? '4px solid var(--color-success)' :
+                                               o.status === 'In Production' ? '4px solid #f59e0b' :
+                                               o.status === 'Ready for Dispatch' ? '4px solid var(--color-accent)' :
+                                               '4px solid #3b82f6';
+                        return (
+                          <div key={o._id} style={{
+                            backgroundColor: 'var(--color-surface)',
+                            border: '1px solid var(--color-border)',
+                            borderLeft: cardBorderLeft,
+                            borderRadius: 'var(--radius-lg)',
+                            padding: '16px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '8px',
+                            cursor: 'pointer',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                            transition: 'all 0.2s ease'
+                          }} className="pipeline-card" onClick={() => setSelectedCalendarDate(o.deliveryDate)}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                              <div>
+                                <h5 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--color-text-primary)' }}>{o.clientName}</h5>
+                                <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>{o.orderTitle}</span>
+                              </div>
+                              <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-primary)' }}>{formatDate(o.deliveryDate)}</span>
                             </div>
-                            <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-primary)' }}>{formatDate(o.deliveryDate)}</span>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '10px', marginTop: '4px' }}>
+                              <span style={{ fontWeight: 700, color: 'var(--color-text-primary)', fontSize: '13px' }}>{formatCurrency(o.estimatedValue)}</span>
+                              <span className={`badge ${getStatusClass(o.status)}`} style={{ fontSize: '10px' }}>{o.status}</span>
+                            </div>
                           </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontWeight: 600, color: '#ffffff', fontSize: '13px' }}>{formatCurrency(o.estimatedValue)}</span>
-                            <span className={`badge ${getStatusClass(o.status)}`} style={{ fontSize: '10px' }}>{o.status}</span>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                       {searchedOrders.length === 0 && (
                         <div className="text-center text-muted" style={{ padding: '16px' }}>No orders matching search keyword.</div>
                       )}
