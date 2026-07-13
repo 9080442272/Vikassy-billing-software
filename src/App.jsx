@@ -147,6 +147,35 @@ export default function App() {
   const [forgotConfirmPassword, setForgotConfirmPassword] = useState('');
   const [forgotStep, setForgotStep] = useState(1); // 1 = verify, 2 = reset
   const [resetUserRecord, setResetUserRecord] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState('');
+
+  // Keep preview in sync with currentLoggedUser
+  useEffect(() => {
+    if (currentLoggedUser?.avatarPicture) {
+      setAvatarPreview(currentLoggedUser.avatarPicture);
+    } else {
+      setAvatarPreview('');
+    }
+  }, [currentLoggedUser]);
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        alert("Please upload a file smaller than 2MB!");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAvatarRemove = () => {
+    setAvatarPreview('');
+  };
 
   // Modal Open States
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
@@ -955,9 +984,15 @@ export default function App() {
         password: currentLoggedUser.password,
         fullName,
         email,
-        avatarPicture: currentLoggedUser.avatarPicture || '',
+        avatarPicture: avatarPreview || '',
         createdAt: currentLoggedUser.createdAt
       });
+      setCurrentLoggedUser(prev => ({
+        ...prev,
+        fullName,
+        email,
+        avatarPicture: avatarPreview
+      }));
       alert("Profile updated successfully!");
     } catch (err) {
       alert("Profile update failed: " + err.message);
@@ -3541,6 +3576,66 @@ export default function App() {
               <div className="card bg-surface border" style={{ padding: '24px' }}>
                 <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><i className="ph ph-user-circle text-primary"></i> Edit Profile Info</h3>
                 <form id="profile-form" onSubmit={handleProfileUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  
+                  {/* Profile Picture Uploader Row */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', borderBottom: '1px solid var(--color-border)', paddingBottom: '16px', marginBottom: '8px' }}>
+                    <div style={{ position: 'relative', width: '64px', height: '64px' }}>
+                      {avatarPreview ? (
+                        <img 
+                          src={avatarPreview} 
+                          style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--color-primary)' }} 
+                          alt="Avatar Preview" 
+                        />
+                      ) : (
+                        <div style={{
+                          width: '100%',
+                          height: '100%',
+                          borderRadius: '50%',
+                          background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))',
+                          color: '#ffffff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '20px',
+                          fontWeight: 700
+                        }}>
+                          {currentLoggedUser?.fullName ? currentLoggedUser.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'US'}
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)' }}>Profile Picture</span>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <button 
+                          type="button" 
+                          className="btn btn-secondary btn-sm" 
+                          onClick={() => document.getElementById('profile-avatar-file-input').click()}
+                          style={{ padding: '4px 12px', fontSize: '11px', borderRadius: '16px' }}
+                        >
+                          <i className="ph ph-upload-simple"></i> Upload
+                        </button>
+                        {avatarPreview && (
+                          <button 
+                            type="button" 
+                            className="btn btn-sm text-red" 
+                            onClick={handleAvatarRemove}
+                            style={{ padding: '4px 12px', fontSize: '11px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer' }}
+                          >
+                            <i className="ph ph-trash"></i> Remove
+                          </button>
+                        )}
+                      </div>
+                      <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>JPG, PNG or GIF. Max 2MB.</span>
+                      <input 
+                        type="file" 
+                        id="profile-avatar-file-input" 
+                        accept="image/*" 
+                        onChange={handleAvatarChange} 
+                        style={{ display: 'none' }} 
+                      />
+                    </div>
+                  </div>
+
                   <div className="form-row">
                     <div className="form-group">
                       <label htmlFor="profile-username">Username (Non-editable)</label>
