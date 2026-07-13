@@ -177,6 +177,19 @@ export default function App() {
     setAvatarPreview('');
   };
 
+  const [isProfilePopoverOpen, setIsProfilePopoverOpen] = useState(false);
+
+  // Click outside listener to automatically close profile settings popover
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (isProfilePopoverOpen && !e.target.closest('.user-profile')) {
+        setIsProfilePopoverOpen(false);
+      }
+    };
+    document.addEventListener('click', handleOutsideClick);
+    return () => document.removeEventListener('click', handleOutsideClick);
+  }, [isProfilePopoverOpen]);
+
   // Modal Open States
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [isBillModalOpen, setIsBillModalOpen] = useState(false);
@@ -1788,17 +1801,16 @@ export default function App() {
             <i className="ph ph-briefcase"></i>
             <span>CEO Log</span>
           </button>
-          <button className={`nav-item mobile-hidden-nav ${activeTab === 'account' ? 'active' : ''}`} onClick={() => handleTabChange('account')}>
-            <i className="ph ph-user-gear"></i>
-            <span>Account</span>
-          </button>
           <button className="nav-item mobile-only-nav" onClick={() => setIsMobileMenuOpen(true)}>
             <i className="ph ph-dots-three-outline"></i>
             <span>More</span>
           </button>
         </nav>
 
-        <div className="user-profile" onClick={() => handleTabChange('account')}>
+        <div className="user-profile" style={{ position: 'relative' }} onClick={(e) => {
+          e.stopPropagation();
+          setIsProfilePopoverOpen(!isProfilePopoverOpen);
+        }}>
           <div className="avatar" id="sidebar-avatar">
             {currentLoggedUser?.avatarPicture ? (
               <img src={currentLoggedUser.avatarPicture} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt="Avatar" />
@@ -1810,6 +1822,199 @@ export default function App() {
             <span className="user-name" id="sidebar-user-name">{currentLoggedUser?.fullName || currentLoggedUser?.username || 'Guest'}</span>
             <span className="user-role">Administrator</span>
           </div>
+
+          {/* Profile / Account Popover */}
+          {isProfilePopoverOpen && (
+            <div 
+              className="card border" 
+              onClick={(e) => e.stopPropagation()} 
+              style={{
+                position: 'absolute',
+                bottom: 'calc(100% + 12px)',
+                left: '0',
+                width: '320px',
+                maxHeight: '80vh',
+                overflowY: 'auto',
+                backgroundColor: 'var(--color-surface)',
+                borderRadius: 'var(--radius-lg)',
+                boxShadow: '0 12px 36px rgba(0, 0, 0, 0.25)',
+                padding: '20px',
+                zIndex: 1000,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+                textAlign: 'left'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '10px' }}>
+                <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--color-text-primary)' }}>Account Settings</h4>
+                <button 
+                  type="button" 
+                  onClick={() => setIsProfilePopoverOpen(false)}
+                  style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-secondary)' }}
+                >
+                  <i className="ph ph-x" style={{ fontSize: '16px' }}></i>
+                </button>
+              </div>
+
+              {/* Profile Avatar Uploader */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ position: 'relative', width: '48px', height: '48px', flexShrink: 0 }}>
+                  {avatarPreview ? (
+                    <img 
+                      src={avatarPreview} 
+                      style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--color-primary)' }} 
+                      alt="Avatar" 
+                    />
+                  ) : (
+                    <div style={{
+                      width: '100%',
+                      height: '100%',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))',
+                      color: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '16px',
+                      fontWeight: 700
+                    }}>
+                      {currentLoggedUser?.fullName ? currentLoggedUser.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'US'}
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-primary)' }}>Profile Photo</span>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <button 
+                      type="button" 
+                      className="btn btn-secondary btn-sm" 
+                      onClick={() => document.getElementById('popover-avatar-file-input').click()}
+                      style={{ padding: '2px 8px', fontSize: '10px', borderRadius: '12px' }}
+                    >
+                      Upload
+                    </button>
+                    {avatarPreview && (
+                      <button 
+                        type="button" 
+                        className="btn btn-sm text-red" 
+                        onClick={handleAvatarRemove}
+                        style={{ padding: '2px 8px', fontSize: '10px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer' }}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  <input 
+                    type="file" 
+                    id="popover-avatar-file-input" 
+                    accept="image/*" 
+                    onChange={handleAvatarChange} 
+                    style={{ display: 'none' }} 
+                  />
+                </div>
+              </div>
+
+              {/* Edit Profile Info Form */}
+              <form onSubmit={handleProfileUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label htmlFor="popover-username" style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Username</label>
+                  <input 
+                    type="text" 
+                    id="popover-username" 
+                    value={currentLoggedUser?.username || ''} 
+                    readOnly 
+                    style={{ padding: '8px 12px', fontSize: '12px', borderRadius: '6px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-muted)', color: 'var(--color-text-secondary)', cursor: 'not-allowed' }} 
+                  />
+                </div>
+                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label htmlFor="profile-fullname" style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Full Name *</label>
+                  <input 
+                    type="text" 
+                    id="profile-fullname" 
+                    required 
+                    defaultValue={currentLoggedUser?.fullName || ''} 
+                    placeholder="FullName" 
+                    style={{ padding: '8px 12px', fontSize: '12px', borderRadius: '6px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-primary)' }} 
+                  />
+                </div>
+                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label htmlFor="profile-email" style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Email Address</label>
+                  <input 
+                    type="email" 
+                    id="profile-email" 
+                    defaultValue={currentLoggedUser?.email || ''} 
+                    placeholder="Email" 
+                    style={{ padding: '8px 12px', fontSize: '12px', borderRadius: '6px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-primary)' }} 
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary" style={{ padding: '8px 12px', fontSize: '12px', width: '100%', justifyContent: 'center' }}>
+                  Save Profile Info
+                </button>
+              </form>
+
+              {/* Collapsible Change Password section */}
+              <details style={{ borderTop: '1px solid var(--color-border)', paddingTop: '12px' }}>
+                <summary style={{ cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <i className="ph ph-lock"></i> Change Password
+                </summary>
+                <form onSubmit={handlePasswordUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+                  <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label htmlFor="profile-old-pwd" style={{ fontSize: '10px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Current Password *</label>
+                    <input 
+                      type="password" 
+                      id="profile-old-pwd" 
+                      required 
+                      placeholder="••••••••" 
+                      style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '6px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-primary)' }} 
+                    />
+                  </div>
+                  <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label htmlFor="profile-new-pwd" style={{ fontSize: '10px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>New Password *</label>
+                    <input 
+                      type="password" 
+                      id="profile-new-pwd" 
+                      required 
+                      placeholder="••••••••" 
+                      style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '6px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-primary)' }} 
+                    />
+                  </div>
+                  <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label htmlFor="profile-confirm-pwd" style={{ fontSize: '10px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Confirm Password *</label>
+                    <input 
+                      type="password" 
+                      id="profile-confirm-pwd" 
+                      required 
+                      placeholder="••••••••" 
+                      style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '6px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-primary)' }} 
+                    />
+                  </div>
+                  <button type="submit" className="btn btn-primary" style={{ padding: '6px 10px', fontSize: '11px', width: '100%', justifyContent: 'center' }}>
+                    Update Password
+                  </button>
+                </form>
+              </details>
+
+              {/* Log Out button */}
+              <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Sign out of session</span>
+                <button 
+                  type="button"
+                  className="btn btn-secondary btn-sm" 
+                  onClick={logUserOut} 
+                  style={{ 
+                    padding: '4px 10px', 
+                    fontSize: '11px', 
+                    borderColor: 'var(--color-destructive)', 
+                    color: 'var(--color-destructive)', 
+                    fontWeight: 600 
+                  }}
+                >
+                  <i className="ph ph-sign-out"></i> Log Out
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </aside>
 
@@ -3562,133 +3767,7 @@ export default function App() {
           );
         })()}
 
-        {/* ==================== ACCOUNT VIEW ==================== */}
-        {activeTab === 'account' && (
-          <section id="account-view" className="tab-view active">
-            <header className="view-header">
-              <div>
-                <h1>Account Settings</h1>
-                <p className="subtitle">Update user profile information, change passcodes, or exit active session.</p>
-              </div>
-            </header>
 
-            <div className="grid-layout-2" style={{ gridTemplateColumns: '1.2fr 1fr', gap: '24px', marginTop: '24px' }}>
-              <div className="card bg-surface border" style={{ padding: '24px' }}>
-                <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><i className="ph ph-user-circle text-primary"></i> Edit Profile Info</h3>
-                <form id="profile-form" onSubmit={handleProfileUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  
-                  {/* Profile Picture Uploader Row */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', borderBottom: '1px solid var(--color-border)', paddingBottom: '16px', marginBottom: '8px' }}>
-                    <div style={{ position: 'relative', width: '64px', height: '64px' }}>
-                      {avatarPreview ? (
-                        <img 
-                          src={avatarPreview} 
-                          style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--color-primary)' }} 
-                          alt="Avatar Preview" 
-                        />
-                      ) : (
-                        <div style={{
-                          width: '100%',
-                          height: '100%',
-                          borderRadius: '50%',
-                          background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))',
-                          color: '#ffffff',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '20px',
-                          fontWeight: 700
-                        }}>
-                          {currentLoggedUser?.fullName ? currentLoggedUser.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'US'}
-                        </div>
-                      )}
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)' }}>Profile Picture</span>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <button 
-                          type="button" 
-                          className="btn btn-secondary btn-sm" 
-                          onClick={() => document.getElementById('profile-avatar-file-input').click()}
-                          style={{ padding: '4px 12px', fontSize: '11px', borderRadius: '16px' }}
-                        >
-                          <i className="ph ph-upload-simple"></i> Upload
-                        </button>
-                        {avatarPreview && (
-                          <button 
-                            type="button" 
-                            className="btn btn-sm text-red" 
-                            onClick={handleAvatarRemove}
-                            style={{ padding: '4px 12px', fontSize: '11px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer' }}
-                          >
-                            <i className="ph ph-trash"></i> Remove
-                          </button>
-                        )}
-                      </div>
-                      <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>JPG, PNG or GIF. Max 2MB.</span>
-                      <input 
-                        type="file" 
-                        id="profile-avatar-file-input" 
-                        accept="image/*" 
-                        onChange={handleAvatarChange} 
-                        style={{ display: 'none' }} 
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="profile-username">Username (Non-editable)</label>
-                      <input type="text" id="profile-username" readOnly style={{ backgroundColor: 'var(--color-muted)', color: 'var(--color-text-secondary)', cursor: 'not-allowed' }} />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="profile-fullname">Full Name *</label>
-                      <input type="text" id="profile-fullname" required placeholder="e.g. Vikassy Manager" />
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="profile-email">Email Address</label>
-                    <input type="email" id="profile-email" placeholder="e.g. varahi.export@gmail.com" />
-                  </div>
-                  <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start', marginTop: '8px' }}>Update Profile Info</button>
-                </form>
-              </div>
-
-              <div className="card bg-surface border" style={{ padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div>
-                  <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><i className="ph ph-lock text-primary"></i> Change Password</h3>
-                  <form id="password-form" onSubmit={handlePasswordUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    <div className="form-group">
-                      <label htmlFor="profile-old-pwd">Current Password *</label>
-                      <input type="password" id="profile-old-pwd" required placeholder="••••••••" />
-                    </div>
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label htmlFor="profile-new-pwd">New Password *</label>
-                        <input type="password" id="profile-new-pwd" required placeholder="••••••••" />
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="profile-confirm-pwd">Confirm New Password *</label>
-                        <input type="password" id="profile-confirm-pwd" required placeholder="••••••••" />
-                      </div>
-                    </div>
-                    <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start', marginTop: '8px' }}>Change Password</button>
-                  </form>
-                </div>
-
-                <div style={{ marginTop: '24px', borderTop: '1px solid var(--color-border)', paddingTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <h4 style={{ color: 'var(--color-destructive)', fontSize: '14px', fontWeight: 700 }}>Account Session</h4>
-                    <p className="text-muted" style={{ fontSize: '11px', marginTop: '2px' }}>Sign out of the current billing session.</p>
-                  </div>
-                  <button className="btn btn-secondary" onClick={logUserOut} style={{ borderColor: 'var(--color-destructive)', color: 'var(--color-destructive)', fontWeight: 600 }}>
-                    <i className="ph ph-sign-out"></i> Log Out
-                  </button>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
       </main>
 
       {/* ==================== CLIENT MODAL (Add / Edit Client) ==================== */}
