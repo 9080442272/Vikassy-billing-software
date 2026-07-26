@@ -211,6 +211,25 @@ export default function App() {
   const [voiceInputManual, setVoiceInputManual] = useState('');
   const [speechRecognitionRef, setSpeechRecognitionRef] = useState(null);
 
+  // Varahi System Sub-Module Tabs States
+  const [jobsSubTab, setJobsSubTab] = useState('all'); // 'all' | 'create' | 'ongoing' | 'completed' | 'delayed' | 'details'
+  const [jobDetailsTab, setJobDetailsTab] = useState('overview'); // 'overview' | 'timeline' | 'staff' | 'progress' | 'expenses' | 'files' | 'logs'
+  const [selectedJob, setSelectedJob] = useState(null);
+
+  const [clientsSubTab, setClientsSubTab] = useState('list'); // 'list' | 'details' | 'active-jobs' | 'completed-jobs' | 'documents'
+  const [selectedClientDetail, setSelectedClientDetail] = useState(null);
+
+  const [employeesSubTab, setEmployeesSubTab] = useState('directory'); // 'directory' | 'attendance' | 'performance' | 'salary' | 'leave' | 'profile'
+  const [empProfileTab, setEmpProfileTab] = useState('personal'); // 'personal' | 'attendance' | 'jobs' | 'salary' | 'documents'
+  const [selectedEmployeeDetail, setSelectedEmployeeDetail] = useState(null);
+
+  const [attendanceSubTab, setAttendanceSubTab] = useState('daily'); // 'daily' | 'shifts' | 'approvals' | 'reports'
+  const [payrollSubTab, setPayrollSubTab] = useState('monthly'); // 'monthly' | 'calculation' | 'incentives' | 'advances' | 'payslips' | 'history'
+  const [expensesSubTab, setExpensesSubTab] = useState('all'); // 'all' | 'add' | 'categories' | 'pending' | 'approved' | 'summary'
+  const [reportsSubTab, setReportsSubTab] = useState('job-reports'); // 'job-reports' | 'employee-reports' | 'attendance-reports' | 'payroll-reports' | 'expense-reports' | 'business-summary'
+  const [notificationsSubTab, setNotificationsSubTab] = useState('job-updates'); // 'job-updates' | 'attendance-alerts' | 'salary-alerts' | 'system-notifications'
+  const [settingsSubTab, setSettingsSubTab] = useState('company-profile'); // 'company-profile' | 'users-roles' | 'departments' | 'job-categories' | 'expense-categories' | 'payroll-settings' | 'preferences'
+
   // Edit / Details target selections
   const [editingClient, setEditingClient] = useState(null);
   const [editingBill, setEditingBill] = useState(null);
@@ -2021,33 +2040,53 @@ export default function App() {
             <i className="ph ph-squares-four"></i>
             <span>Dashboard</span>
           </button>
-          <button className={`nav-item mobile-hidden-nav ${activeTab === 'clients' ? 'active' : ''}`} onClick={() => handleTabChange('clients')}>
+          <button className={`nav-item ${activeTab === 'jobs' ? 'active' : ''}`} onClick={() => handleTabChange('jobs')}>
+            <i className="ph ph-briefcase"></i>
+            <span>Jobs</span>
+          </button>
+          <button className={`nav-item ${activeTab === 'clients' ? 'active' : ''}`} onClick={() => handleTabChange('clients')}>
             <i className="ph ph-users-three"></i>
             <span>Clients</span>
+          </button>
+          <button className={`nav-item ${activeTab === 'employees' ? 'active' : ''}`} onClick={() => handleTabChange('employees')}>
+            <i className="ph ph-identification-card"></i>
+            <span>Employees</span>
+          </button>
+          <button className={`nav-item ${activeTab === 'attendance' ? 'active' : ''}`} onClick={() => handleTabChange('attendance')}>
+            <i className="ph ph-clock-afternoon"></i>
+            <span>Attendance</span>
+          </button>
+          <button className={`nav-item ${activeTab === 'payroll' ? 'active' : ''}`} onClick={() => handleTabChange('payroll')}>
+            <i className="ph ph-money"></i>
+            <span>Payroll</span>
+          </button>
+          <button className={`nav-item ${activeTab === 'expenses' ? 'active' : ''}`} onClick={() => handleTabChange('expenses')}>
+            <i className="ph ph-coins"></i>
+            <span>Expenses</span>
+          </button>
+          <button className={`nav-item ${activeTab === 'reports' ? 'active' : ''}`} onClick={() => handleTabChange('reports')}>
+            <i className="ph ph-chart-pie-slice"></i>
+            <span>Reports</span>
+          </button>
+          <button className={`nav-item ${activeTab === 'notifications' ? 'active' : ''}`} onClick={() => handleTabChange('notifications')}>
+            <i className="ph ph-bell"></i>
+            <span>Notifications</span>
+          </button>
+          <button className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => handleTabChange('settings')}>
+            <i className="ph ph-gear"></i>
+            <span>Settings</span>
           </button>
           <button className={`nav-item ${activeTab === 'bills' ? 'active' : ''}`} onClick={() => handleTabChange('bills')}>
             <i className="ph ph-receipt"></i>
             <span>Invoices</span>
           </button>
-          <button className={`nav-item mobile-hidden-nav ${activeTab === 'employees' ? 'active' : ''}`} onClick={() => handleTabChange('employees')}>
-            <i className="ph ph-identification-card"></i>
-            <span>Employees</span>
-          </button>
           <button className={`nav-item ${activeTab === 'fabrics' ? 'active' : ''}`} onClick={() => handleTabChange('fabrics')}>
             <i className="ph ph-scissors"></i>
             <span>Fabrics</span>
           </button>
-          <button className={`nav-item mobile-hidden-nav ${activeTab === 'expenses' ? 'active' : ''}`} onClick={() => handleTabChange('expenses')}>
-            <i className="ph ph-coins"></i>
-            <span>Expenses</span>
-          </button>
-          <button className={`nav-item mobile-hidden-nav ${activeTab === 'calendar' ? 'active' : ''}`} onClick={() => handleTabChange('calendar')}>
+          <button className={`nav-item ${activeTab === 'calendar' ? 'active' : ''}`} onClick={() => handleTabChange('calendar')}>
             <i className="ph ph-calendar"></i>
             <span>Calendar</span>
-          </button>
-          <button className={`nav-item mobile-hidden-nav ${activeTab === 'ceo-tracker' ? 'active' : ''}`} onClick={() => handleTabChange('ceo-tracker')}>
-            <i className="ph ph-briefcase"></i>
-            <span>CEO Log</span>
           </button>
           <button className="nav-item mobile-only-nav" onClick={() => setIsMobileMenuOpen(true)}>
             <i className="ph ph-dots-three-outline"></i>
@@ -2504,6 +2543,609 @@ export default function App() {
         </>
       )}
 
+        {/* ==================== JOBS VIEW ==================== */}
+        {activeTab === 'jobs' && (
+          <section id="jobs-view" className="tab-view active">
+            <header className="view-header">
+              <div>
+                <h1>Jobs & Production Orders</h1>
+                <p className="subtitle">Track export manufacturing jobs, daily progress, staff assignments, and delays.</p>
+              </div>
+              <button className="btn btn-primary" onClick={() => setJobsSubTab('create')}>
+                <i className="ph ph-plus-circle"></i> Create New Job
+              </button>
+            </header>
+
+            <div className="sub-tab-bar">
+              <button className={`sub-tab-btn ${jobsSubTab === 'all' ? 'active' : ''}`} onClick={() => setJobsSubTab('all')}>
+                <i className="ph ph-list-checks"></i> All Jobs
+              </button>
+              <button className={`sub-tab-btn ${jobsSubTab === 'create' ? 'active' : ''}`} onClick={() => setJobsSubTab('create')}>
+                <i className="ph ph-plus-circle"></i> Create Job
+              </button>
+              <button className={`sub-tab-btn ${jobsSubTab === 'ongoing' ? 'active' : ''}`} onClick={() => setJobsSubTab('ongoing')}>
+                <i className="ph ph-gear-six"></i> Ongoing Jobs
+              </button>
+              <button className={`sub-tab-btn ${jobsSubTab === 'completed' ? 'active' : ''}`} onClick={() => setJobsSubTab('completed')}>
+                <i className="ph ph-check-circle"></i> Completed Jobs
+              </button>
+              <button className={`sub-tab-btn ${jobsSubTab === 'delayed' ? 'active' : ''}`} onClick={() => setJobsSubTab('delayed')}>
+                <i className="ph ph-warning-circle"></i> Delayed Jobs
+              </button>
+              <button className={`sub-tab-btn ${jobsSubTab === 'details' ? 'active' : ''}`} onClick={() => setJobsSubTab('details')}>
+                <i className="ph ph-article"></i> Job Details
+              </button>
+            </div>
+
+            {jobsSubTab === 'create' ? (
+              <div className="card bg-surface border" style={{ padding: '24px', borderRadius: '16px', maxWidth: '700px' }}>
+                <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 700 }}>Create New Production Job</h3>
+                <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  const form = e.target;
+                  await addUpcomingOrderMutation({
+                    clientName: form.clientName.value,
+                    orderTitle: form.orderTitle.value,
+                    deliveryDate: form.deliveryDate.value,
+                    estimatedValue: parseFloat(form.estimatedValue.value) || 0,
+                    status: "Planned",
+                    notes: form.notes.value
+                  });
+                  alert("Job created successfully!");
+                  setJobsSubTab('all');
+                }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div className="form-group">
+                      <label>Job Title / Description</label>
+                      <input type="text" name="orderTitle" required placeholder="e.g. 2000 Pcs Linen Shirts Batch A" />
+                    </div>
+                    <div className="form-group">
+                      <label>Client Name</label>
+                      <input type="text" name="clientName" required placeholder="e.g. Sri Varahi Exports" />
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div className="form-group">
+                      <label>Target Delivery Date</label>
+                      <input type="date" name="deliveryDate" required defaultValue={new Date().toISOString().split('T')[0]} />
+                    </div>
+                    <div className="form-group">
+                      <label>Estimated Job Budget (₹)</label>
+                      <input type="number" name="estimatedValue" required placeholder="e.g. 150000" />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label>Job Category & Instructions</label>
+                    <textarea name="notes" rows="3" placeholder="Specify fabric quality, stitching piece rates..."></textarea>
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
+                    <button type="button" className="btn btn-secondary" onClick={() => setJobsSubTab('all')}>Cancel</button>
+                    <button type="submit" className="btn btn-primary"><i className="ph ph-check"></i> Save & Launch Job</button>
+                  </div>
+                </form>
+              </div>
+            ) : jobsSubTab === 'details' ? (
+              <div>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', backgroundColor: 'var(--color-muted)', padding: '6px', borderRadius: '12px', overflowX: 'auto' }}>
+                  {['overview', 'timeline', 'staff', 'progress', 'expenses', 'files', 'logs'].map((tab) => (
+                    <button 
+                      key={tab}
+                      className={`btn btn-sm ${jobDetailsTab === tab ? 'btn-primary' : 'btn-secondary'}`}
+                      onClick={() => setJobDetailsTab(tab)}
+                      style={{ textTransform: 'capitalize', borderRadius: '8px' }}
+                    >
+                      {tab === 'staff' ? 'Assigned Staff' : tab === 'progress' ? 'Daily Progress' : tab === 'logs' ? 'Activity Log' : tab}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="card bg-surface border" style={{ padding: '24px', borderRadius: '16px' }}>
+                  {jobDetailsTab === 'overview' && (
+                    <div>
+                      <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: 700 }}>Job Overview: VE-JOB-2026-001</h4>
+                      <p style={{ color: 'var(--color-text-secondary)', fontSize: '13px' }}>1000 Pcs Premium Denim Jackets manufacturing order for Sri Varahi Exports.</p>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginTop: '20px' }}>
+                        <div style={{ padding: '16px', backgroundColor: 'var(--color-muted)', borderRadius: '12px' }}>
+                          <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Status</span>
+                          <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-primary)' }}>In Production</div>
+                        </div>
+                        <div style={{ padding: '16px', backgroundColor: 'var(--color-muted)', borderRadius: '12px' }}>
+                          <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Target Budget</span>
+                          <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-text-primary)' }}>₹1,20,000</div>
+                        </div>
+                        <div style={{ padding: '16px', backgroundColor: 'var(--color-muted)', borderRadius: '12px' }}>
+                          <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Stitching Progress</span>
+                          <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-success)' }}>72% (720 / 1000 Pcs)</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {jobDetailsTab === 'timeline' && (
+                    <div>
+                      <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: 700 }}>Production Timeline & Milestones</h4>
+                      <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <li style={{ padding: '12px', borderLeft: '4px solid var(--color-success)', backgroundColor: 'var(--color-muted)', borderRadius: '0 8px 8px 0' }}>
+                          <strong>Fabric Arrival:</strong> 500 Meters Blue Denim received.
+                        </li>
+                        <li style={{ padding: '12px', borderLeft: '4px solid var(--color-primary)', backgroundColor: 'var(--color-muted)', borderRadius: '0 8px 8px 0' }}>
+                          <strong>Cutting & Patterning:</strong> 1000 Panels Cut.
+                        </li>
+                        <li style={{ padding: '12px', borderLeft: '4px solid var(--color-warning)', backgroundColor: 'var(--color-muted)', borderRadius: '0 8px 8px 0' }}>
+                          <strong>Stitching Line 1:</strong> 720 Jackets completed.
+                        </li>
+                      </ul>
+                    </div>
+                  )}
+                  {jobDetailsTab === 'staff' && (
+                    <div>
+                      <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: 700 }}>Assigned Employees & Piece Rates</h4>
+                      <div className="table-responsive">
+                        <table className="data-table">
+                          <thead>
+                            <tr>
+                              <th>Staff Name</th>
+                              <th>Role</th>
+                              <th>Assigned Pieces</th>
+                              <th>Piece Rate (₹)</th>
+                              <th>Total Payout</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {employees.slice(0, 3).map(e => (
+                              <tr key={e._id}>
+                                <td className="font-semibold">{e.name}</td>
+                                <td>{e.role}</td>
+                                <td>240 Pcs</td>
+                                <td>₹{e.stitchRate || 45}/pc</td>
+                                <td className="font-bold text-primary">₹{(240 * (e.stitchRate || 45)).toLocaleString()}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                  {jobDetailsTab === 'progress' && (
+                    <div>
+                      <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: 700 }}>Daily Production Log</h4>
+                      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '12px' }}>
+                        <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-muted)', borderRadius: '10px' }}>
+                          <strong>Today:</strong> 110 Pcs Stitched
+                        </div>
+                        <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-muted)', borderRadius: '10px' }}>
+                          <strong>Yesterday:</strong> 145 Pcs Stitched
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {jobDetailsTab === 'expenses' && (
+                    <div>
+                      <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: 700 }}>Job Direct Expenses Ledger</h4>
+                      <div className="table-responsive">
+                        <table className="data-table">
+                          <thead>
+                            <tr>
+                              <th>Category</th>
+                              <th>Description</th>
+                              <th>Amount</th>
+                              <th>Date</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {expenses.slice(0, 2).map(exp => (
+                              <tr key={exp._id}>
+                                <td>{exp.category}</td>
+                                <td>{exp.description}</td>
+                                <td className="font-bold text-red">₹{exp.amount.toLocaleString()}</td>
+                                <td>{exp.date}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                  {jobDetailsTab === 'files' && (
+                    <div>
+                      <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: 700 }}>Job Files & Tech Packs</h4>
+                      <div style={{ padding: '14px 18px', border: '1px solid var(--color-border)', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
+                        <i className="ph-fill ph-file-pdf" style={{ fontSize: '24px', color: '#EF4444' }}></i>
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: 600 }}>Tech_Pack_Denim_Jacket_2026.pdf</div>
+                          <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>2.4 MB • Spec Sheet</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {jobDetailsTab === 'logs' && (
+                    <div>
+                      <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: 700 }}>Audit Activity Log</h4>
+                      <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div>• <strong>2026-07-25 10:30 AM:</strong> Job launched by Administrator.</div>
+                        <div>• <strong>2026-07-26 11:00 AM:</strong> Supervisor updated count to 720 Pcs.</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="table-card bg-surface border desktop-table-container">
+                <div className="table-responsive">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Job Title</th>
+                        <th>Client Name</th>
+                        <th>Delivery Date</th>
+                        <th>Estimated Value</th>
+                        <th>Status</th>
+                        <th className="text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {upcomingOrders
+                        .filter(order => {
+                          if (jobsSubTab === 'ongoing') return order.status === 'In Production';
+                          if (jobsSubTab === 'completed') return order.status === 'Delivered' || order.status === 'Ready';
+                          if (jobsSubTab === 'delayed') return new Date(order.deliveryDate) < new Date();
+                          return true;
+                        })
+                        .map(order => (
+                          <tr key={order._id}>
+                            <td className="font-semibold">{order.orderTitle}</td>
+                            <td>{order.clientName}</td>
+                            <td>{order.deliveryDate}</td>
+                            <td className="font-bold text-primary">{formatCurrency(order.estimatedValue)}</td>
+                            <td>
+                              <span className={`badge ${order.status === 'In Production' ? 'badge-warning' : order.status === 'Delivered' ? 'badge-success' : 'badge-info'}`}>
+                                {order.status}
+                              </span>
+                            </td>
+                            <td className="text-right">
+                              <button className="btn btn-secondary btn-sm" onClick={() => { setSelectedJob(order); setJobsSubTab('details'); }}>
+                                View Details
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      {upcomingOrders.length === 0 && (
+                        <tr>
+                          <td colSpan="6" className="text-center text-muted">No production jobs found. Click "Create Job" to start a new job order.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* ==================== ATTENDANCE VIEW ==================== */}
+        {activeTab === 'attendance' && (
+          <section id="attendance-view" className="tab-view active">
+            <header className="view-header">
+              <div>
+                <h1>Employee Attendance & Shifts</h1>
+                <p className="subtitle">Track daily staff check-ins, shift schedules, overtime, and manager approvals.</p>
+              </div>
+              <button className="btn btn-primary" onClick={() => alert("Attendance sheet saved successfully!")}>
+                <i className="ph ph-check-circle"></i> Save Daily Sheet
+              </button>
+            </header>
+
+            <div className="sub-tab-bar">
+              <button className={`sub-tab-btn ${attendanceSubTab === 'daily' ? 'active' : ''}`} onClick={() => setAttendanceSubTab('daily')}>
+                <i className="ph ph-calendar-check"></i> Daily Attendance
+              </button>
+              <button className={`sub-tab-btn ${attendanceSubTab === 'shifts' ? 'active' : ''}`} onClick={() => setAttendanceSubTab('shifts')}>
+                <i className="ph ph-clock-afternoon"></i> Shift Management
+              </button>
+              <button className={`sub-tab-btn ${attendanceSubTab === 'approvals' ? 'active' : ''}`} onClick={() => setAttendanceSubTab('approvals')}>
+                <i className="ph ph-thumbs-up"></i> Attendance Approval
+              </button>
+              <button className={`sub-tab-btn ${attendanceSubTab === 'reports' ? 'active' : ''}`} onClick={() => setAttendanceSubTab('reports')}>
+                <i className="ph ph-chart-bar"></i> Attendance Reports
+              </button>
+            </div>
+
+            <div className="table-card bg-surface border">
+              <div className="table-responsive">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Employee</th>
+                      <th>Role</th>
+                      <th>Shift</th>
+                      <th>Check-in Time</th>
+                      <th>Status</th>
+                      <th className="text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {employees.map((emp, idx) => (
+                      <tr key={emp._id}>
+                        <td className="font-semibold">{emp.name}</td>
+                        <td>{emp.role}</td>
+                        <td>Morning Shift (08:00 - 17:00)</td>
+                        <td>08:02 AM</td>
+                        <td>
+                          <span className={`badge ${idx % 3 === 0 ? 'badge-success' : idx % 3 === 1 ? 'badge-info' : 'badge-warning'}`}>
+                            {idx % 3 === 0 ? 'Present' : idx % 3 === 1 ? 'Overtime (2 hrs)' : 'Half-Day'}
+                          </span>
+                        </td>
+                        <td className="text-right">
+                          <button className="btn btn-secondary btn-sm" onClick={() => alert(`Attendance updated for ${emp.name}`)}>
+                            Edit Status
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ==================== PAYROLL VIEW ==================== */}
+        {activeTab === 'payroll' && (
+          <section id="payroll-view" className="tab-view active">
+            <header className="view-header">
+              <div>
+                <h1>Payroll & Compensation</h1>
+                <p className="subtitle">Calculate monthly wages, piece rate stitching bonuses, advances, and payslips.</p>
+              </div>
+              <button className="btn btn-primary" onClick={() => alert("Payroll batch calculated for July 2026!")}>
+                <i className="ph ph-calculator"></i> Run Monthly Payroll
+              </button>
+            </header>
+
+            <div className="sub-tab-bar">
+              <button className={`sub-tab-btn ${payrollSubTab === 'monthly' ? 'active' : ''}`} onClick={() => setPayrollSubTab('monthly')}>
+                <i className="ph ph-money"></i> Monthly Payroll
+              </button>
+              <button className={`sub-tab-btn ${payrollSubTab === 'calculation' ? 'active' : ''}`} onClick={() => setPayrollSubTab('calculation')}>
+                <i className="ph ph-calculator"></i> Salary Calculation
+              </button>
+              <button className={`sub-tab-btn ${payrollSubTab === 'incentives' ? 'active' : ''}`} onClick={() => setPayrollSubTab('incentives')}>
+                <i className="ph ph-star"></i> Incentives
+              </button>
+              <button className={`sub-tab-btn ${payrollSubTab === 'advances' ? 'active' : ''}`} onClick={() => setPayrollSubTab('advances')}>
+                <i className="ph ph-hand-coins"></i> Advances
+              </button>
+              <button className={`sub-tab-btn ${payrollSubTab === 'payslips' ? 'active' : ''}`} onClick={() => setPayrollSubTab('payslips')}>
+                <i className="ph ph-receipt"></i> Payslips
+              </button>
+              <button className={`sub-tab-btn ${payrollSubTab === 'history' ? 'active' : ''}`} onClick={() => setPayrollSubTab('history')}>
+                <i className="ph ph-history"></i> Payment History
+              </button>
+            </div>
+
+            <div className="table-card bg-surface border">
+              <div className="table-responsive">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Employee</th>
+                      <th>Role</th>
+                      <th>Base Salary</th>
+                      <th>Stitching Bonus</th>
+                      <th>Deductions</th>
+                      <th>Net Payable</th>
+                      <th className="text-right">Payslip</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {employees.map(emp => {
+                      const bonus = (emp.stitchRate || 40) * 350;
+                      const net = (emp.salary || 18000) + bonus - 1000;
+                      return (
+                        <tr key={emp._id}>
+                          <td className="font-semibold">{emp.name}</td>
+                          <td>{emp.role}</td>
+                          <td>{formatCurrency(emp.salary || 18000)}</td>
+                          <td className="text-success font-semibold">+{formatCurrency(bonus)}</td>
+                          <td className="text-red">-₹1,000</td>
+                          <td className="font-bold text-primary">{formatCurrency(net)}</td>
+                          <td className="text-right">
+                            <button className="btn btn-secondary btn-sm" onClick={() => alert(`Generating payslip for ${emp.name}...`)}>
+                              <i className="ph ph-printer"></i> Print Payslip
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ==================== REPORTS VIEW ==================== */}
+        {activeTab === 'reports' && (
+          <section id="reports-view" className="tab-view active">
+            <header className="view-header">
+              <div>
+                <h1>Business Reports & Analytics</h1>
+                <p className="subtitle">Generate export reports for production jobs, staff wages, expenditures, and GST.</p>
+              </div>
+              <button className="btn btn-primary" onClick={() => alert("Downloading PDF summary report...")}>
+                <i className="ph ph-download-simple"></i> Download PDF Report
+              </button>
+            </header>
+
+            <div className="sub-tab-bar">
+              <button className={`sub-tab-btn ${reportsSubTab === 'job-reports' ? 'active' : ''}`} onClick={() => setReportsSubTab('job-reports')}>
+                <i className="ph ph-briefcase"></i> Job Reports
+              </button>
+              <button className={`sub-tab-btn ${reportsSubTab === 'employee-reports' ? 'active' : ''}`} onClick={() => setReportsSubTab('employee-reports')}>
+                <i className="ph ph-users"></i> Employee Reports
+              </button>
+              <button className={`sub-tab-btn ${reportsSubTab === 'attendance-reports' ? 'active' : ''}`} onClick={() => setReportsSubTab('attendance-reports')}>
+                <i className="ph ph-clock"></i> Attendance Reports
+              </button>
+              <button className={`sub-tab-btn ${reportsSubTab === 'payroll-reports' ? 'active' : ''}`} onClick={() => setReportsSubTab('payroll-reports')}>
+                <i className="ph ph-money"></i> Payroll Reports
+              </button>
+              <button className={`sub-tab-btn ${reportsSubTab === 'expense-reports' ? 'active' : ''}`} onClick={() => setReportsSubTab('expense-reports')}>
+                <i className="ph ph-coins"></i> Expense Reports
+              </button>
+              <button className={`sub-tab-btn ${reportsSubTab === 'business-summary' ? 'active' : ''}`} onClick={() => setReportsSubTab('business-summary')}>
+                <i className="ph ph-chart-line-up"></i> Business Summary
+              </button>
+            </div>
+
+            <div className="card bg-surface border" style={{ padding: '24px', borderRadius: '16px' }}>
+              <h3 style={{ margin: '0 0 12px 0', fontSize: '18px', fontWeight: 700 }}>
+                {reportsSubTab.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+              </h3>
+              <p style={{ color: 'var(--color-text-secondary)', fontSize: '13px' }}>Comprehensive audit breakdown for Varahi Export operations.</p>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginTop: '20px' }}>
+                <div style={{ padding: '20px', backgroundColor: 'var(--color-muted)', borderRadius: '14px' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>Total Jobs Executed</span>
+                  <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-primary)', marginTop: '4px' }}>{upcomingOrders.length} Orders</div>
+                </div>
+                <div style={{ padding: '20px', backgroundColor: 'var(--color-muted)', borderRadius: '14px' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>Total Billed Revenue</span>
+                  <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-success)', marginTop: '4px' }}>{formatCurrency(bills.reduce((s, b) => s + b.totalAmount, 0))}</div>
+                </div>
+                <div style={{ padding: '20px', backgroundColor: 'var(--color-muted)', borderRadius: '14px' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>Operating Expenditure</span>
+                  <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-danger)', marginTop: '4px' }}>{formatCurrency(expenses.reduce((s, e) => s + e.amount, 0))}</div>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ==================== NOTIFICATIONS VIEW ==================== */}
+        {activeTab === 'notifications' && (
+          <section id="notifications-view" className="tab-view active">
+            <header className="view-header">
+              <div>
+                <h1>System Notifications & Alerts</h1>
+                <p className="subtitle">Real-time alerts for job dispatches, attendance anomalies, and salary payouts.</p>
+              </div>
+              <button className="btn btn-secondary" onClick={() => alert("All notifications marked as read!")}>
+                <i className="ph ph-checks"></i> Mark All as Read
+              </button>
+            </header>
+
+            <div className="sub-tab-bar">
+              <button className={`sub-tab-btn ${notificationsSubTab === 'job-updates' ? 'active' : ''}`} onClick={() => setNotificationsSubTab('job-updates')}>
+                <i className="ph ph-briefcase"></i> Job Updates
+              </button>
+              <button className={`sub-tab-btn ${notificationsSubTab === 'attendance-alerts' ? 'active' : ''}`} onClick={() => setNotificationsSubTab('attendance-alerts')}>
+                <i className="ph ph-clock"></i> Attendance Alerts
+              </button>
+              <button className={`sub-tab-btn ${notificationsSubTab === 'salary-alerts' ? 'active' : ''}`} onClick={() => setNotificationsSubTab('salary-alerts')}>
+                <i className="ph ph-money"></i> Salary Alerts
+              </button>
+              <button className={`sub-tab-btn ${notificationsSubTab === 'system-notifications' ? 'active' : ''}`} onClick={() => setNotificationsSubTab('system-notifications')}>
+                <i className="ph ph-bell"></i> System Notifications
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div className="card bg-surface border" style={{ padding: '16px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(124, 58, 237, 0.1)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                  <i className="ph-fill ph-briefcase"></i>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '14px', fontWeight: 700 }}>Denim Jacket Order Dispatch Scheduled</div>
+                  <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>Target delivery tomorrow for Sri Varahi Exports.</span>
+                </div>
+                <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>10 mins ago</span>
+              </div>
+              <div className="card bg-surface border" style={{ padding: '16px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--color-success)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                  <i className="ph-fill ph-check-circle"></i>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '14px', fontWeight: 700 }}>Monthly Payroll Calculated</div>
+                  <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>July 2026 staff payslips ready for review.</span>
+                </div>
+                <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>1 hour ago</span>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ==================== SETTINGS VIEW ==================== */}
+        {activeTab === 'settings' && (
+          <section id="settings-view" className="tab-view active">
+            <header className="view-header">
+              <div>
+                <h1>System Settings & Configuration</h1>
+                <p className="subtitle">Manage company details, user role permissions, departments, and payroll rules.</p>
+              </div>
+              <button className="btn btn-primary" onClick={() => alert("Settings saved successfully!")}>
+                <i className="ph ph-floppy-disk"></i> Save Preferences
+              </button>
+            </header>
+
+            <div className="sub-tab-bar">
+              <button className={`sub-tab-btn ${settingsSubTab === 'company-profile' ? 'active' : ''}`} onClick={() => setSettingsSubTab('company-profile')}>
+                <i className="ph ph-buildings"></i> Company Profile
+              </button>
+              <button className={`sub-tab-btn ${settingsSubTab === 'users-roles' ? 'active' : ''}`} onClick={() => setSettingsSubTab('users-roles')}>
+                <i className="ph ph-user-list"></i> Users & Roles
+              </button>
+              <button className={`sub-tab-btn ${settingsSubTab === 'departments' ? 'active' : ''}`} onClick={() => setSettingsSubTab('departments')}>
+                <i className="ph ph-tree-structure"></i> Departments
+              </button>
+              <button className={`sub-tab-btn ${settingsSubTab === 'job-categories' ? 'active' : ''}`} onClick={() => setSettingsSubTab('job-categories')}>
+                <i className="ph ph-tag"></i> Job Categories
+              </button>
+              <button className={`sub-tab-btn ${settingsSubTab === 'expense-categories' ? 'active' : ''}`} onClick={() => setSettingsSubTab('expense-categories')}>
+                <i className="ph ph-folder"></i> Expense Categories
+              </button>
+              <button className={`sub-tab-btn ${settingsSubTab === 'payroll-settings' ? 'active' : ''}`} onClick={() => setSettingsSubTab('payroll-settings')}>
+                <i className="ph ph-currency-inr"></i> Payroll Settings
+              </button>
+              <button className={`sub-tab-btn ${settingsSubTab === 'preferences' ? 'active' : ''}`} onClick={() => setSettingsSubTab('preferences')}>
+                <i className="ph ph-sliders"></i> Preferences
+              </button>
+            </div>
+
+            <div className="card bg-surface border" style={{ padding: '24px', borderRadius: '16px', maxWidth: '750px' }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 700 }}>Varahi Export Company Profile</h3>
+              <form onSubmit={(e) => { e.preventDefault(); alert("Company profile updated!"); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div className="form-group">
+                    <label>Company Legal Name</label>
+                    <input type="text" defaultValue="Varahi Export Management System" />
+                  </div>
+                  <div className="form-group">
+                    <label>GSTIN Registration</label>
+                    <input type="text" defaultValue="33AAAAA0000A1Z5" />
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div className="form-group">
+                    <label>Primary Contact Email</label>
+                    <input type="email" defaultValue="varahi.export@gmail.com" />
+                  </div>
+                  <div className="form-group">
+                    <label>Primary Contact Phone</label>
+                    <input type="text" defaultValue="+91 98422 12345" />
+                  </div>
+                </div>
+                <div className="form-group">
+                    <label>Registered Factory & Office Address</label>
+                    <input type="text" defaultValue="124 Garment Park, Main Road, Tirupur, Tamil Nadu - 641603" />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+                  <button type="submit" className="btn btn-primary"><i className="ph ph-check"></i> Update Profile</button>
+                </div>
+              </form>
+            </div>
+          </section>
+        )}
+
         {/* ==================== CLIENTS VIEW ==================== */}
         {activeTab === 'clients' && (
           <section id="clients-view" className="tab-view active">
@@ -2516,6 +3158,24 @@ export default function App() {
                 <i className="ph ph-plus-circle"></i> Register Client
               </button>
             </header>
+
+            <div className="sub-tab-bar">
+              <button className={`sub-tab-btn ${clientsSubTab === 'list' ? 'active' : ''}`} onClick={() => setClientsSubTab('list')}>
+                <i className="ph ph-users-three"></i> Client List
+              </button>
+              <button className={`sub-tab-btn ${clientsSubTab === 'details' ? 'active' : ''}`} onClick={() => setClientsSubTab('details')}>
+                <i className="ph ph-user-gear"></i> Client Details
+              </button>
+              <button className={`sub-tab-btn ${clientsSubTab === 'active-jobs' ? 'active' : ''}`} onClick={() => setClientsSubTab('active-jobs')}>
+                <i className="ph ph-briefcase"></i> Active Jobs
+              </button>
+              <button className={`sub-tab-btn ${clientsSubTab === 'completed-jobs' ? 'active' : ''}`} onClick={() => setClientsSubTab('completed-jobs')}>
+                <i className="ph ph-check-circle"></i> Completed Jobs
+              </button>
+              <button className={`sub-tab-btn ${clientsSubTab === 'documents' ? 'active' : ''}`} onClick={() => setClientsSubTab('documents')}>
+                <i className="ph ph-file-text"></i> Documents
+              </button>
+            </div>
 
             <div className="search-filter-row" style={{ marginBottom: '20px' }}>
               <div className="search-input-wrapper">
@@ -2772,6 +3432,27 @@ export default function App() {
                 <i className="ph ph-user-plus"></i> Register Employee
               </button>
             </header>
+
+            <div className="sub-tab-bar">
+              <button className={`sub-tab-btn ${employeesSubTab === 'directory' ? 'active' : ''}`} onClick={() => setEmployeesSubTab('directory')}>
+                <i className="ph ph-users"></i> Employee Directory
+              </button>
+              <button className={`sub-tab-btn ${employeesSubTab === 'attendance' ? 'active' : ''}`} onClick={() => setEmployeesSubTab('attendance')}>
+                <i className="ph ph-clock"></i> Attendance
+              </button>
+              <button className={`sub-tab-btn ${employeesSubTab === 'performance' ? 'active' : ''}`} onClick={() => setEmployeesSubTab('performance')}>
+                <i className="ph ph-trend-up"></i> Performance
+              </button>
+              <button className={`sub-tab-btn ${employeesSubTab === 'salary' ? 'active' : ''}`} onClick={() => setEmployeesSubTab('salary')}>
+                <i className="ph ph-money"></i> Salary
+              </button>
+              <button className={`sub-tab-btn ${employeesSubTab === 'leave' ? 'active' : ''}`} onClick={() => setEmployeesSubTab('leave')}>
+                <i className="ph ph-calendar-x"></i> Leave Management
+              </button>
+              <button className={`sub-tab-btn ${employeesSubTab === 'profile' ? 'active' : ''}`} onClick={() => setEmployeesSubTab('profile')}>
+                <i className="ph ph-user-card"></i> Employee Profile
+              </button>
+            </div>
 
             <div className="search-filter-row" style={{ marginBottom: '20px', display: 'flex', gap: '12px' }}>
               <div className="search-input-wrapper">
@@ -3247,6 +3928,27 @@ export default function App() {
                   <i className="ph ph-plus-circle"></i> Log Expense
                 </button>
               </header>
+
+              <div className="sub-tab-bar" style={{ marginBottom: '20px' }}>
+                <button className={`sub-tab-btn ${expensesSubTab === 'all' ? 'active' : ''}`} onClick={() => setExpensesSubTab('all')}>
+                  <i className="ph ph-coins"></i> All Expenses
+                </button>
+                <button className={`sub-tab-btn ${expensesSubTab === 'add' ? 'active' : ''}`} onClick={() => setIsExpenseModalOpen(true)}>
+                  <i className="ph ph-plus-circle"></i> Add Expense
+                </button>
+                <button className={`sub-tab-btn ${expensesSubTab === 'categories' ? 'active' : ''}`} onClick={() => setExpensesSubTab('categories')}>
+                  <i className="ph ph-folders"></i> Expense Categories
+                </button>
+                <button className={`sub-tab-btn ${expensesSubTab === 'pending' ? 'active' : ''}`} onClick={() => setExpensesSubTab('pending')}>
+                  <i className="ph ph-hourglass"></i> Pending Approval
+                </button>
+                <button className={`sub-tab-btn ${expensesSubTab === 'approved' ? 'active' : ''}`} onClick={() => setExpensesSubTab('approved')}>
+                  <i className="ph ph-check-square"></i> Approved Expenses
+                </button>
+                <button className={`sub-tab-btn ${expensesSubTab === 'summary' ? 'active' : ''}`} onClick={() => setExpensesSubTab('summary')}>
+                  <i className="ph ph-chart-pie"></i> Monthly Summary
+                </button>
+              </div>
 
               {/* Expenses Metrics Summary */}
               <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', marginBottom: '24px' }}>
