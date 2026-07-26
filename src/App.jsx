@@ -201,6 +201,16 @@ export default function App() {
   const [isScanModalOpen, setIsScanModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Voice AI Assistant States
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
+  const [isVoiceListening, setIsVoiceListening] = useState(false);
+  const [voiceTranscript, setVoiceTranscript] = useState('');
+  const [voiceStatus, setVoiceStatus] = useState('idle'); // 'idle' | 'listening' | 'processing' | 'success' | 'error'
+  const [voiceMessage, setVoiceMessage] = useState('');
+  const [voiceParsedData, setVoiceParsedData] = useState(null);
+  const [voiceInputManual, setVoiceInputManual] = useState('');
+  const [speechRecognitionRef, setSpeechRecognitionRef] = useState(null);
+
   // Edit / Details target selections
   const [editingClient, setEditingClient] = useState(null);
   const [editingBill, setEditingBill] = useState(null);
@@ -536,6 +546,244 @@ export default function App() {
   const closeClientModal = () => {
     setIsClientModalOpen(false);
     setEditingClient(null);
+  };
+
+  // --- Voice AI Assistant (Speech Recognition & Speech Synthesis) ---
+  const speakText = (text) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  const parseVoiceCommand = (rawText) => {
+    let text = rawText.toLowerCase().trim();
+
+    // Strip wake phrases and filler words
+    text = text.replace(/^(okay|ok|hey|hi|hello)\s+(siri|alexa|google|jarvis|assistant)\s*/i, '');
+    text = text.replace(/^(siri|alexa|google|jarvis|assistant)\s*/i, '');
+    text = text.replace(/^(please|kindly|can\s+you)\s*/i, '');
+
+    let intent = 'invoice';
+    if (text.includes('expense')) intent = 'expense';
+    else if (text.includes('schedule') || text.includes('upcoming order')) intent = 'upcoming_order';
+    else if (text.includes('invoice') || text.includes('bill')) intent = 'invoice';
+
+    // 1. Amount Extraction
+    let amount = 0;
+    const lakhMatch = text.match(/(\d+(?:\.\d+)?)\s*(lakh|lakhs|lk|lac|lacs)/i);
+    const thousandMatch = text.match(/(\d+(?:\.\d+)?)\s*(k|thousand|thousands)/i);
+    const croreMatch = text.match(/(\d+(?:\.\d+)?)\s*(crore|crores|cr)/i);
+    const rawNumMatch = text.match(/(?:for|amount|of|rs|\u20B9|\$)?\s*(\d{4,9})/i);
+
+    if (lakhMatch) {
+      amount = parseFloat(lakhMatch[1]) * 100000;
+    } else if (thousandMatch) {
+      amount = parseFloat(thousandMatch[1]) * 1000;
+    } else if (croreMatch) {
+      amount = parseFloat(croreMatch[1]) * 10000000;
+    } else if (rawNumMatch) {
+      amount = parseFloat(rawNumMatch[1]);
+    } else {
+      if (text.includes('one lakh') || text.includes('1 lakh')) amount = 100000;
+      else if (text.includes('two lakh') || text.includes('two lakhs')) amount = 200000;
+      else if (text.includes('five lakh') || text.includes('five lakhs')) amount = 500000;
+      else if (text.includes('ten thousand')) amount = 10000;
+      else if (text.includes('fifty thousand')) amount = 50000;
+    }
+
+    // 2. Company / Client Extraction
+    let companyName = "";
+    const companyMatch = text.match(/(?:for|to|client)\s+([a-z0-9\s\.\&\-]+?)(?:\s+(?:for|amount|of|rs|\u20B9|\$|\d)|$)/i);
+    if (companyMatch) {
+      companyName = companyMatch[1].trim();
+      companyName = companyName.replace(/\b(invoice|bill|record|add|create)\b/gi, '').trim();
+    } else {
+      const fallbackMatch = text.match(/(?:invoice|bill)\s+(?:for\s+)?([a-z0-9\s\.\&\-]+?)(?:\s+(?:for|amount|of|rs|\u20B9|\$|\d)|$)/i);
+      if (fallbackMatch) {
+        companyName = fallbackMatch[1].trim();
+      }
+    }
+
+    return { intent, companyName, amount, rawText };
+  };
+
+  const processVoiceCommand = async (commandString) => {
+    if (!commandString || !commandString.trim()) return;
+
+    setVoiceStatus('processing');
+    setVoiceMessage("Parsing voice command...");
+
+    const parsed = parseVoiceCommand(commandString);
+    setVoiceParsedData(parsed);
+
+    if (parsed.intent === 'invoice' || parsed.intent === 'bill') {
+      if (!parsed.companyName) {
+        setVoiceStatus('error');
+        setVoiceMessage("Could not identify client/company name. Try: 'Okay Siri, add invoice for GV company for 1 lk'");
+        speakText("Could not identify company name in command.");
+        return;
+      }
+
+      if (!parsed.amount || parsed.amount <= 0) {
+        setVoiceStatus('error');
+        setVoiceMessage(`Found company '${parsed.companyName}', but couldn't detect amount. Specify e.g. 'for 1 lk' or 'for 50000'.`);
+        speakText(`Found company ${parsed.companyName}, but could not detect amount.`);
+        return;
+      }
+
+      let targetClientId;
+      let targetClientName = parsed.companyName;
+
+      const existingClient = clients.find(c => 
+        c.name.toLowerCase().includes(parsed.companyName.toLowerCase()) || 
+        c.companyName.toLowerCase().includes(parsed.companyName.toLowerCase()) ||
+        parsed.companyName.toLowerCase().includes(c.name.toLowerCase())
+      );
+
+      if (existingClient) {
+        targetClientId = existingClient._id;
+        targetClientName = existingClient.name;
+      } else {
+        const formattedName = parsed.companyName
+          .split(' ')
+          .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(' ');
+
+        targetClientId = await addClientMutation({
+          name: formattedName,
+          companyName: formattedName,
+          email: "",
+          phone: "",
+          gstin: "",
+          address: "Registered via Voice Assistant"
+        });
+        targetClientName = formattedName;
+      }
+
+      const subtotal = Math.round(parsed.amount / 1.05);
+      const gstAmount = Math.round(parsed.amount - subtotal);
+      const nextNumber = `VE-2026-${String(bills.length + 1).padStart(3, '0')}`;
+
+      const billPayload = {
+        clientId: targetClientId,
+        billNumber: nextNumber,
+        date: new Date().toISOString().split('T')[0],
+        billType: 'with-gst',
+        items: [
+          {
+            name: "Garment Supply / Voice Billing Entry",
+            price: subtotal,
+            qty: 1,
+            gstRate: 5,
+            gstAmount: gstAmount,
+            total: parsed.amount
+          }
+        ],
+        discount: 0,
+        subtotal: subtotal,
+        totalGst: gstAmount,
+        totalAmount: parsed.amount
+      };
+
+      await addBillMutation(billPayload);
+
+      setVoiceStatus('success');
+      const formattedAmt = formatCurrency(parsed.amount);
+      const successMsg = `Invoice ${nextNumber} created for ${targetClientName} for ${formattedAmt}!`;
+      setVoiceMessage(successMsg);
+      speakText(`Invoice for ${targetClientName} for ${formattedAmt} created successfully!`);
+
+      setTimeout(() => {
+        setIsVoiceModalOpen(false);
+        setActiveTab('bills');
+      }, 2200);
+
+    } else if (parsed.intent === 'expense') {
+      const expAmount = parsed.amount || 1000;
+      await addExpenseMutation({
+        category: "Operations",
+        amount: expAmount,
+        description: `Voice entry: ${commandString}`,
+        date: new Date().toISOString().split('T')[0]
+      });
+      setVoiceStatus('success');
+      setVoiceMessage(`Expense of ${formatCurrency(expAmount)} recorded!`);
+      speakText(`Expense of ${formatCurrency(expAmount)} recorded!`);
+      setTimeout(() => {
+        setIsVoiceModalOpen(false);
+        setActiveTab('expenses');
+      }, 2200);
+    } else {
+      setVoiceStatus('error');
+      setVoiceMessage("Command intent not recognized. Try: 'Okay Siri, add invoice for GV company for 1 lk'");
+    }
+  };
+
+  const startVoiceAssistant = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    setIsVoiceModalOpen(true);
+    setVoiceTranscript('');
+    setVoiceInputManual('');
+    setVoiceParsedData(null);
+
+    if (!SpeechRecognition) {
+      setVoiceStatus('idle');
+      setVoiceMessage("Web Speech API is not supported in this browser. Type your voice command below:");
+      return;
+    }
+
+    setVoiceStatus('listening');
+    setVoiceMessage("Listening... Speak now (e.g. 'Okay Siri, add invoice for GV company for 1 lk')");
+
+    try {
+      if (speechRecognitionRef) {
+        try { speechRecognitionRef.stop(); } catch (e) {}
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event) => {
+        let currentTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          currentTranscript += event.results[i][0].transcript;
+        }
+        setVoiceTranscript(currentTranscript);
+      };
+
+      recognition.onerror = (event) => {
+        console.warn("Speech recognition error:", event.error);
+        if (event.error !== 'no-speech') {
+          setVoiceStatus('error');
+          setVoiceMessage(`Microphone error: ${event.error}. You can type the command below.`);
+        }
+      };
+
+      recognition.onend = () => {
+        setIsVoiceListening(false);
+      };
+
+      recognition.start();
+      setIsVoiceListening(true);
+      setSpeechRecognitionRef(recognition);
+    } catch (err) {
+      console.error("Speech recognition error:", err);
+      setVoiceStatus('idle');
+      setVoiceMessage("Press the microphone button or type below to enter command.");
+    }
+  };
+
+  const stopVoiceAssistant = () => {
+    if (speechRecognitionRef) {
+      try { speechRecognitionRef.stop(); } catch (e) {}
+    }
+    setIsVoiceListening(false);
   };
 
   // Invoices (Bills) CRUD
@@ -2031,6 +2279,9 @@ export default function App() {
                 <p className="subtitle">Monitor your business performance, client revenues, and GST filings.</p>
               </div>
               <div className="header-actions">
+                <button className="btn" onClick={startVoiceAssistant} style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)', color: '#ffffff', fontWeight: 600, border: 'none' }} title="Voice Billing Assistant">
+                  <i className="ph-fill ph-microphone"></i> Siri Voice
+                </button>
                 <button className="btn btn-secondary" onClick={handleSeedDemoData} title="Seed Mock Database Entries">
                   <i className="ph ph-database"></i> Seed Data
                 </button>
@@ -2374,9 +2625,14 @@ export default function App() {
                 <h1>Invoices & Billings</h1>
                 <p className="subtitle">Log transactional bills, print tax compliance layouts, and track scanned receipts.</p>
               </div>
-              <button className="btn btn-primary" onClick={() => setIsBillModalOpen(true)}>
-                <i className="ph ph-plus-circle"></i> Record Invoice
-              </button>
+              <div className="header-actions">
+                <button className="btn" onClick={startVoiceAssistant} style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)', color: '#ffffff', fontWeight: 600, border: 'none' }} title="Voice Billing Assistant">
+                  <i className="ph-fill ph-microphone"></i> Siri Voice
+                </button>
+                <button className="btn btn-primary" onClick={() => setIsBillModalOpen(true)}>
+                  <i className="ph ph-plus-circle"></i> Record Invoice
+                </button>
+              </div>
             </header>
 
             <div className="search-filter-row" style={{ marginBottom: '20px', display: 'flex', gap: '12px' }}>
@@ -4822,6 +5078,234 @@ export default function App() {
                   This is a Computer Generated Invoice
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Siri Floating Orb Trigger Button */}
+      <div 
+        className="no-print"
+        onClick={startVoiceAssistant}
+        title="Open Siri Voice AI Assistant"
+        style={{
+          position: 'fixed',
+          bottom: '88px',
+          right: '24px',
+          zIndex: 999,
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '10px 16px',
+          borderRadius: '30px',
+          background: 'linear-gradient(135deg, #7C3AED 0%, #EC4899 50%, #3B82F6 100%)',
+          boxShadow: '0 8px 24px rgba(124, 58, 237, 0.4)',
+          color: '#ffffff',
+          fontWeight: 700,
+          fontSize: '13px',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
+      >
+        <div style={{
+          width: '10px',
+          height: '10px',
+          borderRadius: '50%',
+          backgroundColor: '#ffffff',
+          boxShadow: '0 0 10px #ffffff',
+          animation: 'pulse 1.5s infinite'
+        }} />
+        <i className="ph-fill ph-microphone" style={{ fontSize: '16px' }}></i>
+        <span>Siri Voice</span>
+      </div>
+
+      {/* Voice AI Siri Assistant Modal Overlay */}
+      {isVoiceModalOpen && (
+        <div id="voice-assistant-modal" className="modal-overlay active" style={{ zIndex: 10000, backgroundColor: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(12px)' }}>
+          <div 
+            className="modal-card border"
+            style={{
+              maxWidth: '480px',
+              width: '90%',
+              backgroundColor: 'var(--color-surface)',
+              borderRadius: '24px',
+              padding: '28px 24px',
+              boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+              gap: '20px',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+            {/* Top Close Button */}
+            <button 
+              className="btn-close" 
+              onClick={() => { stopVoiceAssistant(); setIsVoiceModalOpen(false); }}
+              style={{ position: 'absolute', right: '16px', top: '16px', background: 'none', border: 'none', color: 'var(--color-text-secondary)', cursor: 'pointer', fontSize: '18px' }}
+            >
+              <i className="ph ph-x"></i>
+            </button>
+
+            {/* Glowing Siri Visualizer Aura */}
+            <div style={{ position: 'relative', width: '90px', height: '90px', marginTop: '10px' }}>
+              <div 
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '50%',
+                  background: isVoiceListening 
+                    ? 'linear-gradient(135deg, #7C3AED, #EC4899, #06B6D4, #3B82F6)' 
+                    : voiceStatus === 'success'
+                    ? 'linear-gradient(135deg, #10B981, #059669)'
+                    : 'linear-gradient(135deg, #64748B, #475569)',
+                  boxShadow: isVoiceListening ? '0 0 35px rgba(236, 72, 153, 0.6)' : '0 0 20px rgba(0,0,0,0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  animation: isVoiceListening ? 'pulse 1.2s infinite' : 'none',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <i className={`ph-fill ${voiceStatus === 'success' ? 'ph-check-circle' : isVoiceListening ? 'ph-microphone' : 'ph-sparkle'}`} style={{ fontSize: '36px', color: '#ffffff' }}></i>
+              </div>
+            </div>
+
+            <div>
+              <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: 'var(--color-text-primary)' }}>
+                {voiceStatus === 'listening' ? 'Siri Voice Assistant' : voiceStatus === 'processing' ? 'Processing Voice Command...' : voiceStatus === 'success' ? 'Voice Action Executed!' : 'Siri Voice AI'}
+              </h3>
+              <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+                {voiceMessage}
+              </p>
+            </div>
+
+            {/* Live Audio Waveform Animation */}
+            {isVoiceListening && (
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center', height: '24px', margin: '4px 0' }}>
+                <div style={{ width: '4px', height: '16px', backgroundColor: 'var(--color-primary)', borderRadius: '2px', animation: 'bounce 0.8s infinite 0.1s' }} />
+                <div style={{ width: '4px', height: '24px', backgroundColor: '#EC4899', borderRadius: '2px', animation: 'bounce 0.8s infinite 0.3s' }} />
+                <div style={{ width: '4px', height: '12px', backgroundColor: '#06B6D4', borderRadius: '2px', animation: 'bounce 0.8s infinite 0.2s' }} />
+                <div style={{ width: '4px', height: '20px', backgroundColor: '#3B82F6', borderRadius: '2px', animation: 'bounce 0.8s infinite 0.4s' }} />
+                <div style={{ width: '4px', height: '14px', backgroundColor: 'var(--color-primary)', borderRadius: '2px', animation: 'bounce 0.8s infinite 0.1s' }} />
+              </div>
+            )}
+
+            {/* Voice Transcript Display */}
+            {(voiceTranscript || voiceInputManual) && (
+              <div 
+                style={{
+                  width: '100%',
+                  padding: '14px 16px',
+                  borderRadius: '16px',
+                  backgroundColor: 'rgba(124, 58, 237, 0.08)',
+                  border: '1px solid rgba(124, 58, 237, 0.2)',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: 'var(--color-text-primary)',
+                  textAlign: 'center'
+                }}
+              >
+                "{voiceTranscript || voiceInputManual}"
+              </div>
+            )}
+
+            {/* Parsed Output Details Card */}
+            {voiceParsedData && voiceParsedData.companyName && (
+              <div style={{ width: '100%', backgroundColor: 'var(--color-muted)', padding: '12px 16px', borderRadius: '12px', fontSize: '12px', display: 'flex', justifyContent: 'space-around' }}>
+                <div><span className="text-muted">Target Client:</span> <strong>{voiceParsedData.companyName}</strong></div>
+                <div><span className="text-muted">Parsed Amount:</span> <strong className="text-primary">{formatCurrency(voiceParsedData.amount || 0)}</strong></div>
+              </div>
+            )}
+
+            {/* Action Buttons & Manual Fallback */}
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {(voiceTranscript || voiceInputManual) && voiceStatus !== 'success' && (
+                <button 
+                  className="btn btn-primary"
+                  onClick={() => processVoiceCommand(voiceTranscript || voiceInputManual)}
+                  style={{ width: '100%', justifyContent: 'center', padding: '12px', fontSize: '14px', fontWeight: 700 }}
+                >
+                  <i className="ph ph-lightning"></i> Create Invoice Now
+                </button>
+              )}
+
+              {/* Manual Input Fallback */}
+              <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                <input 
+                  type="text" 
+                  placeholder="Or type voice command e.g. add invoice for GV company for 1 lk"
+                  value={voiceInputManual}
+                  onChange={(e) => setVoiceInputManual(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      processVoiceCommand(voiceInputManual || voiceTranscript);
+                    }
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '10px 14px',
+                    borderRadius: '12px',
+                    border: '1px solid var(--color-border)',
+                    backgroundColor: 'var(--color-surface)',
+                    fontSize: '12px',
+                    color: 'var(--color-text-primary)'
+                  }}
+                />
+                <button 
+                  className="btn btn-secondary btn-sm" 
+                  onClick={() => processVoiceCommand(voiceInputManual || voiceTranscript)}
+                  style={{ borderRadius: '12px' }}
+                >
+                  Send
+                </button>
+              </div>
+
+              {/* Sample Voice Prompts */}
+              <div style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Sample voice command chips (click to test):</span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'center' }}>
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary btn-sm" 
+                    onClick={() => {
+                      const cmd = "okay siri add invoice for GV company for 1 lk";
+                      setVoiceInputManual(cmd);
+                      processVoiceCommand(cmd);
+                    }}
+                    style={{ fontSize: '10px', padding: '4px 10px', borderRadius: '14px', backgroundColor: 'var(--color-surface)' }}
+                  >
+                    "add invoice for GV company for 1 lk"
+                  </button>
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary btn-sm" 
+                    onClick={() => {
+                      const cmd = "create bill for Karthik Apparels for 50k";
+                      setVoiceInputManual(cmd);
+                      processVoiceCommand(cmd);
+                    }}
+                    style={{ fontSize: '10px', padding: '4px 10px', borderRadius: '14px', backgroundColor: 'var(--color-surface)' }}
+                  >
+                    "create bill for Karthik Apparels for 50k"
+                  </button>
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary btn-sm" 
+                    onClick={() => {
+                      const cmd = "add invoice for Sri Varahi Exports for 2.5 lakhs";
+                      setVoiceInputManual(cmd);
+                      processVoiceCommand(cmd);
+                    }}
+                    style={{ fontSize: '10px', padding: '4px 10px', borderRadius: '14px', backgroundColor: 'var(--color-surface)' }}
+                  >
+                    "add invoice for Sri Varahi Exports for 2.5 lakhs"
+                  </button>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
