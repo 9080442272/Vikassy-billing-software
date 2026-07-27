@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../convex/_generated/api';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Indian Currency Number to Words converter helper
 function numberToWords(num) {
