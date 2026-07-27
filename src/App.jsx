@@ -619,21 +619,21 @@ export default function App() {
 
     let targetEntity = '';
 
-    // Check for entity selection intent ("click on srimathi name", "click srimathi", "view srimathi", "select karthik")
-    if (text.includes('click') || text.includes('select') || text.includes('view') || (text.includes('open') && !text.includes('tab') && !text.includes('page') && !text.includes('section'))) {
+    // Universal Accessibility Intent Matcher: "click on [ANY name]", "select [ANY entity]", "view [ANY bill/fabric/client/employee]"
+    if (text.includes('click') || text.includes('select') || text.includes('view') || text.includes('show detail') || text.includes('open detail') || (text.includes('open') && !text.includes('tab') && !text.includes('page') && !text.includes('section') && !text.includes('menu'))) {
       intent = 'select_entity';
-      const clickMatch = text.match(/(?:click|click\s+on|select|view|open)\s+(?:the\s+)?(?:employee\s+|client\s+)?([a-z0-9\s]+?)(?:\s+(?:name|profile|details|tab)|$)/i);
+      const clickMatch = text.match(/(?:click|click\s+on|select|view|open|show)\s+(?:the\s+)?(?:employee\s+|client\s+|bill\s+|invoice\s+|fabric\s+|order\s+)?([a-z0-9\s\.\-]+?)(?:\s+(?:name|profile|details|tab|invoice|bill)|$)/i);
       if (clickMatch) {
-        targetEntity = clickMatch[1].replace(/\b(name|profile|details|tab|page|on|the)\b/gi, '').trim();
+        targetEntity = clickMatch[1].replace(/\b(name|profile|details|tab|page|on|the|invoice|bill|record)\b/gi, '').trim();
       }
       if (!targetEntity) {
-        targetEntity = text.replace(/\b(click|on|select|view|open|the|name|profile|details)\b/gi, '').trim();
+        targetEntity = text.replace(/\b(click|on|select|view|open|show|the|name|profile|details|employee|client|invoice|bill)\b/gi, '').trim();
       }
 
     } else if ((text.includes('employee') || text.includes('tailor') || text.includes('stitcher') || text.includes('worker') || text.includes('staff')) && (text.includes('add') || text.includes('register') || text.includes('create') || text.includes('enter') || text.includes('new'))) {
       intent = 'add_employee';
 
-      // Match employee name: "enter srimathi as a new employee", "add srimathi employee", "add employee srimathi", "add srimathi she is a tailor"
+      // Match employee name: "enter srimathi as a new employee", "add ramesh employee", "add employee anitha"
       const empNameMatch = text.match(/(?:add|register|create|enter)\s+(?:the\s+)?(?:employee\s+)?([a-z0-9\s]+?)(?:\s+(?:as|is|role|a|new|employee|tailor|stitcher|signer|cutter|master|she|he)|$)/i);
       if (empNameMatch) {
         employeeName = empNameMatch[1].replace(/\b(the|employee|tab|and|a|she|is|new|as|enter|add)\b/gi, '').trim();
@@ -644,7 +644,7 @@ export default function App() {
         if (altMatch) employeeName = altMatch[1].trim();
       }
 
-      // Match role: "she is a tailor", "as tailor", "role stitcher"
+      // Match role: "she is a tailor", "as tailor", "role stitcher", "signer"
       if (text.includes('tailor')) role = 'Tailor';
       else if (text.includes('stitcher')) role = 'Stitcher';
       else if (text.includes('signer')) role = 'Signer';
@@ -730,12 +730,14 @@ export default function App() {
     setVoiceParsedData(parsed);
 
     if (parsed.intent === 'select_entity') {
-      const query = parsed.targetEntity || parsed.companyName || parsed.rawText;
+      const rawQuery = (parsed.targetEntity || parsed.companyName || parsed.rawText || '').trim().toLowerCase();
+      const targetStr = rawQuery.replace(/\b(click|on|select|view|open|show|the|name|profile|details|tab|card|invoice|bill)\b/gi, '').trim() || rawQuery;
 
-      // 1. Search employees
+      // 1. Search Employees (Name, Role, SubCategory)
       const empMatch = employees.find(e => 
-        e.name.toLowerCase().includes(query.toLowerCase()) || 
-        query.toLowerCase().includes(e.name.toLowerCase())
+        e.name.toLowerCase().includes(targetStr) || 
+        targetStr.includes(e.name.toLowerCase()) ||
+        (e.role && e.role.toLowerCase().includes(targetStr))
       );
 
       if (empMatch) {
@@ -744,9 +746,9 @@ export default function App() {
         setEmployeesSubTab('profile');
 
         setVoiceStatus('success');
-        const successMsg = `Selected employee ${empMatch.name}! Opening profile.`;
+        const successMsg = `Selected employee ${empMatch.name} (${empMatch.role})!`;
         setVoiceMessage(successMsg);
-        speakText(`Selected employee ${empMatch.name}. Opening profile.`);
+        speakText(`Selected employee ${empMatch.name}, ${empMatch.role}. Opening profile.`);
 
         setTimeout(() => {
           if (isSiriFloatingBarOpenRef.current) {
@@ -756,10 +758,11 @@ export default function App() {
         return;
       }
 
-      // 2. Search clients
+      // 2. Search Clients (Name, CompanyName)
       const clientMatch = clients.find(c => 
-        c.name.toLowerCase().includes(query.toLowerCase()) || 
-        query.toLowerCase().includes(c.name.toLowerCase())
+        c.name.toLowerCase().includes(targetStr) || 
+        (c.companyName && c.companyName.toLowerCase().includes(targetStr)) ||
+        targetStr.includes(c.name.toLowerCase())
       );
 
       if (clientMatch) {
@@ -768,9 +771,9 @@ export default function App() {
         setClientsSubTab('details');
 
         setVoiceStatus('success');
-        const successMsg = `Selected client ${clientMatch.name}! Opening profile.`;
+        const successMsg = `Selected client ${clientMatch.name}!`;
         setVoiceMessage(successMsg);
-        speakText(`Selected client ${clientMatch.name}. Opening details.`);
+        speakText(`Selected client ${clientMatch.name}. Opening client profile.`);
 
         setTimeout(() => {
           if (isSiriFloatingBarOpenRef.current) {
@@ -780,15 +783,84 @@ export default function App() {
         return;
       }
 
-      // 3. Fallback: filter employee directory
+      // 3. Search Invoices / Bills (Bill Number)
+      const billMatch = bills.find(b => 
+        b.billNumber.toLowerCase().includes(targetStr) ||
+        targetStr.includes(b.billNumber.toLowerCase())
+      );
+
+      if (billMatch) {
+        const billClientObj = clients.find(c => c._id === billMatch.clientId);
+        setActiveTab('bills');
+        setViewingInvoice(billMatch);
+        setIsInvoiceViewOpen(true);
+
+        setVoiceStatus('success');
+        const successMsg = `Opened Invoice ${billMatch.billNumber}!`;
+        setVoiceMessage(successMsg);
+        speakText(`Opened invoice ${billMatch.billNumber} for ${billClientObj ? billClientObj.name : 'Client'}.`);
+
+        setTimeout(() => {
+          if (isSiriFloatingBarOpenRef.current) {
+            startVoiceAssistant();
+          }
+        }, 1500);
+        return;
+      }
+
+      // 4. Search Fabrics (Fabric Type, Supplier, Color)
+      const fabricMatch = fabrics.find(f => 
+        f.fabricType.toLowerCase().includes(targetStr) ||
+        f.supplier.toLowerCase().includes(targetStr) ||
+        f.color.toLowerCase().includes(targetStr)
+      );
+
+      if (fabricMatch) {
+        setActiveTab('fabrics');
+        setFabricSearch(fabricMatch.fabricType);
+
+        setVoiceStatus('success');
+        const successMsg = `Found Fabric Stock ${fabricMatch.fabricType}!`;
+        setVoiceMessage(successMsg);
+        speakText(`Showing fabric stock ${fabricMatch.fabricType}, ${fabricMatch.color} supplied by ${fabricMatch.supplier}.`);
+
+        setTimeout(() => {
+          if (isSiriFloatingBarOpenRef.current) {
+            startVoiceAssistant();
+          }
+        }, 1500);
+        return;
+      }
+
+      // 5. Search Upcoming Production Orders (Order Title, Client Name)
+      const orderMatch = upcomingOrders.find(o => 
+        o.orderTitle.toLowerCase().includes(targetStr) ||
+        o.clientName.toLowerCase().includes(targetStr)
+      );
+
+      if (orderMatch) {
+        setActiveTab('dashboard');
+        setVoiceStatus('success');
+        const successMsg = `Found Production Order "${orderMatch.orderTitle}"!`;
+        setVoiceMessage(successMsg);
+        speakText(`Found production order ${orderMatch.orderTitle} for ${orderMatch.clientName}.`);
+
+        setTimeout(() => {
+          if (isSiriFloatingBarOpenRef.current) {
+            startVoiceAssistant();
+          }
+        }, 1500);
+        return;
+      }
+
+      // 6. Generic Fallback: Search Employees Directory & Clients
       setActiveTab('employees');
       setEmployeesSubTab('directory');
-      setEmployeeSearch(query);
+      setEmployeeSearch(targetStr);
 
       setVoiceStatus('success');
-      const successMsg = `Searching for "${query}" in Employees Directory!`;
-      setVoiceMessage(successMsg);
-      speakText(`Searching for ${query} in Employees.`);
+      setVoiceMessage(`Filtered directory for "${targetStr}"`);
+      speakText(`Searching directory for ${targetStr}.`);
 
       setTimeout(() => {
         if (isSiriFloatingBarOpenRef.current) {
