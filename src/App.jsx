@@ -210,6 +210,7 @@ export default function App() {
   const [voiceParsedData, setVoiceParsedData] = useState(null);
   const [voiceInputManual, setVoiceInputManual] = useState('');
   const [speechRecognitionRef, setSpeechRecognitionRef] = useState(null);
+  const latestTranscriptRef = useRef('');
 
   // Varahi System Sub-Module Tabs States
   const [jobsSubTab, setJobsSubTab] = useState('all'); // 'all' | 'create' | 'ongoing' | 'completed' | 'delayed' | 'details'
@@ -579,12 +580,15 @@ export default function App() {
   };
 
   const parseVoiceCommand = (rawText) => {
-    let text = rawText.toLowerCase().trim();
+    if (!rawText) return { intent: 'invoice', companyName: '', amount: 0, rawText: '' };
+    
+    // Clean string, remove punctuation except decimals
+    let text = rawText.toLowerCase().replace(/[,]/g, '').trim();
 
     // Strip wake phrases and filler words
     text = text.replace(/^(okay|ok|hey|hi|hello)\s+(siri|alexa|google|jarvis|assistant)\s*/i, '');
     text = text.replace(/^(siri|alexa|google|jarvis|assistant)\s*/i, '');
-    text = text.replace(/^(please|kindly|can\s+you)\s*/i, '');
+    text = text.replace(/^(please|kindly|can\s+you|would\s+you)\s*/i, '');
 
     let intent = 'invoice';
     if (text.includes('expense')) intent = 'expense';
@@ -609,8 +613,10 @@ export default function App() {
     } else {
       if (text.includes('one lakh') || text.includes('1 lakh')) amount = 100000;
       else if (text.includes('two lakh') || text.includes('two lakhs')) amount = 200000;
+      else if (text.includes('three lakh') || text.includes('three lakhs')) amount = 300000;
       else if (text.includes('five lakh') || text.includes('five lakhs')) amount = 500000;
       else if (text.includes('ten thousand')) amount = 10000;
+      else if (text.includes('twenty thousand')) amount = 20000;
       else if (text.includes('fifty thousand')) amount = 50000;
     }
 
@@ -620,12 +626,17 @@ export default function App() {
     if (companyMatch) {
       companyName = companyMatch[1].trim();
       companyName = companyName.replace(/\b(invoice|bill|record|add|create)\b/gi, '').trim();
-    } else {
+    }
+
+    if (!companyName) {
       const fallbackMatch = text.match(/(?:invoice|bill)\s+(?:for\s+)?([a-z0-9\s\.\&\-]+?)(?:\s+(?:for|amount|of|rs|\u20B9|\$|\d)|$)/i);
       if (fallbackMatch) {
         companyName = fallbackMatch[1].trim();
       }
     }
+
+    // Clean residual filler words
+    companyName = companyName.replace(/\b(for|amount|of|rs|lakh|lakhs|lk|lac|k|thousand|rupees)\b/gi, '').trim();
 
     return { intent, companyName, amount, rawText };
   };
@@ -746,6 +757,7 @@ export default function App() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     setIsVoiceModalOpen(true);
     setVoiceTranscript('');
+    latestTranscriptRef.current = '';
     setVoiceInputManual('');
     setVoiceParsedData(null);
 
@@ -766,7 +778,7 @@ export default function App() {
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = true;
-      recognition.lang = 'en-US';
+      recognition.lang = 'en-IN'; // Optimized for Indian English pronunciations ("lakh", "GV company")
 
       recognition.onresult = (event) => {
         let currentTranscript = '';
@@ -774,6 +786,7 @@ export default function App() {
           currentTranscript += event.results[i][0].transcript;
         }
         setVoiceTranscript(currentTranscript);
+        latestTranscriptRef.current = currentTranscript;
       };
 
       recognition.onerror = (event) => {
@@ -786,6 +799,10 @@ export default function App() {
 
       recognition.onend = () => {
         setIsVoiceListening(false);
+        const finalTranscript = latestTranscriptRef.current;
+        if (finalTranscript && finalTranscript.trim().length > 3) {
+          processVoiceCommand(finalTranscript);
+        }
       };
 
       recognition.start();
@@ -5852,7 +5869,7 @@ export default function App() {
             </button>
 
             {/* Glowing Siri Visualizer Aura */}
-            <div style={{ position: 'relative', width: '90px', height: '90px', marginTop: '10px' }}>
+            <div onClick={startVoiceAssistant} title="Click to speak again" style={{ position: 'relative', width: '90px', height: '90px', marginTop: '10px', cursor: 'pointer' }}>
               <div 
                 style={{
                   width: '100%',
