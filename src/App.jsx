@@ -127,6 +127,7 @@ export default function App() {
   const addUpcomingOrderMutation = useMutation(api.upcomingOrders.add);
   const updateUpcomingOrderMutation = useMutation(api.upcomingOrders.update);
   const deleteUpcomingOrderMutation = useMutation(api.upcomingOrders.remove);
+  const clearAllDataMutation = useMutation(api.system.clearAllData);
 
   // Set to true to temporarily bypass authentication for dev / client reviews
   const BYPASS_AUTH = true;
@@ -1759,202 +1760,15 @@ export default function App() {
     printContent("Operational Expenses Ledger", headers, rows);
   };
 
-  // Seed demo data for empty database setup
-  const handleSeedDemoData = async () => {
-    try {
-      // 1. Seed Clients
-      const clientId1 = await addClientMutation({
-        name: "Sri Varahi Exports",
-        companyName: "Varahi Exports Pvt Ltd",
-        email: "contact@varahiexports.com",
-        phone: "+91 98765 43210",
-        gstin: "33AABCU1234F1Z5",
-        address: "123, Garment Zone, Tiruppur, TN"
-      });
-      const clientId2 = await addClientMutation({
-        name: "Karthik Apparels",
-        companyName: "Karthik Textiles",
-        email: "karthik@textiles.in",
-        phone: "+91 94432 10987",
-        gstin: "33BBDDU5678G2Z4",
-        address: "45, Cotton Street, Coimbatore, TN"
-      });
-      const clientId3 = await addClientMutation({
-        name: "Global Garments",
-        companyName: "Global Imports Inc",
-        email: "import@globalgarments.com",
-        phone: "+1 555 0199",
-        gstin: "",
-        address: "Houston, Texas, USA"
-      });
-
-      // 2. Seed Employees
-      await addEmployeeMutation({
-        name: "Ramesh Kumar",
-        phone: "+91 98940 12345",
-        role: "Stitcher",
-        subCategory: "Jeans Specialist",
-        stitchRate: 15,
-        salary: 12000
-      });
-      await addEmployeeMutation({
-        name: "Anitha Devi",
-        phone: "+91 97890 54321",
-        role: "Stitcher",
-        subCategory: "T-Shirt Specialist",
-        stitchRate: 12,
-        salary: 10000
-      });
-      await addEmployeeMutation({
-        name: "Selvam Murugan",
-        phone: "+91 94440 98765",
-        role: "Signer",
-        subCategory: "Lead Auditor",
-        stitchRate: 0,
-        salary: 15000
-      });
-
-      // 3. Seed Fabric Rolls
-      await addFabricMutation({
-        fabricType: "Denim Cotton",
-        quantityReceived: 120,
-        color: "Navy Blue",
-        receivedDate: "2026-07-01",
-        supplier: "Texcraft Mills",
-        status: "Stitching"
-      });
-      await addFabricMutation({
-        fabricType: "Organic Cotton Knit",
-        quantityReceived: 250,
-        color: "Crimson Red",
-        receivedDate: "2026-07-03",
-        supplier: "BioThread Suppliers",
-        status: "Stored"
-      });
-
-      // 4. Seed Bills
-      const billId1 = await addBillMutation({
-        clientId: clientId1,
-        billNumber: "VE-2026-001",
-        date: "2026-07-02",
-        billType: "with-gst",
-        items: [
-          { name: "Denim Jackets (L)", price: 850, qty: 100, gstRate: 5, gstAmount: 4250, total: 89250 }
-        ],
-        discount: 250,
-        subtotal: 85000,
-        totalGst: 4250,
-        totalAmount: 89000
-      });
-
-      const billId2 = await addBillMutation({
-        clientId: clientId2,
-        billNumber: "VE-2026-002",
-        date: "2026-07-05",
-        billType: "without-gst",
-        items: [
-          { name: "Cotton Crew Neck Shirts", price: 350, qty: 150, gstRate: 0, gstAmount: 0, total: 52500 }
-        ],
-        discount: 500,
-        subtotal: 52500,
-        totalGst: 0,
-        totalAmount: 52000
-      });
-
-      // Seed Expenses
-      await addExpenseMutation({
-        billId: billId1,
-        category: "Transportation",
-        amount: 3500,
-        description: "Auto delivery charges for Sri Varahi order",
-        date: "2026-07-03"
-      });
-      await addExpenseMutation({
-        billId: billId1,
-        category: "Employee Salaries",
-        amount: 8000,
-        description: "Denim stitcher bonus allocations",
-        date: "2026-07-04"
-      });
-      await addExpenseMutation({
-        billId: billId2,
-        category: "Petrol",
-        amount: 1200,
-        description: "Coimbatore client dispatch delivery van fuel",
-        date: "2026-07-06"
-      });
-      await addExpenseMutation({
-        category: "Operations",
-        amount: 4500,
-        description: "Monthly workshop power generator servicing fee",
-        date: "2026-07-07"
-      });
-
-      // Seed Upcoming Company Orders relative to today
-      const getRelativeDateString = (daysOffset) => {
-        const d = new Date();
-        d.setDate(d.getDate() + daysOffset);
-        return d.toISOString().split('T')[0];
-      };
-
-      await addUpcomingOrderMutation({
-        clientName: "Sri Varahi Exports",
-        orderTitle: "1000 Pcs Premium Denim Jackets",
-        deliveryDate: getRelativeDateString(1),
-        estimatedValue: 120000,
-        status: "In Production",
-        notes: "Fabric rolls received. Stitchers assigned piece rates."
-      });
-
-      await addUpcomingOrderMutation({
-        clientName: "Karthik Apparels",
-        orderTitle: "500 Pcs Linen Shirts Navy Blue",
-        deliveryDate: getRelativeDateString(3),
-        estimatedValue: 65000,
-        status: "Planned",
-        notes: "Arrival of raw linen yarn roll scheduled next week."
-      });
-
-      await addUpcomingOrderMutation({
-        clientName: "Varnam Silks",
-        orderTitle: "250 Pcs Silk Jackets",
-        deliveryDate: getRelativeDateString(7),
-        estimatedValue: 90000,
-        status: "Planned",
-        notes: "Custom design blueprints pending approval from Varnam manager."
-      });
-
-      await addUpcomingOrderMutation({
-        clientName: "Sri Varahi Exports",
-        orderTitle: "CEO Performance Audit Jackets",
-        deliveryDate: getRelativeDateString(14),
-        estimatedValue: 45000,
-        status: "Planned",
-        notes: "Verify sticher payouts bonuses audit guidelines."
-      });
-
-      // 5. Seed CEO Activity Logs
-      await addCeoActivityMutation({
-        date: "2026-07-06",
-        focusArea: "Production Planning",
-        description: "Audited denim stitching outputs, mapped supplier dispatch timelines.",
-        hoursSpent: 5.5,
-        productivityLevel: "High",
-        isCritical: true
-      });
-
-      await addCeoActivityMutation({
-        date: "2026-07-07",
-        focusArea: "Financial Audit",
-        description: "Cleared tax schemes validation reviews and verified GST invoices calculations.",
-        hoursSpent: 3.5,
-        productivityLevel: "Medium",
-        isCritical: false
-      });
-
-      alert("🎉 Demo data seeded successfully! The dashboard and expenses are now populated.");
-    } catch (err) {
-      alert("Error seeding demo data: " + err.message);
+  // Clear all sample seed data from database
+  const handleClearDatabase = async () => {
+    if (window.confirm("⚠️ Are you sure you want to clear all data and reset the database? This action cannot be undone.")) {
+      try {
+        await clearAllDataMutation();
+        alert("🧹 All database records cleared successfully! The database is now clean.");
+      } catch (err) {
+        alert("Error clearing database: " + err.message);
+      }
     }
   };
 
@@ -2388,8 +2202,8 @@ export default function App() {
                 <button className="btn" onClick={startVoiceAssistant} style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)', color: '#ffffff', fontWeight: 600, border: 'none' }} title="Voice Billing Assistant">
                   <i className="ph-fill ph-microphone"></i> Siri Voice
                 </button>
-                <button className="btn btn-secondary" onClick={handleSeedDemoData} title="Seed Mock Database Entries">
-                  <i className="ph ph-database"></i> Seed Data
+                <button className="btn btn-secondary text-red" onClick={handleClearDatabase} title="Clear All Database Entries">
+                  <i className="ph ph-trash"></i> Clear Data
                 </button>
                 <button className="btn btn-primary" onClick={() => setIsBillModalOpen(true)}>
                   <i className="ph ph-plus-circle"></i> New Bill
