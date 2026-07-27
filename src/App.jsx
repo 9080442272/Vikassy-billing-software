@@ -617,8 +617,20 @@ export default function App() {
     let role = 'Tailor';
     let targetTab = '';
 
-    // Check for employee registration intent ("enter srimathi as a new employee" or "add srimathi employee she is a tailor")
-    if ((text.includes('employee') || text.includes('tailor') || text.includes('stitcher') || text.includes('worker') || text.includes('staff')) && (text.includes('add') || text.includes('register') || text.includes('create') || text.includes('enter') || text.includes('new'))) {
+    let targetEntity = '';
+
+    // Check for entity selection intent ("click on srimathi name", "click srimathi", "view srimathi", "select karthik")
+    if (text.includes('click') || text.includes('select') || text.includes('view') || (text.includes('open') && !text.includes('tab') && !text.includes('page') && !text.includes('section'))) {
+      intent = 'select_entity';
+      const clickMatch = text.match(/(?:click|click\s+on|select|view|open)\s+(?:the\s+)?(?:employee\s+|client\s+)?([a-z0-9\s]+?)(?:\s+(?:name|profile|details|tab)|$)/i);
+      if (clickMatch) {
+        targetEntity = clickMatch[1].replace(/\b(name|profile|details|tab|page|on|the)\b/gi, '').trim();
+      }
+      if (!targetEntity) {
+        targetEntity = text.replace(/\b(click|on|select|view|open|the|name|profile|details)\b/gi, '').trim();
+      }
+
+    } else if ((text.includes('employee') || text.includes('tailor') || text.includes('stitcher') || text.includes('worker') || text.includes('staff')) && (text.includes('add') || text.includes('register') || text.includes('create') || text.includes('enter') || text.includes('new'))) {
       intent = 'add_employee';
 
       // Match employee name: "enter srimathi as a new employee", "add srimathi employee", "add employee srimathi", "add srimathi she is a tailor"
@@ -705,7 +717,7 @@ export default function App() {
     // Clean residual filler words
     companyName = companyName.replace(/\b(for|amount|of|rs|lakh|lakhs|lk|lac|k|thousand|rupees)\b/gi, '').trim();
 
-    return { intent, companyName, employeeName, role, targetTab, amount, rawText };
+    return { intent, companyName, employeeName, role, targetTab, targetEntity, amount, rawText };
   };
 
   const processVoiceCommand = async (commandString) => {
@@ -717,7 +729,75 @@ export default function App() {
     const parsed = parseVoiceCommand(commandString);
     setVoiceParsedData(parsed);
 
-    if (parsed.intent === 'add_employee') {
+    if (parsed.intent === 'select_entity') {
+      const query = parsed.targetEntity || parsed.companyName || parsed.rawText;
+
+      // 1. Search employees
+      const empMatch = employees.find(e => 
+        e.name.toLowerCase().includes(query.toLowerCase()) || 
+        query.toLowerCase().includes(e.name.toLowerCase())
+      );
+
+      if (empMatch) {
+        setActiveTab('employees');
+        setSelectedEmployeeDetail(empMatch);
+        setEmployeesSubTab('profile');
+
+        setVoiceStatus('success');
+        const successMsg = `Selected employee ${empMatch.name}! Opening profile.`;
+        setVoiceMessage(successMsg);
+        speakText(`Selected employee ${empMatch.name}. Opening profile.`);
+
+        setTimeout(() => {
+          if (isSiriFloatingBarOpenRef.current) {
+            startVoiceAssistant();
+          }
+        }, 1500);
+        return;
+      }
+
+      // 2. Search clients
+      const clientMatch = clients.find(c => 
+        c.name.toLowerCase().includes(query.toLowerCase()) || 
+        query.toLowerCase().includes(c.name.toLowerCase())
+      );
+
+      if (clientMatch) {
+        setActiveTab('clients');
+        setSelectedClientDetail(clientMatch);
+        setClientsSubTab('details');
+
+        setVoiceStatus('success');
+        const successMsg = `Selected client ${clientMatch.name}! Opening profile.`;
+        setVoiceMessage(successMsg);
+        speakText(`Selected client ${clientMatch.name}. Opening details.`);
+
+        setTimeout(() => {
+          if (isSiriFloatingBarOpenRef.current) {
+            startVoiceAssistant();
+          }
+        }, 1500);
+        return;
+      }
+
+      // 3. Fallback: filter employee directory
+      setActiveTab('employees');
+      setEmployeesSubTab('directory');
+      setEmployeeSearch(query);
+
+      setVoiceStatus('success');
+      const successMsg = `Searching for "${query}" in Employees Directory!`;
+      setVoiceMessage(successMsg);
+      speakText(`Searching for ${query} in Employees.`);
+
+      setTimeout(() => {
+        if (isSiriFloatingBarOpenRef.current) {
+          startVoiceAssistant();
+        }
+      }, 1500);
+      return;
+
+    } else if (parsed.intent === 'add_employee') {
       const empName = parsed.employeeName
         ? parsed.employeeName.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
         : "Srimathi";
@@ -5556,6 +5636,17 @@ export default function App() {
               style={{ fontSize: '10px', padding: '3px 9px', borderRadius: '12px', backgroundColor: 'rgba(236, 72, 153, 0.2)', color: '#FBCFE8', border: '1px solid rgba(236, 72, 153, 0.4)', fontWeight: 600, cursor: 'pointer', whitespace: 'nowrap' }}
             >
               🎙️ "enter srimathi as a new employee"
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const cmd = "click on srimathi name";
+                setVoiceInputManual(cmd);
+                processVoiceCommand(cmd);
+              }}
+              style={{ fontSize: '10px', padding: '3px 9px', borderRadius: '12px', backgroundColor: 'rgba(168, 85, 247, 0.2)', color: '#E9D5FF', border: '1px solid rgba(168, 85, 247, 0.4)', fontWeight: 600, cursor: 'pointer', whitespace: 'nowrap' }}
+            >
+              🎙️ "click on srimathi name"
             </button>
             <button
               type="button"
