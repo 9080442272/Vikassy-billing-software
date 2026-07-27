@@ -5989,13 +5989,43 @@ export default function App() {
 
             {/* Action Buttons & Manual Fallback */}
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {/* Primary Speak CTA Button */}
+              <button 
+                className="btn"
+                onClick={startVoiceAssistant}
+                style={{
+                  width: '100%',
+                  justifyContent: 'center',
+                  padding: '13px 16px',
+                  fontSize: '15px',
+                  fontWeight: 800,
+                  borderRadius: '14px',
+                  background: isVoiceListening 
+                    ? 'linear-gradient(135deg, #EC4899, #7C3AED)' 
+                    : 'linear-gradient(135deg, #7C3AED 0%, #EC4899 50%, #3B82F6 100%)',
+                  color: '#ffffff',
+                  border: 'none',
+                  boxShadow: isVoiceListening 
+                    ? '0 0 25px rgba(236, 72, 153, 0.6)' 
+                    : '0 6px 20px rgba(124, 58, 237, 0.4)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
+                }}
+              >
+                <i className={`ph-fill ${isVoiceListening ? 'ph-microphone' : 'ph-microphone-stage'}`} style={{ fontSize: '20px' }}></i>
+                <span>{isVoiceListening ? 'Listening... Speak Now' : '🎙️ Tap to Speak / Give Another Work'}</span>
+              </button>
+
               {(voiceTranscript || voiceInputManual) && voiceStatus !== 'success' && (
                 <button 
-                  className="btn btn-primary"
+                  className="btn btn-secondary"
                   onClick={() => processVoiceCommand(voiceTranscript || voiceInputManual)}
-                  style={{ width: '100%', justifyContent: 'center', padding: '12px', fontSize: '14px', fontWeight: 700 }}
+                  style={{ width: '100%', justifyContent: 'center', padding: '10px', fontSize: '13px', fontWeight: 700 }}
                 >
-                  <i className="ph ph-lightning"></i> Create Invoice Now
+                  <i className="ph ph-lightning"></i> Execute Current Command
                 </button>
               )}
 
