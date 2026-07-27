@@ -923,12 +923,19 @@ export default function App() {
       return;
     }
 
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+
     setVoiceStatus('listening');
-    setVoiceMessage("Listening... Speak now (e.g. 'enter Srimathi as a new employee')");
+    setVoiceMessage("Listening... Speak now (e.g. 'open employee tab' or 'enter Srimathi as a new employee')");
 
     try {
       if (speechRecognitionRef) {
-        try { speechRecognitionRef.stop(); } catch (e) {}
+        try { 
+          speechRecognitionRef.onend = null;
+          speechRecognitionRef.stop(); 
+        } catch (e) {}
       }
 
       const recognition = new SpeechRecognition();
@@ -946,10 +953,16 @@ export default function App() {
       };
 
       recognition.onerror = (event) => {
-        console.warn("Speech recognition error:", event.error);
-        if (event.error !== 'no-speech') {
+        console.warn("Speech recognition status:", event.error);
+        if (event.error === 'aborted' || event.error === 'no-speech') {
+          // Suppress benign browser abort/pause events seamlessly
+          return;
+        }
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
           setVoiceStatus('error');
-          setVoiceMessage(`Microphone error: ${event.error}. You can type the command below.`);
+          setVoiceMessage("Microphone permission blocked. Please enable microphone access in browser address bar.");
+        } else {
+          setVoiceStatus('idle');
         }
       };
 
