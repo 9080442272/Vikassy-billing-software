@@ -206,6 +206,7 @@ export default function App() {
   const [isInvoiceViewOpen, setIsInvoiceViewOpen] = useState(false);
   const [isScanModalOpen, setIsScanModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
 
   // Voice AI Assistant States
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
@@ -2344,6 +2345,163 @@ export default function App() {
                     ));
                   })()}
                 </div>
+              </div>
+            </div>
+
+            {/* Upcoming Production Orders Panel */}
+            <div className="table-card bg-surface border" style={{ padding: '24px', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div>
+                  <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <i className="ph ph-calendar-blank text-primary"></i> Upcoming Production Orders
+                  </h3>
+                  <p className="small text-muted" style={{ margin: '4px 0 0 0' }}>Track scheduled client orders, target delivery dates, and status</p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span className="badge badge-purple">{upcomingOrders.length} Scheduled</span>
+                  <button className="btn btn-primary btn-sm" onClick={() => setIsOrderModalOpen(true)}>
+                    <i className="ph ph-plus-circle"></i> Log Order
+                  </button>
+                </div>
+              </div>
+
+              <div className="table-responsive desktop-table-container">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Order Title / Description</th>
+                      <th>Client Name</th>
+                      <th>Delivery Target Date</th>
+                      <th>Estimated Value (₹)</th>
+                      <th>Status</th>
+                      <th className="text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {upcomingOrders.map((ord) => (
+                      <tr key={ord._id}>
+                        <td>
+                          <div className="font-semibold">{ord.orderTitle}</div>
+                          {ord.notes && <span className="small text-muted">{ord.notes}</span>}
+                        </td>
+                        <td>{ord.clientName}</td>
+                        <td className="font-medium">{formatDate(ord.deliveryDate)}</td>
+                        <td className="font-bold text-primary">{formatCurrency(ord.estimatedValue)}</td>
+                        <td>
+                          <span className={`badge ${ord.status === 'In Production' ? 'badge-warning' : ord.status === 'Delivered' ? 'badge-success' : 'badge-gst'}`}>
+                            {ord.status}
+                          </span>
+                        </td>
+                        <td className="text-right">
+                          <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                            {ord.status !== 'Delivered' && (
+                              <button
+                                className="btn btn-secondary btn-sm"
+                                onClick={async () => {
+                                  await updateUpcomingOrderMutation({
+                                    id: ord._id,
+                                    clientName: ord.clientName,
+                                    orderTitle: ord.orderTitle,
+                                    deliveryDate: ord.deliveryDate,
+                                    estimatedValue: ord.estimatedValue,
+                                    status: 'Delivered',
+                                    notes: ord.notes || '',
+                                    createdAt: ord.createdAt || new Date().toISOString()
+                                  });
+                                }}
+                                title="Mark Order as Delivered"
+                              >
+                                <i className="ph ph-check"></i> Delivered
+                              </button>
+                            )}
+                            <button
+                              className="btn-icon text-red"
+                              onClick={async () => {
+                                if (window.confirm("Delete this upcoming order?")) {
+                                  await deleteUpcomingOrderMutation({ id: ord._id });
+                                }
+                              }}
+                              title="Delete Order"
+                            >
+                              <i className="ph ph-trash"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {upcomingOrders.length === 0 && (
+                      <tr>
+                        <td colSpan="6" className="text-center text-muted" style={{ padding: '24px' }}>
+                          No upcoming production orders scheduled. Click <strong>"Log Order"</strong> above to schedule an order.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Cards for Upcoming Orders */}
+              <div className="mobile-cards-container">
+                {upcomingOrders.map((ord) => (
+                  <div key={ord._id} className="mobile-card">
+                    <div className="mobile-card-header">
+                      <div className="mobile-card-title">{ord.orderTitle}</div>
+                      <span className={`badge ${ord.status === 'In Production' ? 'badge-warning' : ord.status === 'Delivered' ? 'badge-success' : 'badge-gst'}`} style={{ fontSize: '10px' }}>
+                        {ord.status}
+                      </span>
+                    </div>
+                    <div className="mobile-card-body">
+                      <div className="mobile-card-detail">
+                        <span className="mobile-card-detail-label">Client</span>
+                        <span className="mobile-card-detail-value">{ord.clientName}</span>
+                      </div>
+                      <div className="mobile-card-detail">
+                        <span className="mobile-card-detail-label">Delivery Date</span>
+                        <span className="mobile-card-detail-value">{formatDate(ord.deliveryDate)}</span>
+                      </div>
+                      <div className="mobile-card-detail">
+                        <span className="mobile-card-detail-label">Est. Value</span>
+                        <span className="mobile-card-detail-value font-bold text-primary">{formatCurrency(ord.estimatedValue)}</span>
+                      </div>
+                    </div>
+                    <div className="mobile-card-footer">
+                      {ord.status !== 'Delivered' && (
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={async () => {
+                            await updateUpcomingOrderMutation({
+                              id: ord._id,
+                              clientName: ord.clientName,
+                              orderTitle: ord.orderTitle,
+                              deliveryDate: ord.deliveryDate,
+                              estimatedValue: ord.estimatedValue,
+                              status: 'Delivered',
+                              notes: ord.notes || '',
+                              createdAt: ord.createdAt || new Date().toISOString()
+                            });
+                          }}
+                        >
+                          Mark Delivered
+                        </button>
+                      )}
+                      <button
+                        className="btn btn-secondary text-red btn-sm"
+                        onClick={async () => {
+                          if (window.confirm("Delete order?")) {
+                            await deleteUpcomingOrderMutation({ id: ord._id });
+                          }
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {upcomingOrders.length === 0 && (
+                  <div className="text-center text-muted" style={{ padding: '20px', fontSize: '13px' }}>
+                    No upcoming production orders scheduled. Click "Log Order" above to schedule an order.
+                  </div>
+                )}
               </div>
             </div>
 
@@ -5327,6 +5485,77 @@ export default function App() {
               </div>
 
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Log Upcoming Order Modal */}
+      {isOrderModalOpen && (
+        <div className="modal-overlay active" onClick={() => setIsOrderModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px' }}>
+            <div className="modal-header">
+              <h3>Log Upcoming Production Order</h3>
+              <button className="btn-close" onClick={() => setIsOrderModalOpen(false)}><i className="ph ph-x"></i></button>
+            </div>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const form = e.target;
+              try {
+                await addUpcomingOrderMutation({
+                  clientName: form.clientName.value,
+                  orderTitle: form.orderTitle.value,
+                  deliveryDate: form.deliveryDate.value,
+                  estimatedValue: parseFloat(form.estimatedValue.value) || 0,
+                  status: form.status.value || 'In Production',
+                  notes: form.notes.value || ''
+                });
+                alert("🎉 Upcoming order logged successfully!");
+                setIsOrderModalOpen(false);
+              } catch (err) {
+                alert("Error logging order: " + err.message);
+              }
+            }}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className="form-group">
+                  <label>Order Title / Description *</label>
+                  <input type="text" name="orderTitle" required placeholder="e.g. 1000 Pcs Premium Denim Jackets" />
+                </div>
+                <div className="form-group">
+                  <label>Client Name *</label>
+                  <input type="text" name="clientName" required placeholder="e.g. Sri Varahi Exports" list="order-clients-list-dash" />
+                  <datalist id="order-clients-list-dash">
+                    {clients.map(c => <option key={c._id} value={c.name} />)}
+                  </datalist>
+                </div>
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-group">
+                    <label>Delivery Target Date *</label>
+                    <input type="date" name="deliveryDate" required defaultValue={new Date().toISOString().split('T')[0]} />
+                  </div>
+                  <div className="form-group">
+                    <label>Estimated Value (₹) *</label>
+                    <input type="number" name="estimatedValue" required placeholder="120000" step="100" />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Initial Status</label>
+                  <select name="status" defaultValue="In Production">
+                    <option value="In Production">In Production</option>
+                    <option value="Planned">Planned</option>
+                    <option value="Ready">Ready</option>
+                    <option value="Delivered">Delivered</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Notes / Work Instructions</label>
+                  <textarea name="notes" placeholder="Fabric rolls received, stitchers assigned piece rates..." rows={3}></textarea>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setIsOrderModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary"><i className="ph ph-check"></i> Save Order</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
