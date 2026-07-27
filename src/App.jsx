@@ -297,8 +297,18 @@ export default function App() {
 
   // Sync tab navigation selection in localStorage
   const handleTabChange = (tabName) => {
-    setActiveTab(tabName);
-    localStorage.setItem('lastActiveTab', tabName);
+    if (tabName === 'attendance') {
+      setActiveTab('employees');
+      setEmployeesSubTab('attendance');
+      localStorage.setItem('lastActiveTab', 'employees');
+    } else if (tabName === 'payroll') {
+      setActiveTab('employees');
+      setEmployeesSubTab('payroll');
+      localStorage.setItem('lastActiveTab', 'employees');
+    } else {
+      setActiveTab(tabName);
+      localStorage.setItem('lastActiveTab', tabName);
+    }
     setIsMobileMenuOpen(false);
   };
 
@@ -2121,14 +2131,6 @@ export default function App() {
             <i className="ph ph-identification-card"></i>
             <span>Employees</span>
           </button>
-          <button className={`nav-item ${activeTab === 'attendance' ? 'active' : ''}`} onClick={() => handleTabChange('attendance')}>
-            <i className="ph ph-clock-afternoon"></i>
-            <span>Attendance</span>
-          </button>
-          <button className={`nav-item ${activeTab === 'payroll' ? 'active' : ''}`} onClick={() => handleTabChange('payroll')}>
-            <i className="ph ph-money"></i>
-            <span>Payroll</span>
-          </button>
           <button className={`nav-item ${activeTab === 'expenses' ? 'active' : ''}`} onClick={() => handleTabChange('expenses')}>
             <i className="ph ph-coins"></i>
             <span>Expenses</span>
@@ -2886,147 +2888,7 @@ export default function App() {
           </section>
         )}
 
-        {/* ==================== ATTENDANCE VIEW ==================== */}
-        {activeTab === 'attendance' && (
-          <section id="attendance-view" className="tab-view active">
-            <header className="view-header">
-              <div>
-                <h1>Employee Attendance & Shifts</h1>
-                <p className="subtitle">Track daily staff check-ins, shift schedules, overtime, and manager approvals.</p>
-              </div>
-              <button className="btn btn-primary" onClick={() => alert("Attendance sheet saved successfully!")}>
-                <i className="ph ph-check-circle"></i> Save Daily Sheet
-              </button>
-            </header>
 
-            <div className="sub-tab-bar">
-              <button className={`sub-tab-btn ${attendanceSubTab === 'daily' ? 'active' : ''}`} onClick={() => setAttendanceSubTab('daily')}>
-                <i className="ph ph-calendar-check"></i> Daily Attendance
-              </button>
-              <button className={`sub-tab-btn ${attendanceSubTab === 'shifts' ? 'active' : ''}`} onClick={() => setAttendanceSubTab('shifts')}>
-                <i className="ph ph-clock-afternoon"></i> Shift Management
-              </button>
-              <button className={`sub-tab-btn ${attendanceSubTab === 'approvals' ? 'active' : ''}`} onClick={() => setAttendanceSubTab('approvals')}>
-                <i className="ph ph-thumbs-up"></i> Attendance Approval
-              </button>
-              <button className={`sub-tab-btn ${attendanceSubTab === 'reports' ? 'active' : ''}`} onClick={() => setAttendanceSubTab('reports')}>
-                <i className="ph ph-chart-bar"></i> Attendance Reports
-              </button>
-            </div>
-
-            <div className="table-card bg-surface border">
-              <div className="table-responsive">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Employee</th>
-                      <th>Role</th>
-                      <th>Shift</th>
-                      <th>Check-in Time</th>
-                      <th>Status</th>
-                      <th className="text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {employees.map((emp, idx) => (
-                      <tr key={emp._id}>
-                        <td className="font-semibold">{emp.name}</td>
-                        <td>{emp.role}</td>
-                        <td>Morning Shift (08:00 - 17:00)</td>
-                        <td>08:02 AM</td>
-                        <td>
-                          <span className={`badge ${idx % 3 === 0 ? 'badge-success' : idx % 3 === 1 ? 'badge-info' : 'badge-warning'}`}>
-                            {idx % 3 === 0 ? 'Present' : idx % 3 === 1 ? 'Overtime (2 hrs)' : 'Half-Day'}
-                          </span>
-                        </td>
-                        <td className="text-right">
-                          <button className="btn btn-secondary btn-sm" onClick={() => alert(`Attendance updated for ${emp.name}`)}>
-                            Edit Status
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ==================== PAYROLL VIEW ==================== */}
-        {activeTab === 'payroll' && (
-          <section id="payroll-view" className="tab-view active">
-            <header className="view-header">
-              <div>
-                <h1>Payroll & Compensation</h1>
-                <p className="subtitle">Calculate monthly wages, piece rate stitching bonuses, advances, and payslips.</p>
-              </div>
-              <button className="btn btn-primary" onClick={() => alert("Payroll batch calculated for July 2026!")}>
-                <i className="ph ph-calculator"></i> Run Monthly Payroll
-              </button>
-            </header>
-
-            <div className="sub-tab-bar">
-              <button className={`sub-tab-btn ${payrollSubTab === 'monthly' ? 'active' : ''}`} onClick={() => setPayrollSubTab('monthly')}>
-                <i className="ph ph-money"></i> Monthly Payroll
-              </button>
-              <button className={`sub-tab-btn ${payrollSubTab === 'calculation' ? 'active' : ''}`} onClick={() => setPayrollSubTab('calculation')}>
-                <i className="ph ph-calculator"></i> Salary Calculation
-              </button>
-              <button className={`sub-tab-btn ${payrollSubTab === 'incentives' ? 'active' : ''}`} onClick={() => setPayrollSubTab('incentives')}>
-                <i className="ph ph-star"></i> Incentives
-              </button>
-              <button className={`sub-tab-btn ${payrollSubTab === 'advances' ? 'active' : ''}`} onClick={() => setPayrollSubTab('advances')}>
-                <i className="ph ph-hand-coins"></i> Advances
-              </button>
-              <button className={`sub-tab-btn ${payrollSubTab === 'payslips' ? 'active' : ''}`} onClick={() => setPayrollSubTab('payslips')}>
-                <i className="ph ph-receipt"></i> Payslips
-              </button>
-              <button className={`sub-tab-btn ${payrollSubTab === 'history' ? 'active' : ''}`} onClick={() => setPayrollSubTab('history')}>
-                <i className="ph ph-history"></i> Payment History
-              </button>
-            </div>
-
-            <div className="table-card bg-surface border">
-              <div className="table-responsive">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Employee</th>
-                      <th>Role</th>
-                      <th>Base Salary</th>
-                      <th>Stitching Bonus</th>
-                      <th>Deductions</th>
-                      <th>Net Payable</th>
-                      <th className="text-right">Payslip</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {employees.map(emp => {
-                      const bonus = (emp.stitchRate || 40) * 350;
-                      const net = (emp.salary || 18000) + bonus - 1000;
-                      return (
-                        <tr key={emp._id}>
-                          <td className="font-semibold">{emp.name}</td>
-                          <td>{emp.role}</td>
-                          <td>{formatCurrency(emp.salary || 18000)}</td>
-                          <td className="text-success font-semibold">+{formatCurrency(bonus)}</td>
-                          <td className="text-red">-₹1,000</td>
-                          <td className="font-bold text-primary">{formatCurrency(net)}</td>
-                          <td className="text-right">
-                            <button className="btn btn-secondary btn-sm" onClick={() => alert(`Generating payslip for ${emp.name}...`)}>
-                              <i className="ph ph-printer"></i> Print Payslip
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </section>
-        )}
 
         {/* ==================== REPORTS VIEW ==================== */}
         {activeTab === 'reports' && (
@@ -3503,13 +3365,16 @@ export default function App() {
                 <i className="ph ph-users"></i> Employee Directory
               </button>
               <button className={`sub-tab-btn ${employeesSubTab === 'attendance' ? 'active' : ''}`} onClick={() => setEmployeesSubTab('attendance')}>
-                <i className="ph ph-clock"></i> Attendance
+                <i className="ph ph-clock-afternoon"></i> Daily Attendance
+              </button>
+              <button className={`sub-tab-btn ${employeesSubTab === 'payroll' ? 'active' : ''}`} onClick={() => setEmployeesSubTab('payroll')}>
+                <i className="ph ph-money"></i> Monthly Payroll
               </button>
               <button className={`sub-tab-btn ${employeesSubTab === 'performance' ? 'active' : ''}`} onClick={() => setEmployeesSubTab('performance')}>
                 <i className="ph ph-trend-up"></i> Performance
               </button>
               <button className={`sub-tab-btn ${employeesSubTab === 'salary' ? 'active' : ''}`} onClick={() => setEmployeesSubTab('salary')}>
-                <i className="ph ph-money"></i> Salary
+                <i className="ph ph-hand-coins"></i> Salary & Advances
               </button>
               <button className={`sub-tab-btn ${employeesSubTab === 'leave' ? 'active' : ''}`} onClick={() => setEmployeesSubTab('leave')}>
                 <i className="ph ph-calendar-x"></i> Leave Management
@@ -3519,98 +3384,188 @@ export default function App() {
               </button>
             </div>
 
-            <div className="search-filter-row" style={{ marginBottom: '20px', display: 'flex', gap: '12px' }}>
-              <div className="search-input-wrapper">
-                <i className="ph ph-magnifying-glass"></i>
-                <input type="text" placeholder="Search employees by name..." value={employeeSearch} onChange={(e) => setEmployeeSearch(e.target.value)} />
-              </div>
-              <button className="btn btn-secondary" onClick={handleExportEmployeesPDF} title="Export Stitching Crew to PDF">
-                <i className="ph ph-file-pdf"></i> Export PDF
-              </button>
-            </div>
-
-            <div className="table-card bg-surface border desktop-table-container">
-              <div className="table-responsive">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Phone</th>
-                      <th>Role</th>
-                      <th className="text-right">Stitch Rate / Pcs (₹)</th>
-                      <th className="text-right">Basic Salary (₹)</th>
-                      <th className="text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {employees.filter(e => e.name.toLowerCase().includes(employeeSearch.toLowerCase())).map(emp => (
-                      <tr key={emp._id}>
-                        <td className="font-semibold">{emp.name}</td>
-                        <td>{emp.phone || '-'}</td>
-                        <td>
-                          <span className="badge" style={{ backgroundColor: 'rgba(124,58,237,0.08)', color: 'var(--color-primary)', marginRight: '6px' }}>{emp.role}</span>
-                          {emp.subCategory && (
-                            <span className="badge" style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'var(--color-text-secondary)', border: '1px solid rgba(255,255,255,0.08)' }}>{emp.subCategory}</span>
-                          )}
-                        </td>
-                        <td className="text-right">{formatCurrency(emp.stitchRate)}</td>
-                        <td className="text-right">{formatCurrency(emp.salary)}</td>
-                        <td className="text-right">
-                          <button className="btn-icon" onClick={() => openEditEmployee(emp)}><i className="ph ph-pencil-simple"></i></button>
-                          <button className="btn-icon text-red" onClick={() => deleteEmployee(emp._id)}><i className="ph ph-trash"></i></button>
-                        </td>
-                      </tr>
-                    ))}
-                    {employees.length === 0 && (
+            {employeesSubTab === 'attendance' ? (
+              <div className="table-card bg-surface border" style={{ marginTop: '20px' }}>
+                <div className="table-responsive">
+                  <table className="data-table">
+                    <thead>
                       <tr>
-                        <td colSpan="6" className="text-center text-muted">No crew registered. Add employees to log stitching operations.</td>
+                        <th>Employee</th>
+                        <th>Role</th>
+                        <th>Shift</th>
+                        <th>Check-in Time</th>
+                        <th>Status</th>
+                        <th className="text-right">Action</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="mobile-cards-container">
-              {employees.filter(e => e.name.toLowerCase().includes(employeeSearch.toLowerCase())).map(emp => (
-                <div key={emp._id} className="mobile-card">
-                  <div className="mobile-card-header">
-                    <div className="mobile-card-title">{emp.name}</div>
-                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                      <span className="badge" style={{ backgroundColor: 'rgba(124,58,237,0.08)', color: 'var(--color-primary)', border: '1px solid rgba(124,58,237,0.15)', fontSize: '10px', padding: '2px 6px', borderRadius: '8px' }}>{emp.role}</span>
-                      {emp.subCategory && (
-                        <span className="badge" style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'var(--color-text-secondary)', border: '1px solid rgba(255,255,255,0.08)', fontSize: '10px', padding: '2px 6px', borderRadius: '8px' }}>{emp.subCategory}</span>
+                    </thead>
+                    <tbody>
+                      {employees.map((emp, idx) => (
+                        <tr key={emp._id}>
+                          <td className="font-semibold">{emp.name}</td>
+                          <td>{emp.role}</td>
+                          <td>Morning Shift (08:00 - 17:00)</td>
+                          <td>08:02 AM</td>
+                          <td>
+                            <span className={`badge ${idx % 3 === 0 ? 'badge-success' : idx % 3 === 1 ? 'badge-info' : 'badge-warning'}`}>
+                              {idx % 3 === 0 ? 'Present' : idx % 3 === 1 ? 'Overtime (2 hrs)' : 'Half-Day'}
+                            </span>
+                          </td>
+                          <td className="text-right">
+                            <button className="btn btn-secondary btn-sm" onClick={() => alert(`Attendance updated for ${emp.name}`)}>
+                              Edit Status
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {employees.length === 0 && (
+                        <tr>
+                          <td colSpan="6" className="text-center text-muted">No crew registered for attendance.</td>
+                        </tr>
                       )}
-                    </div>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : employeesSubTab === 'payroll' ? (
+              <div className="table-card bg-surface border" style={{ marginTop: '20px' }}>
+                <div className="table-responsive">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Employee</th>
+                        <th>Role</th>
+                        <th>Base Salary</th>
+                        <th>Stitching Bonus</th>
+                        <th>Deductions</th>
+                        <th>Net Payable</th>
+                        <th className="text-right">Payslip</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {employees.map(emp => {
+                        const bonus = (emp.stitchRate || 40) * 350;
+                        const net = (emp.salary || 18000) + bonus - 1000;
+                        return (
+                          <tr key={emp._id}>
+                            <td className="font-semibold">{emp.name}</td>
+                            <td>{emp.role}</td>
+                            <td>{formatCurrency(emp.salary || 18000)}</td>
+                            <td className="text-success font-semibold">+{formatCurrency(bonus)}</td>
+                            <td className="text-red">-₹1,000</td>
+                            <td className="font-bold text-primary">{formatCurrency(net)}</td>
+                            <td className="text-right">
+                              <button className="btn btn-secondary btn-sm" onClick={() => alert(`Generating payslip for ${emp.name}...`)}>
+                                <i className="ph ph-printer"></i> Print Payslip
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      {employees.length === 0 && (
+                        <tr>
+                          <td colSpan="7" className="text-center text-muted">No payroll records logged.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="search-filter-row" style={{ marginBottom: '20px', display: 'flex', gap: '12px' }}>
+                  <div className="search-input-wrapper">
+                    <i className="ph ph-magnifying-glass"></i>
+                    <input type="text" placeholder="Search employees by name..." value={employeeSearch} onChange={(e) => setEmployeeSearch(e.target.value)} />
                   </div>
-                  <div className="mobile-card-body">
-                    <div className="mobile-card-detail">
-                      <span className="mobile-card-detail-label">Stitch Rate</span>
-                      <span className="mobile-card-detail-value">{formatCurrency(emp.stitchRate)} / Pcs</span>
-                    </div>
-                    <div className="mobile-card-detail">
-                      <span className="mobile-card-detail-label">Basic Salary</span>
-                      <span className="mobile-card-detail-value">{formatCurrency(emp.salary)}</span>
-                    </div>
-                    <div className="mobile-card-detail" style={{ gridColumn: 'span 2' }}>
-                      <span className="mobile-card-detail-label">Phone</span>
-                      <span className="mobile-card-detail-value">{emp.phone || '-'}</span>
-                    </div>
-                  </div>
-                  <div className="mobile-card-footer">
-                    <button className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => openEditEmployee(emp)}>
-                      <i className="ph ph-pencil-simple"></i> Edit
-                    </button>
-                    <button className="btn btn-secondary text-red" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => deleteEmployee(emp._id)}>
-                      <i className="ph ph-trash"></i> Delete
-                    </button>
+                  <button className="btn btn-secondary" onClick={handleExportEmployeesPDF} title="Export Stitching Crew to PDF">
+                    <i className="ph ph-file-pdf"></i> Export PDF
+                  </button>
+                </div>
+
+                <div className="table-card bg-surface border desktop-table-container">
+                  <div className="table-responsive">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Phone</th>
+                          <th>Role</th>
+                          <th className="text-right">Stitch Rate / Pcs (₹)</th>
+                          <th className="text-right">Basic Salary (₹)</th>
+                          <th className="text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {employees.filter(e => e.name.toLowerCase().includes(employeeSearch.toLowerCase())).map(emp => (
+                          <tr key={emp._id}>
+                            <td>
+                              <div style={{ fontWeight: 600 }}>{emp.name}</div>
+                              {emp.subCategory && <span className="small text-muted">{emp.subCategory}</span>}
+                            </td>
+                            <td>{emp.phone || '-'}</td>
+                            <td>
+                              <span className="badge badge-gst">{emp.role}</span>
+                            </td>
+                            <td className="text-right">{formatCurrency(emp.stitchRate)}</td>
+                            <td className="text-right">{formatCurrency(emp.salary)}</td>
+                            <td className="text-right">
+                              <button className="btn-icon" onClick={() => openEditEmployee(emp)}><i className="ph ph-pencil-simple"></i></button>
+                              <button className="btn-icon text-red" onClick={() => deleteEmployee(emp._id)}><i className="ph ph-trash"></i></button>
+                            </td>
+                          </tr>
+                        ))}
+                        {employees.length === 0 && (
+                          <tr>
+                            <td colSpan="6" className="text-center text-muted">No crew registered. Add employees to log stitching operations.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
-              ))}
-              {employees.length === 0 && (
-                <div className="text-center text-muted" style={{ padding: '24px' }}>No crew registered. Add employees to log stitching operations.</div>
-              )}
-            </div>
+
+                <div className="mobile-cards-container">
+                  {employees.filter(e => e.name.toLowerCase().includes(employeeSearch.toLowerCase())).map(emp => (
+                    <div key={emp._id} className="mobile-card">
+                      <div className="mobile-card-header">
+                        <div className="mobile-card-title">{emp.name}</div>
+                        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                          <span className="badge" style={{ backgroundColor: 'rgba(124,58,237,0.08)', color: 'var(--color-primary)', border: '1px solid rgba(124,58,237,0.15)', fontSize: '10px', padding: '2px 6px', borderRadius: '8px' }}>{emp.role}</span>
+                          {emp.subCategory && (
+                            <span className="badge" style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'var(--color-text-secondary)', border: '1px solid rgba(255,255,255,0.08)', fontSize: '10px', padding: '2px 6px', borderRadius: '8px' }}>{emp.subCategory}</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="mobile-card-body">
+                        <div className="mobile-card-detail">
+                          <span className="mobile-card-detail-label">Stitch Rate</span>
+                          <span className="mobile-card-detail-value">{formatCurrency(emp.stitchRate)} / Pcs</span>
+                        </div>
+                        <div className="mobile-card-detail">
+                          <span className="mobile-card-detail-label">Basic Salary</span>
+                          <span className="mobile-card-detail-value">{formatCurrency(emp.salary)}</span>
+                        </div>
+                        <div className="mobile-card-detail" style={{ gridColumn: 'span 2' }}>
+                          <span className="mobile-card-detail-label">Phone</span>
+                          <span className="mobile-card-detail-value">{emp.phone || '-'}</span>
+                        </div>
+                      </div>
+                      <div className="mobile-card-footer">
+                        <button className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => openEditEmployee(emp)}>
+                          <i className="ph ph-pencil-simple"></i> Edit
+                        </button>
+                        <button className="btn btn-secondary text-red" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => deleteEmployee(emp._id)}>
+                          <i className="ph ph-trash"></i> Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {employees.length === 0 && (
+                    <div className="text-center text-muted" style={{ padding: '24px' }}>No crew registered. Add employees to log stitching operations.</div>
+                  )}
+                </div>
+              </>
+            )}
           </section>
         )}
 
