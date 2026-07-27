@@ -591,9 +591,15 @@ export default function App() {
     text = text.replace(/^(please|kindly|can\s+you|would\s+you)\s*/i, '');
 
     let intent = 'invoice';
-    if (text.includes('expense')) intent = 'expense';
-    else if (text.includes('schedule') || text.includes('upcoming order')) intent = 'upcoming_order';
-    else if (text.includes('invoice') || text.includes('bill')) intent = 'invoice';
+    if (text.includes('payroll') || text.includes('salary') || text.includes('wage') || text.includes('pay employee') || text.includes('pay salary')) {
+      intent = 'payroll';
+    } else if (text.includes('expense')) {
+      intent = 'expense';
+    } else if (text.includes('schedule') || text.includes('upcoming order')) {
+      intent = 'upcoming_order';
+    } else if (text.includes('invoice') || text.includes('bill')) {
+      intent = 'invoice';
+    }
 
     // 1. Amount Extraction
     let amount = 0;
@@ -617,19 +623,21 @@ export default function App() {
       else if (text.includes('five lakh') || text.includes('five lakhs')) amount = 500000;
       else if (text.includes('ten thousand')) amount = 10000;
       else if (text.includes('twenty thousand')) amount = 20000;
+      else if (text.includes('twenty five thousand') || text.includes('25 thousand')) amount = 25000;
+      else if (text.includes('thirty thousand')) amount = 30000;
       else if (text.includes('fifty thousand')) amount = 50000;
     }
 
-    // 2. Company / Client Extraction
+    // 2. Company / Person Extraction
     let companyName = "";
-    const companyMatch = text.match(/(?:for|to|client)\s+([a-z0-9\s\.\&\-]+?)(?:\s+(?:for|amount|of|rs|\u20B9|\$|\d)|$)/i);
+    const companyMatch = text.match(/(?:for|to|client|payroll|salary|wage|wages|pay)\s+([a-z0-9\s\.\&\-]+?)(?:\s+(?:for|amount|of|rs|\u20B9|\$|\d|lakh|lk|k|thousand)|$)/i);
     if (companyMatch) {
       companyName = companyMatch[1].trim();
-      companyName = companyName.replace(/\b(invoice|bill|record|add|create)\b/gi, '').trim();
+      companyName = companyName.replace(/\b(invoice|bill|record|add|create|enter|payroll|salary|wage|wages|pay)\b/gi, '').trim();
     }
 
     if (!companyName) {
-      const fallbackMatch = text.match(/(?:invoice|bill)\s+(?:for\s+)?([a-z0-9\s\.\&\-]+?)(?:\s+(?:for|amount|of|rs|\u20B9|\$|\d)|$)/i);
+      const fallbackMatch = text.match(/(?:invoice|bill|payroll|salary)\s+(?:for\s+)?([a-z0-9\s\.\&\-]+?)(?:\s+(?:for|amount|of|rs|\u20B9|\$|\d)|$)/i);
       if (fallbackMatch) {
         companyName = fallbackMatch[1].trim();
       }
@@ -732,6 +740,46 @@ export default function App() {
         setActiveTab('bills');
       }, 2200);
 
+    } else if (parsed.intent === 'payroll') {
+      let targetEmpName = parsed.companyName || "Kartick";
+      let empAmount = parsed.amount || 25000;
+
+      // Find existing employee in database
+      const existingEmp = employees.find(e => 
+        e.name.toLowerCase().includes(targetEmpName.toLowerCase()) || 
+        targetEmpName.toLowerCase().includes(e.name.toLowerCase())
+      );
+
+      if (existingEmp) {
+        targetEmpName = existingEmp.name;
+        if (!parsed.amount && existingEmp.monthlySalary) {
+          empAmount = existingEmp.monthlySalary;
+        }
+      } else {
+        targetEmpName = targetEmpName
+          .split(' ')
+          .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(' ');
+      }
+
+      await addExpenseMutation({
+        category: "Employee Salaries",
+        amount: empAmount,
+        description: `Monthly Payroll Disbursement for ${targetEmpName} via Siri Voice`,
+        date: new Date().toISOString().split('T')[0]
+      });
+
+      setVoiceStatus('success');
+      const formattedAmt = formatCurrency(empAmount);
+      const successMsg = `Payroll of ${formattedAmt} recorded for ${targetEmpName}!`;
+      setVoiceMessage(successMsg);
+      speakText(`Payroll of ${formattedAmt} recorded for ${targetEmpName} successfully!`);
+
+      setTimeout(() => {
+        setIsVoiceModalOpen(false);
+        setActiveTab('payroll');
+      }, 2200);
+
     } else if (parsed.intent === 'expense') {
       const expAmount = parsed.amount || 1000;
       await addExpenseMutation({
@@ -749,7 +797,7 @@ export default function App() {
       }, 2200);
     } else {
       setVoiceStatus('error');
-      setVoiceMessage("Command intent not recognized. Try: 'Okay Siri, add invoice for GV company for 1 lk'");
+      setVoiceMessage("Command intent not recognized. Try: 'Okay Siri, add invoice for GV company for 1 lk' or 'Siri enter payroll for Kartick'");
     }
   };
 
@@ -6009,6 +6057,18 @@ export default function App() {
                     style={{ fontSize: '10px', padding: '4px 10px', borderRadius: '14px', backgroundColor: 'var(--color-surface)' }}
                   >
                     "create bill for Karthik Apparels for 50k"
+                  </button>
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary btn-sm" 
+                    onClick={() => {
+                      const cmd = "siri enter payroll for Kartick";
+                      setVoiceInputManual(cmd);
+                      processVoiceCommand(cmd);
+                    }}
+                    style={{ fontSize: '10px', padding: '4px 10px', borderRadius: '14px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-primary)' }}
+                  >
+                    "enter payroll for Kartick"
                   </button>
                   <button 
                     type="button" 
