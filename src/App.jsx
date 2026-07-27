@@ -217,6 +217,12 @@ export default function App() {
   const [voiceParsedData, setVoiceParsedData] = useState(null);
   const [voiceInputManual, setVoiceInputManual] = useState('');
   const [speechRecognitionRef, setSpeechRecognitionRef] = useState(null);
+  const [isSiriFloatingBarOpen, setIsSiriFloatingBarOpen] = useState(false);
+  const isSiriFloatingBarOpenRef = useRef(false);
+  useEffect(() => {
+    isSiriFloatingBarOpenRef.current = isSiriFloatingBarOpen;
+  }, [isSiriFloatingBarOpen]);
+
   const latestTranscriptRef = useRef('');
 
   // Varahi System Sub-Module Tabs States
@@ -611,18 +617,18 @@ export default function App() {
     let role = 'Tailor';
     let targetTab = '';
 
-    // Check for employee registration intent ("add srimathi employee she is a tailor")
-    if (text.includes('employee') && (text.includes('add') || text.includes('register') || text.includes('create') || text.includes('new') || text.includes('tailor') || text.includes('stitcher'))) {
+    // Check for employee registration intent ("enter srimathi as a new employee" or "add srimathi employee she is a tailor")
+    if ((text.includes('employee') || text.includes('tailor') || text.includes('stitcher') || text.includes('worker') || text.includes('staff')) && (text.includes('add') || text.includes('register') || text.includes('create') || text.includes('enter') || text.includes('new'))) {
       intent = 'add_employee';
 
-      // Match employee name: "add srimathi employee", "add employee srimathi", "add srimathi she is a tailor"
-      const empNameMatch = text.match(/(?:add|register|create)\s+(?:the\s+)?(?:employee\s+)?([a-z0-9\s]+?)(?:\s+(?:employee|she|he|as|is|role|a|tailor|stitcher|signer|cutter|master)|$)/i);
+      // Match employee name: "enter srimathi as a new employee", "add srimathi employee", "add employee srimathi", "add srimathi she is a tailor"
+      const empNameMatch = text.match(/(?:add|register|create|enter)\s+(?:the\s+)?(?:employee\s+)?([a-z0-9\s]+?)(?:\s+(?:as|is|role|a|new|employee|tailor|stitcher|signer|cutter|master|she|he)|$)/i);
       if (empNameMatch) {
-        employeeName = empNameMatch[1].replace(/\b(the|employee|tab|and|a|she|is)\b/gi, '').trim();
+        employeeName = empNameMatch[1].replace(/\b(the|employee|tab|and|a|she|is|new|as|enter|add)\b/gi, '').trim();
       }
 
       if (!employeeName) {
-        const altMatch = text.match(/employee\s+([a-z0-9]+)/i);
+        const altMatch = text.match(/(?:enter|add|register)\s+([a-z0-9]+)/i);
         if (altMatch) employeeName = altMatch[1].trim();
       }
 
@@ -739,7 +745,9 @@ export default function App() {
 
       setTimeout(() => {
         setIsVoiceModalOpen(false);
-      }, 2200);
+        setIsSiriFloatingBarOpen(true);
+        startVoiceAssistant(true);
+      }, 1500);
 
     } else if (parsed.intent === 'navigate') {
       const tab = parsed.targetTab || 'employees';
@@ -753,7 +761,9 @@ export default function App() {
 
       setTimeout(() => {
         setIsVoiceModalOpen(false);
-      }, 1800);
+        setIsSiriFloatingBarOpen(true);
+        startVoiceAssistant(true);
+      }, 1500);
 
     } else if (parsed.intent === 'invoice' || parsed.intent === 'bill') {
       if (!parsed.companyName) {
@@ -898,9 +908,14 @@ export default function App() {
     }
   };
 
-  const startVoiceAssistant = () => {
+  const startVoiceAssistant = (isFloating = false) => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    setIsVoiceModalOpen(true);
+    if (isFloating) {
+      setIsSiriFloatingBarOpen(true);
+      setIsVoiceModalOpen(false);
+    } else {
+      setIsVoiceModalOpen(true);
+    }
     setVoiceTranscript('');
     latestTranscriptRef.current = '';
     setVoiceInputManual('');
@@ -913,7 +928,7 @@ export default function App() {
     }
 
     setVoiceStatus('listening');
-    setVoiceMessage("Listening... Speak now (e.g. 'Okay Siri, add invoice for GV company for 1 lk')");
+    setVoiceMessage("Listening... Speak now (e.g. 'enter Srimathi as a new employee')");
 
     try {
       if (speechRecognitionRef) {
@@ -923,7 +938,7 @@ export default function App() {
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = true;
-      recognition.lang = 'en-IN'; // Optimized for Indian English pronunciations ("lakh", "GV company")
+      recognition.lang = 'en-IN'; // Optimized for Indian English pronunciations
 
       recognition.onresult = (event) => {
         let currentTranscript = '';
@@ -945,8 +960,14 @@ export default function App() {
       recognition.onend = () => {
         setIsVoiceListening(false);
         const finalTranscript = latestTranscriptRef.current;
-        if (finalTranscript && finalTranscript.trim().length > 3) {
+        if (finalTranscript && finalTranscript.trim().length > 2) {
           processVoiceCommand(finalTranscript);
+        } else if (isSiriFloatingBarOpenRef.current) {
+          setTimeout(() => {
+            if (isSiriFloatingBarOpenRef.current) {
+              startVoiceAssistant(true);
+            }
+          }, 800);
         }
       };
 
@@ -5650,6 +5671,75 @@ export default function App() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Persistent Floating Siri Bottom Bar */}
+      {isSiriFloatingBarOpen && (
+        <div className="floating-siri-bar shadow-2xl no-print" style={{
+          position: 'fixed',
+          bottom: '24px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 99999,
+          backgroundColor: '#18181B',
+          color: '#ffffff',
+          borderRadius: '30px',
+          padding: '10px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '14px',
+          border: '1px solid rgba(124, 58, 237, 0.4)',
+          boxShadow: '0 12px 36px rgba(0, 0, 0, 0.6), 0 0 20px rgba(124, 58, 237, 0.3)',
+          minWidth: '340px',
+          maxWidth: '90vw'
+        }}>
+          {/* Glowing Siri Orb */}
+          <div
+            onClick={() => startVoiceAssistant(true)}
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              background: isVoiceListening ? 'radial-gradient(circle, #EC4899, #7C3AED, #4F46E5)' : 'linear-gradient(135deg, #7C3AED, #6366F1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              boxShadow: '0 0 12px rgba(236, 72, 153, 0.6)'
+            }}
+            title="Click to Speak to Siri"
+          >
+            <i className={`ph-fill ${isVoiceListening ? 'ph-microphone' : 'ph-microphone-slash'}`} style={{ color: '#fff', fontSize: '18px' }}></i>
+          </div>
+
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="pulse-dot" style={{ width: '8px', height: '8px', backgroundColor: isVoiceListening ? '#10B981' : '#F59E0B', borderRadius: '50%', display: 'inline-block' }}></span>
+              <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)' }}>
+                {isVoiceListening ? 'Siri Listening...' : 'Siri Active'}
+              </span>
+            </div>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: '#F4F4F5', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '280px' }}>
+              {voiceTranscript || voiceMessage || 'Say e.g. "enter Srimathi as a new employee"'}
+            </div>
+          </div>
+
+          {/* Quick Action / Close */}
+          <button
+            onClick={() => startVoiceAssistant(true)}
+            className="btn btn-primary btn-sm"
+            style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '16px' }}
+          >
+            Speak
+          </button>
+          <button
+            onClick={() => { setIsSiriFloatingBarOpen(false); stopVoiceAssistant(); }}
+            style={{ background: 'none', border: 'none', color: '#A1A1AA', cursor: 'pointer', padding: '4px', fontSize: '16px' }}
+            title="Close Siri Bar"
+          >
+            <i className="ph ph-x"></i>
+          </button>
         </div>
       )}
     </div>
