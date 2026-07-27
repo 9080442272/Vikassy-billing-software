@@ -607,7 +607,44 @@ export default function App() {
     text = text.replace(/^(please|kindly|can\s+you|would\s+you)\s*/i, '');
 
     let intent = 'invoice';
-    if (text.includes('payroll') || text.includes('salary') || text.includes('wage') || text.includes('pay employee') || text.includes('pay salary')) {
+    let employeeName = '';
+    let role = 'Tailor';
+    let targetTab = '';
+
+    // Check for employee registration intent ("add srimathi employee she is a tailor")
+    if (text.includes('employee') && (text.includes('add') || text.includes('register') || text.includes('create') || text.includes('new') || text.includes('tailor') || text.includes('stitcher'))) {
+      intent = 'add_employee';
+
+      // Match employee name: "add srimathi employee", "add employee srimathi", "add srimathi she is a tailor"
+      const empNameMatch = text.match(/(?:add|register|create)\s+(?:the\s+)?(?:employee\s+)?([a-z0-9\s]+?)(?:\s+(?:employee|she|he|as|is|role|a|tailor|stitcher|signer|cutter|master)|$)/i);
+      if (empNameMatch) {
+        employeeName = empNameMatch[1].replace(/\b(the|employee|tab|and|a|she|is)\b/gi, '').trim();
+      }
+
+      if (!employeeName) {
+        const altMatch = text.match(/employee\s+([a-z0-9]+)/i);
+        if (altMatch) employeeName = altMatch[1].trim();
+      }
+
+      // Match role: "she is a tailor", "as tailor", "role stitcher"
+      if (text.includes('tailor')) role = 'Tailor';
+      else if (text.includes('stitcher')) role = 'Stitcher';
+      else if (text.includes('signer')) role = 'Signer';
+      else if (text.includes('cutter')) role = 'Cutter';
+      else if (text.includes('master')) role = 'Master';
+
+    } else if (text.startsWith('open ') || text.startsWith('go to ') || text.startsWith('show ')) {
+      intent = 'navigate';
+      if (text.includes('employee') || text.includes('crew') || text.includes('staff')) targetTab = 'employees';
+      else if (text.includes('client') || text.includes('customer')) targetTab = 'clients';
+      else if (text.includes('bill') || text.includes('invoice')) targetTab = 'bills';
+      else if (text.includes('dashboard') || text.includes('home')) targetTab = 'dashboard';
+      else if (text.includes('fabric')) targetTab = 'fabrics';
+      else if (text.includes('expense')) targetTab = 'expenses';
+      else if (text.includes('report') || text.includes('analytics')) targetTab = 'reports';
+      else if (text.includes('setting')) targetTab = 'settings';
+
+    } else if (text.includes('payroll') || text.includes('salary') || text.includes('wage') || text.includes('pay employee') || text.includes('pay salary')) {
       intent = 'payroll';
     } else if (text.includes('expense')) {
       intent = 'expense';
@@ -662,7 +699,7 @@ export default function App() {
     // Clean residual filler words
     companyName = companyName.replace(/\b(for|amount|of|rs|lakh|lakhs|lk|lac|k|thousand|rupees)\b/gi, '').trim();
 
-    return { intent, companyName, amount, rawText };
+    return { intent, companyName, employeeName, role, targetTab, amount, rawText };
   };
 
   const processVoiceCommand = async (commandString) => {
@@ -674,7 +711,51 @@ export default function App() {
     const parsed = parseVoiceCommand(commandString);
     setVoiceParsedData(parsed);
 
-    if (parsed.intent === 'invoice' || parsed.intent === 'bill') {
+    if (parsed.intent === 'add_employee') {
+      const empName = parsed.employeeName
+        ? parsed.employeeName.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+        : "Srimathi";
+      const empRole = parsed.role
+        ? parsed.role.charAt(0).toUpperCase() + parsed.role.slice(1)
+        : "Tailor";
+
+      // Live action: Switch tab directly to Employees Directory
+      setActiveTab('employees');
+      setEmployeesSubTab('directory');
+
+      await addEmployeeMutation({
+        name: empName,
+        phone: "+91 98765 00000",
+        role: empRole,
+        subCategory: "Stitching Crew",
+        stitchRate: 15,
+        salary: 12000
+      });
+
+      setVoiceStatus('success');
+      const successMsg = `Registered ${empName} as ${empRole} under Employees directory!`;
+      setVoiceMessage(successMsg);
+      speakText(`Added ${empName} as ${empRole} under Employees directory.`);
+
+      setTimeout(() => {
+        setIsVoiceModalOpen(false);
+      }, 2200);
+
+    } else if (parsed.intent === 'navigate') {
+      const tab = parsed.targetTab || 'employees';
+      setActiveTab(tab);
+      if (tab === 'employees') setEmployeesSubTab('directory');
+
+      setVoiceStatus('success');
+      const successMsg = `Opened ${tab.charAt(0).toUpperCase() + tab.slice(1)} view!`;
+      setVoiceMessage(successMsg);
+      speakText(`Opened ${tab} tab.`);
+
+      setTimeout(() => {
+        setIsVoiceModalOpen(false);
+      }, 1800);
+
+    } else if (parsed.intent === 'invoice' || parsed.intent === 'bill') {
       if (!parsed.companyName) {
         setVoiceStatus('error');
         setVoiceMessage("Could not identify client/company name. Try: 'Okay Siri, add invoice for GV company for 1 lk'");
@@ -5433,6 +5514,18 @@ export default function App() {
               <div style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Sample voice command chips (click to test):</span>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'center' }}>
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary btn-sm" 
+                    onClick={() => {
+                      const cmd = "siri open the employee tab and add srimathi employee she is a tailor";
+                      setVoiceInputManual(cmd);
+                      processVoiceCommand(cmd);
+                    }}
+                    style={{ fontSize: '10px', padding: '4px 10px', borderRadius: '14px', backgroundColor: 'rgba(124, 58, 237, 0.1)', color: 'var(--color-primary)', border: '1px solid var(--color-primary)', fontWeight: 600 }}
+                  >
+                    🎙️ "siri open employee tab and add srimathi employee she is a tailor"
+                  </button>
                   <button 
                     type="button" 
                     className="btn btn-secondary btn-sm" 
