@@ -619,8 +619,12 @@ export default function App() {
 
     let targetEntity = '';
 
+    // Go Back / Clear Search Intent Matcher: "go back", "back", "return", "clear search", "reset filter"
+    if (text === 'go back' || text === 'back' || text === 'return' || text.includes('go back') || text.includes('clear search') || text.includes('reset search') || text.includes('show all')) {
+      intent = 'go_back';
+
     // Universal Accessibility Intent Matcher: "click on [ANY name]", "select [ANY entity]", "view [ANY bill/fabric/client/employee]"
-    if (text.includes('click') || text.includes('select') || text.includes('view') || text.includes('show detail') || text.includes('open detail') || (text.includes('open') && !text.includes('tab') && !text.includes('page') && !text.includes('section') && !text.includes('menu'))) {
+    } else if (text.includes('click') || text.includes('select') || text.includes('view') || text.includes('show detail') || text.includes('open detail') || (text.includes('open') && !text.includes('tab') && !text.includes('page') && !text.includes('section') && !text.includes('menu'))) {
       intent = 'select_entity';
       const clickMatch = text.match(/(?:click|click\s+on|select|view|open|show)\s+(?:the\s+)?(?:employee\s+|client\s+|bill\s+|invoice\s+|fabric\s+|order\s+)?([a-z0-9\s\.\-]+?)(?:\s+(?:name|profile|details|tab|invoice|bill)|$)/i);
       if (clickMatch) {
@@ -729,7 +733,33 @@ export default function App() {
     const parsed = parseVoiceCommand(commandString);
     setVoiceParsedData(parsed);
 
-    if (parsed.intent === 'select_entity') {
+    if (parsed.intent === 'go_back') {
+      setEmployeeSearch('');
+      setClientSearch('');
+      setFabricSearch('');
+      setSelectedEmployeeDetail(null);
+      setSelectedClientDetail(null);
+      setViewingInvoice(null);
+      setIsInvoiceViewOpen(false);
+
+      if (activeTab === 'employees') {
+        setEmployeesSubTab('directory');
+      } else if (activeTab === 'clients') {
+        setClientsSubTab('all');
+      }
+
+      setVoiceStatus('success');
+      setVoiceMessage("Cleared search filter & returned to main directory!");
+      speakText("Going back to main directory.");
+
+      setTimeout(() => {
+        if (isSiriFloatingBarOpenRef.current) {
+          startVoiceAssistant();
+        }
+      }, 1500);
+      return;
+
+    } else if (parsed.intent === 'select_entity') {
       const rawQuery = (parsed.targetEntity || parsed.companyName || parsed.rawText || '').trim().toLowerCase();
       const targetStr = rawQuery.replace(/\b(click|on|select|view|open|show|the|name|profile|details|tab|card|invoice|bill)\b/gi, '').trim() || rawQuery;
 
@@ -3707,11 +3737,49 @@ export default function App() {
               </div>
             ) : (
               <>
-                <div className="search-filter-row" style={{ marginBottom: '20px', display: 'flex', gap: '12px' }}>
-                  <div className="search-input-wrapper">
+                <div className="search-filter-row" style={{ marginBottom: '20px', display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <div className="search-input-wrapper" style={{ position: 'relative', flex: 1 }}>
                     <i className="ph ph-magnifying-glass"></i>
-                    <input type="text" placeholder="Search employees by name..." value={employeeSearch} onChange={(e) => setEmployeeSearch(e.target.value)} />
+                    <input
+                      type="text"
+                      placeholder="Search employees by name or role..."
+                      value={employeeSearch}
+                      onChange={(e) => setEmployeeSearch(e.target.value)}
+                      style={{ width: '100%', paddingRight: employeeSearch ? '32px' : '14px' }}
+                    />
+                    {employeeSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setEmployeeSearch('')}
+                        style={{
+                          position: 'absolute',
+                          right: '12px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--color-text-secondary)',
+                          cursor: 'pointer',
+                          fontSize: '16px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        title="Clear search filter"
+                      >
+                        <i className="ph ph-x-circle-fill"></i>
+                      </button>
+                    )}
                   </div>
+                  {employeeSearch && (
+                    <button
+                      className="btn btn-secondary text-primary"
+                      onClick={() => setEmployeeSearch('')}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600, whiteSpace: 'nowrap' }}
+                    >
+                      <i className="ph ph-arrow-left"></i> Go Back to All
+                    </button>
+                  )}
                   <button className="btn btn-secondary" onClick={handleExportEmployeesPDF} title="Export Stitching Crew to PDF">
                     <i className="ph ph-file-pdf"></i> Export PDF
                   </button>
@@ -3749,9 +3817,27 @@ export default function App() {
                             </td>
                           </tr>
                         ))}
-                        {employees.length === 0 && (
+                        {employees.filter(e => e.name.toLowerCase().includes(employeeSearch.toLowerCase())).length === 0 && (
                           <tr>
-                            <td colSpan="6" className="text-center text-muted">No crew registered. Add employees to log stitching operations.</td>
+                            <td colSpan="6" className="text-center text-muted" style={{ padding: '36px 16px' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                                <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'rgba(124,58,237,0.1)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
+                                  <i className="ph ph-user-minus"></i>
+                                </div>
+                                {employeeSearch ? (
+                                  <>
+                                    <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                                      No employee matching "{employeeSearch}" was found.
+                                    </div>
+                                    <button className="btn btn-primary" onClick={() => setEmployeeSearch('')} style={{ marginTop: '4px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                      <i className="ph ph-arrow-left"></i> Go Back to All Employees
+                                    </button>
+                                  </>
+                                ) : (
+                                  <div>No crew registered. Add employees to log stitching operations.</div>
+                                )}
+                              </div>
+                            </td>
                           </tr>
                         )}
                       </tbody>
@@ -5697,6 +5783,17 @@ export default function App() {
               style={{ fontSize: '10px', padding: '3px 9px', borderRadius: '12px', backgroundColor: 'rgba(124, 58, 237, 0.2)', color: '#D8B4FE', border: '1px solid rgba(124, 58, 237, 0.4)', fontWeight: 600, cursor: 'pointer', whitespace: 'nowrap' }}
             >
               🎙️ "open employee tab"
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const cmd = "go back";
+                setVoiceInputManual(cmd);
+                processVoiceCommand(cmd);
+              }}
+              style={{ fontSize: '10px', padding: '3px 9px', borderRadius: '12px', backgroundColor: 'rgba(239, 68, 68, 0.2)', color: '#FCA5A5', border: '1px solid rgba(239, 68, 68, 0.4)', fontWeight: 600, cursor: 'pointer', whitespace: 'nowrap' }}
+            >
+              ↩️ "go back"
             </button>
             <button
               type="button"
