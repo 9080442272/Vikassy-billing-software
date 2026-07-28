@@ -3503,18 +3503,18 @@ export default function App() {
               </div>
             ) : settingsSubTab === 'departments' ? (
               <div className="table-card bg-surface border" style={{ marginTop: '10px' }}>
-                <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid #E6E6EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#FAFAFC' }}>
                   <div>
-                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Factory Departments & Production Units</h3>
-                    <p className="small text-muted" style={{ margin: '2px 0 0 0' }}>Configure operational units, department heads, and floor staff allocations.</p>
+                    <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1C1C21' }}>Factory Departments & Production Units</h3>
+                    <p className="small text-muted" style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#62636C' }}>Configure operational units, floor supervisors, and staff allocations.</p>
                   </div>
-                  <button className="btn btn-primary btn-sm" onClick={() => {
+                  <button className="btn btn-primary btn-sm" style={{ borderRadius: '14px', padding: '6px 14px' }} onClick={() => {
                     const dName = prompt("Enter Department Name:");
                     if (dName) {
                       setSystemDepartments(prev => [...prev, { id: Date.now(), name: dName, head: "Supervisor", staffCount: "5 Members", location: "Unit 1" }]);
                     }
                   }}>
-                    <i className="ph ph-plus-circle"></i> + Add Department
+                    <i className="ph ph-plus"></i> Add Department
                   </button>
                 </div>
                 <div className="table-responsive">
@@ -3525,19 +3525,35 @@ export default function App() {
                         <th>Department Head</th>
                         <th>Staff Count</th>
                         <th>Factory Location</th>
-                        <th className="text-right">Action</th>
+                        <th className="text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {systemDepartments.map(dept => (
                         <tr key={dept.id}>
-                          <td className="font-semibold">{dept.name}</td>
-                          <td>{dept.head}</td>
-                          <td className="font-bold">{dept.staffCount}</td>
-                          <td className="text-muted">{dept.location}</td>
+                          <td className="font-semibold" style={{ color: '#1C1C21' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <i className="ph ph-tree-structure" style={{ color: '#6E56CF', fontSize: '15px' }}></i>
+                              <span>{dept.name}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <div style={{ width: '22px', height: '22px', borderRadius: '50%', backgroundColor: '#E4E4E9', color: '#1C1C21', fontSize: '10px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                {dept.head ? dept.head[0] : 'S'}
+                              </div>
+                              <span style={{ fontSize: '13px', fontWeight: 500 }}>{dept.head}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <span style={{ backgroundColor: '#F4F4F6', color: '#1C1C21', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600, border: '1px solid #E6E6EB' }}>
+                              {dept.staffCount}
+                            </span>
+                          </td>
+                          <td className="text-muted" style={{ fontSize: '12px' }}>{dept.location}</td>
                           <td className="text-right">
-                            <button className="btn btn-secondary btn-sm" onClick={() => alert(`Department details for ${dept.name}`)}>
-                              Manage Unit
+                            <button className="btn-ghost" onClick={() => alert(`Department details for ${dept.name}`)}>
+                              <i className="ph ph-gear"></i> Manage Unit
                             </button>
                           </td>
                         </tr>
@@ -3548,18 +3564,18 @@ export default function App() {
               </div>
             ) : settingsSubTab === 'job-categories' ? (
               <div className="table-card bg-surface border" style={{ marginTop: '10px' }}>
-                <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid #E6E6EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#FAFAFC' }}>
                   <div>
-                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Garment Job Categories & Stitch Rates</h3>
-                    <p className="small text-muted" style={{ margin: '2px 0 0 0' }}>Define standard garment categories, GST slabs, and piece rate guidelines.</p>
+                    <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1C1C21' }}>Garment Job Categories & Stitch Rates</h3>
+                    <p className="small text-muted" style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#62636C' }}>Define standard garment categories, GST slabs, and piece rate guidelines.</p>
                   </div>
-                  <button className="btn btn-primary btn-sm" onClick={() => {
+                  <button className="btn btn-primary btn-sm" style={{ borderRadius: '14px', padding: '6px 14px' }} onClick={() => {
                     const cName = prompt("Enter Category Name:");
                     if (cName) {
                       setJobCategoriesList(prev => [...prev, { id: Date.now(), name: cName, gstRate: "5%", rateRange: "₹15 - ₹30 / Pcs", description: "Custom stitching category" }]);
                     }
                   }}>
-                    <i className="ph ph-plus-circle"></i> + Add Job Category
+                    <i className="ph ph-plus"></i> Add Category
                   </button>
                 </div>
                 <div className="table-responsive">
@@ -3576,13 +3592,18 @@ export default function App() {
                     <tbody>
                       {jobCategoriesList.map(cat => (
                         <tr key={cat.id}>
-                          <td className="font-semibold">{cat.name}</td>
-                          <td><span className="badge badge-gst">{cat.gstRate}</span></td>
-                          <td className="font-bold text-primary">{cat.rateRange}</td>
-                          <td className="text-muted">{cat.description}</td>
+                          <td className="font-semibold" style={{ color: '#1C1C21' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <i className="ph ph-tag" style={{ color: '#6E56CF', fontSize: '15px' }}></i>
+                              <span>{cat.name}</span>
+                            </div>
+                          </td>
+                          <td><span className="badge badge-gst" style={{ fontSize: '11px' }}>{cat.gstRate}</span></td>
+                          <td className="font-bold text-primary" style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>{cat.rateRange}</td>
+                          <td className="text-muted" style={{ fontSize: '12px' }}>{cat.description}</td>
                           <td className="text-right">
-                            <button className="btn btn-secondary btn-sm" onClick={() => alert(`Editing rates for ${cat.name}`)}>
-                              Configure Rates
+                            <button className="btn-ghost" onClick={() => alert(`Editing rates for ${cat.name}`)}>
+                              <i className="ph ph-sliders"></i> Configure Rates
                             </button>
                           </td>
                         </tr>
@@ -3593,18 +3614,18 @@ export default function App() {
               </div>
             ) : settingsSubTab === 'expense-categories' ? (
               <div className="table-card bg-surface border" style={{ marginTop: '10px' }}>
-                <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid #E6E6EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#FAFAFC' }}>
                   <div>
-                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Expense Ledger Categories & Budget Limits</h3>
-                    <p className="small text-muted" style={{ margin: '2px 0 0 0' }}>Set up operational expense categories for financial auditing.</p>
+                    <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1C1C21' }}>Expense Ledger Categories & Budget Limits</h3>
+                    <p className="small text-muted" style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#62636C' }}>Set up operational expense categories for financial auditing.</p>
                   </div>
-                  <button className="btn btn-primary btn-sm" onClick={() => {
+                  <button className="btn btn-primary btn-sm" style={{ borderRadius: '14px', padding: '6px 14px' }} onClick={() => {
                     const expCat = prompt("Enter Expense Category Name:");
                     if (expCat) {
                       setExpenseCategoriesList(prev => [...prev, { id: Date.now(), name: expCat, budget: "₹25,000 / Mo", deductible: "Yes" }]);
                     }
                   }}>
-                    <i className="ph ph-plus-circle"></i> + Add Category
+                    <i className="ph ph-plus"></i> Add Category
                   </button>
                 </div>
                 <div className="table-responsive">
@@ -3620,12 +3641,17 @@ export default function App() {
                     <tbody>
                       {expenseCategoriesList.map(exp => (
                         <tr key={exp.id}>
-                          <td className="font-semibold">{exp.name}</td>
-                          <td className="font-bold">{exp.budget}</td>
-                          <td><span className="badge badge-success">{exp.deductible}</span></td>
+                          <td className="font-semibold" style={{ color: '#1C1C21' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <i className="ph ph-folder" style={{ color: '#6E56CF', fontSize: '15px' }}></i>
+                              <span>{exp.name}</span>
+                            </div>
+                          </td>
+                          <td className="font-bold" style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>{exp.budget}</td>
+                          <td><span className="badge badge-success" style={{ fontSize: '11px' }}>{exp.deductible}</span></td>
                           <td className="text-right">
-                            <button className="btn btn-secondary btn-sm" onClick={() => alert(`Budget updated for ${exp.name}`)}>
-                              Edit Budget
+                            <button className="btn-ghost" onClick={() => alert(`Budget updated for ${exp.name}`)}>
+                              <i className="ph ph-pencil-simple"></i> Edit Budget
                             </button>
                           </td>
                         </tr>
