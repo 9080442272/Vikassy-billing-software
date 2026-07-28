@@ -233,9 +233,29 @@ export default function App() {
   const [clientsSubTab, setClientsSubTab] = useState('list'); // 'list' | 'details' | 'active-jobs' | 'completed-jobs' | 'documents'
   const [selectedClientDetail, setSelectedClientDetail] = useState(null);
 
-  const [employeesSubTab, setEmployeesSubTab] = useState('directory'); // 'directory' | 'attendance' | 'performance' | 'salary' | 'leave' | 'profile'
+  const [employeesSubTab, setEmployeesSubTab] = useState('directory'); // 'directory' | 'attendance' | 'payroll' | 'performance' | 'salary' | 'leave' | 'profile'
   const [empProfileTab, setEmpProfileTab] = useState('personal'); // 'personal' | 'attendance' | 'jobs' | 'salary' | 'documents'
   const [selectedEmployeeDetail, setSelectedEmployeeDetail] = useState(null);
+
+  // Employee Action Modals & Records
+  const [isAttendanceModalOpen, setIsAttendanceModalOpen] = useState(false);
+  const [isAdvanceModalOpen, setIsAdvanceModalOpen] = useState(false);
+  const [isDisbursePayrollModalOpen, setIsDisbursePayrollModalOpen] = useState(false);
+
+  const [attendanceRecords, setAttendanceRecords] = useState([
+    { id: 1, empName: "Kartick", role: "Stitcher", shift: "Morning Shift (08:00 - 17:00)", checkIn: "08:00 AM", status: "Present", date: new Date().toISOString().split('T')[0] },
+    { id: 2, empName: "Srimathi", role: "Tailor", shift: "Morning Shift (08:00 - 17:00)", checkIn: "08:05 AM", status: "Overtime (+2 hrs)", date: new Date().toISOString().split('T')[0] },
+    { id: 3, empName: "Ramesh Kumar", role: "Master", shift: "Morning Shift (08:00 - 17:00)", checkIn: "08:15 AM", status: "Half-Day", date: new Date().toISOString().split('T')[0] }
+  ]);
+
+  const [advanceRecords, setAdvanceRecords] = useState([
+    { id: 1, empName: "Kartick", date: "2026-07-20", type: "Festival Advance", amount: 2000, mode: "UPI / GPay", notes: "Aadi festival advance" },
+    { id: 2, empName: "Srimathi", date: "2026-07-15", type: "Salary Advance", amount: 1500, mode: "Cash", notes: "Emergency advance" }
+  ]);
+
+  const [payrollRecords, setPayrollRecords] = useState([
+    { id: 1, empName: "Kartick", month: "July 2026", baseSalary: 25000, bonus: 3500, deductions: 2000, netPayable: 26500, status: "Disbursed & Paid", date: new Date().toISOString().split('T')[0] }
+  ]);
 
   const [attendanceSubTab, setAttendanceSubTab] = useState('daily'); // 'daily' | 'shifts' | 'approvals' | 'reports'
   const [payrollSubTab, setPayrollSubTab] = useState('monthly'); // 'monthly' | 'calculation' | 'incentives' | 'advances' | 'payslips' | 'history'
@@ -3615,11 +3635,22 @@ export default function App() {
             <header className="view-header">
               <div>
                 <h1>Stitching Crew Management</h1>
-                <p className="subtitle">Register stitching staff, roles, salary assignments, and wage rates per piece.</p>
+                <p className="subtitle">Register stitching staff, log daily attendance, manage salary advances & disburse monthly payroll.</p>
               </div>
-              <button className="btn btn-primary" onClick={() => setIsEmployeeModalOpen(true)}>
-                <i className="ph ph-user-plus"></i> Register Employee
-              </button>
+              <div className="header-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button className="btn btn-primary" onClick={() => setIsEmployeeModalOpen(true)}>
+                  <i className="ph ph-user-plus"></i> Register Employee
+                </button>
+                <button className="btn btn-accent" onClick={() => setIsAttendanceModalOpen(true)}>
+                  <i className="ph ph-clock"></i> Log Attendance
+                </button>
+                <button className="btn btn-secondary text-primary" onClick={() => setIsAdvanceModalOpen(true)} style={{ fontWeight: 600 }}>
+                  <i className="ph ph-hand-coins"></i> Give Advance
+                </button>
+                <button className="btn btn-secondary text-success" onClick={() => setIsDisbursePayrollModalOpen(true)} style={{ fontWeight: 600 }}>
+                  <i className="ph ph-money"></i> Disburse Payroll
+                </button>
+              </div>
             </header>
 
             <div className="sub-tab-bar">
@@ -3648,40 +3679,52 @@ export default function App() {
 
             {employeesSubTab === 'attendance' ? (
               <div className="table-card bg-surface border" style={{ marginTop: '20px' }}>
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Daily Shift & Attendance Log</h3>
+                  <button className="btn btn-primary btn-sm" onClick={() => setIsAttendanceModalOpen(true)}>
+                    <i className="ph ph-plus"></i> Log Today's Attendance
+                  </button>
+                </div>
                 <div className="table-responsive">
                   <table className="data-table">
                     <thead>
                       <tr>
+                        <th>Date</th>
                         <th>Employee</th>
                         <th>Role</th>
-                        <th>Shift</th>
+                        <th>Shift Details</th>
                         <th>Check-in Time</th>
-                        <th>Status</th>
+                        <th>Attendance Status</th>
                         <th className="text-right">Action</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {employees.map((emp, idx) => (
-                        <tr key={emp._id}>
-                          <td className="font-semibold">{emp.name}</td>
-                          <td>{emp.role}</td>
-                          <td>Morning Shift (08:00 - 17:00)</td>
-                          <td>08:02 AM</td>
+                      {attendanceRecords.map((record) => (
+                        <tr key={record.id}>
+                          <td className="text-muted">{record.date}</td>
+                          <td className="font-semibold">{record.empName}</td>
+                          <td>{record.role}</td>
+                          <td>{record.shift}</td>
+                          <td>{record.checkIn}</td>
                           <td>
-                            <span className={`badge ${idx % 3 === 0 ? 'badge-success' : idx % 3 === 1 ? 'badge-info' : 'badge-warning'}`}>
-                              {idx % 3 === 0 ? 'Present' : idx % 3 === 1 ? 'Overtime (2 hrs)' : 'Half-Day'}
+                            <span className={`badge ${
+                              record.status.includes('Present') ? 'badge-success' :
+                              record.status.includes('Overtime') ? 'badge-info' :
+                              record.status.includes('Half-Day') ? 'badge-warning' : 'badge-danger'
+                            }`}>
+                              {record.status}
                             </span>
                           </td>
                           <td className="text-right">
-                            <button className="btn btn-secondary btn-sm" onClick={() => alert(`Attendance updated for ${emp.name}`)}>
-                              Edit Status
+                            <button className="btn btn-secondary btn-sm" onClick={() => setIsAttendanceModalOpen(true)}>
+                              Update Status
                             </button>
                           </td>
                         </tr>
                       ))}
-                      {employees.length === 0 && (
+                      {attendanceRecords.length === 0 && (
                         <tr>
-                          <td colSpan="6" className="text-center text-muted">No crew registered for attendance.</td>
+                          <td colSpan="7" className="text-center text-muted">No attendance entries logged today. Click "+ Log Today's Attendance".</td>
                         </tr>
                       )}
                     </tbody>
@@ -3690,46 +3733,219 @@ export default function App() {
               </div>
             ) : employeesSubTab === 'payroll' ? (
               <div className="table-card bg-surface border" style={{ marginTop: '20px' }}>
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Monthly Payroll Disbursements</h3>
+                  <button className="btn btn-success btn-sm text-white" onClick={() => setIsDisbursePayrollModalOpen(true)}>
+                    <i className="ph ph-money"></i> Disburse Payroll Entry
+                  </button>
+                </div>
+                <div className="table-responsive">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Employee</th>
+                        <th>Month</th>
+                        <th>Base Salary (₹)</th>
+                        <th>Piece Bonus (₹)</th>
+                        <th>Deductions / Advances (₹)</th>
+                        <th>Net Paid (₹)</th>
+                        <th>Status</th>
+                        <th className="text-right">Payslip</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {payrollRecords.map(pr => (
+                        <tr key={pr.id}>
+                          <td className="font-semibold">{pr.empName}</td>
+                          <td>{pr.month}</td>
+                          <td>{formatCurrency(pr.baseSalary)}</td>
+                          <td className="text-success font-semibold">+{formatCurrency(pr.bonus)}</td>
+                          <td className="text-red">-{formatCurrency(pr.deductions)}</td>
+                          <td className="font-bold text-primary">{formatCurrency(pr.netPayable)}</td>
+                          <td>
+                            <span className="badge badge-success">{pr.status}</span>
+                          </td>
+                          <td className="text-right">
+                            <button className="btn btn-secondary btn-sm" onClick={() => alert(`Printing payslip for ${pr.empName} (${pr.month})...`)}>
+                              <i className="ph ph-printer"></i> Print Payslip
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {employees.map(emp => {
+                        const bonus = (emp.stitchRate || 40) * 350;
+                        const net = (emp.salary || 18000) + bonus - 1000;
+                        return (
+                          <tr key={'calc-' + emp._id}>
+                            <td className="font-semibold">{emp.name}</td>
+                            <td className="text-muted">July 2026 (Calculated)</td>
+                            <td>{formatCurrency(emp.salary || 18000)}</td>
+                            <td className="text-success font-semibold">+{formatCurrency(bonus)}</td>
+                            <td className="text-red">-₹1,000</td>
+                            <td className="font-bold text-primary">{formatCurrency(net)}</td>
+                            <td>
+                              <span className="badge badge-warning">Pending Payment</span>
+                            </td>
+                            <td className="text-right">
+                              <button className="btn btn-primary btn-sm" onClick={() => setIsDisbursePayrollModalOpen(true)}>
+                                Pay Salary
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : employeesSubTab === 'salary' ? (
+              <div className="table-card bg-surface border" style={{ marginTop: '20px' }}>
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Salary Advances & Festival Loans</h3>
+                    <p className="small text-muted" style={{ margin: '2px 0 0 0' }}>Track advances given to stitchers and emergency loan disbursements.</p>
+                  </div>
+                  <button className="btn btn-primary btn-sm" onClick={() => setIsAdvanceModalOpen(true)}>
+                    <i className="ph ph-plus-circle"></i> Give Salary Advance
+                  </button>
+                </div>
+                <div className="table-responsive">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Employee</th>
+                        <th>Payment Type</th>
+                        <th>Amount Disbursed (₹)</th>
+                        <th>Payment Method</th>
+                        <th>Notes / Reason</th>
+                        <th className="text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {advanceRecords.map(adv => (
+                        <tr key={adv.id}>
+                          <td className="text-muted">{adv.date}</td>
+                          <td className="font-semibold">{adv.empName}</td>
+                          <td><span className="badge badge-gst">{adv.type}</span></td>
+                          <td className="font-bold text-red">{formatCurrency(adv.amount)}</td>
+                          <td>{adv.mode}</td>
+                          <td>{adv.notes || '-'}</td>
+                          <td className="text-right">
+                            <button className="btn btn-secondary btn-sm" onClick={() => alert(`Advance receipt downloaded for ${adv.empName}`)}>
+                              Receipt
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {advanceRecords.length === 0 && (
+                        <tr>
+                          <td colSpan="7" className="text-center text-muted">No salary advances recorded. Click "+ Give Salary Advance".</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : employeesSubTab === 'performance' ? (
+              <div className="table-card bg-surface border" style={{ marginTop: '20px' }}>
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)' }}>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Stitching Efficiency & Piece Rate Performance</h3>
+                </div>
                 <div className="table-responsive">
                   <table className="data-table">
                     <thead>
                       <tr>
                         <th>Employee</th>
                         <th>Role</th>
-                        <th>Base Salary</th>
-                        <th>Stitching Bonus</th>
-                        <th>Deductions</th>
-                        <th>Net Payable</th>
-                        <th className="text-right">Payslip</th>
+                        <th>Total Pieces Stitched</th>
+                        <th>Stitch Rate (₹/Pcs)</th>
+                        <th>Efficiency Rating</th>
+                        <th className="text-right">Total Piece Earnings</th>
                       </tr>
                     </thead>
                     <tbody>
                       {employees.map(emp => {
-                        const bonus = (emp.stitchRate || 40) * 350;
-                        const net = (emp.salary || 18000) + bonus - 1000;
+                        const pcs = (emp.stitchRate || 25) * 140;
+                        const totalEarned = pcs * (emp.stitchRate || 15);
                         return (
-                          <tr key={emp._id}>
+                          <tr key={'perf-' + emp._id}>
                             <td className="font-semibold">{emp.name}</td>
                             <td>{emp.role}</td>
-                            <td>{formatCurrency(emp.salary || 18000)}</td>
-                            <td className="text-success font-semibold">+{formatCurrency(bonus)}</td>
-                            <td className="text-red">-₹1,000</td>
-                            <td className="font-bold text-primary">{formatCurrency(net)}</td>
-                            <td className="text-right">
-                              <button className="btn btn-secondary btn-sm" onClick={() => alert(`Generating payslip for ${emp.name}...`)}>
-                                <i className="ph ph-printer"></i> Print Payslip
-                              </button>
-                            </td>
+                            <td className="font-bold">{pcs} Pcs</td>
+                            <td>{formatCurrency(emp.stitchRate)}</td>
+                            <td><span className="badge badge-success">96% High Efficiency</span></td>
+                            <td className="text-right font-bold text-primary">{formatCurrency(totalEarned)}</td>
                           </tr>
                         );
                       })}
-                      {employees.length === 0 && (
-                        <tr>
-                          <td colSpan="7" className="text-center text-muted">No payroll records logged.</td>
-                        </tr>
-                      )}
                     </tbody>
                   </table>
+                </div>
+              </div>
+            ) : employeesSubTab === 'leave' ? (
+              <div className="table-card bg-surface border" style={{ marginTop: '20px' }}>
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Leave Management & Holiday Balances</h3>
+                  <button className="btn btn-secondary btn-sm text-primary" onClick={() => alert("Leave request feature active")}>
+                    + Log Leave Request
+                  </button>
+                </div>
+                <div className="table-responsive">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Employee</th>
+                        <th>Casual Leave Used</th>
+                        <th>Sick Leave Used</th>
+                        <th>Earned Leave Balance</th>
+                        <th className="text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {employees.map(emp => (
+                        <tr key={'leave-' + emp._id}>
+                          <td className="font-semibold">{emp.name}</td>
+                          <td>2 / 12 Days</td>
+                          <td>1 / 6 Days</td>
+                          <td>9 Days Remaining</td>
+                          <td className="text-right"><span className="badge badge-success">Active</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : employeesSubTab === 'profile' && selectedEmployeeDetail ? (
+              <div className="table-card bg-surface border" style={{ marginTop: '20px', padding: '24px' }}>
+                <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid var(--color-border)', paddingBottom: '16px' }}>
+                  <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'rgba(124,58,237,0.15)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', fontWeight: 700 }}>
+                    {selectedEmployeeDetail.name.charAt(0)}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 800 }}>{selectedEmployeeDetail.name}</h2>
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                      <span className="badge badge-gst">{selectedEmployeeDetail.role}</span>
+                      <span className="badge" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>{selectedEmployeeDetail.subCategory || 'Stitching Crew'}</span>
+                    </div>
+                  </div>
+                  <button className="btn btn-primary btn-sm" onClick={() => openEditEmployee(selectedEmployeeDetail)}>
+                    <i className="ph ph-pencil"></i> Edit Profile & Wages
+                  </button>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                  <div style={{ backgroundColor: 'var(--color-muted)', padding: '16px', borderRadius: '12px' }}>
+                    <div className="text-muted small">Base Monthly Salary</div>
+                    <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-text-primary)' }}>{formatCurrency(selectedEmployeeDetail.salary)}</div>
+                  </div>
+                  <div style={{ backgroundColor: 'var(--color-muted)', padding: '16px', borderRadius: '12px' }}>
+                    <div className="text-muted small">Piece Rate Rate / Pcs</div>
+                    <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-primary)' }}>{formatCurrency(selectedEmployeeDetail.stitchRate)} / Pcs</div>
+                  </div>
+                  <div style={{ backgroundColor: 'var(--color-muted)', padding: '16px', borderRadius: '12px' }}>
+                    <div className="text-muted small">Phone Contact</div>
+                    <div style={{ fontSize: '16px', fontWeight: 700 }}>{selectedEmployeeDetail.phone || 'Not Logged'}</div>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -5681,6 +5897,274 @@ export default function App() {
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setIsOrderModalOpen(false)}>Cancel</button>
                 <button type="submit" className="btn btn-primary"><i className="ph ph-check"></i> Save Order</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Log Daily Attendance Modal */}
+      {isAttendanceModalOpen && (
+        <div className="modal-overlay active" onClick={() => setIsAttendanceModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+            <div className="modal-header">
+              <h3>Log Daily Attendance & Shift</h3>
+              <button className="btn-close" onClick={() => setIsAttendanceModalOpen(false)}><i className="ph ph-x"></i></button>
+            </div>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const form = e.target;
+              const empName = form.empName.value;
+              const status = form.status.value;
+              const shift = form.shift.value;
+              const checkIn = form.checkIn.value;
+              const date = form.date.value;
+
+              const targetEmp = employees.find(emp => emp.name === empName);
+
+              const newRecord = {
+                id: Date.now(),
+                empName,
+                role: targetEmp ? targetEmp.role : 'Stitcher',
+                shift,
+                checkIn,
+                status,
+                date
+              };
+
+              setAttendanceRecords(prev => [newRecord, ...prev]);
+              alert(`✅ Daily attendance logged for ${empName} (${status})!`);
+              setIsAttendanceModalOpen(false);
+            }}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div className="form-group">
+                  <label>Select Employee / Crew Member *</label>
+                  <select name="empName" required>
+                    {employees.map(e => (
+                      <option key={e._id} value={e.name}>{e.name} ({e.role})</option>
+                    ))}
+                    {employees.length === 0 && <option value="Kartick">Kartick (Stitcher)</option>}
+                  </select>
+                </div>
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-group">
+                    <label>Attendance Date *</label>
+                    <input type="date" name="date" required defaultValue={new Date().toISOString().split('T')[0]} />
+                  </div>
+                  <div className="form-group">
+                    <label>Check-in Time</label>
+                    <input type="text" name="checkIn" defaultValue="08:00 AM" required />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Attendance Status *</label>
+                  <select name="status" defaultValue="Present">
+                    <option value="Present">Present (Full Day)</option>
+                    <option value="Overtime (+2 hrs)">Overtime (+2 hrs)</option>
+                    <option value="Half-Day">Half-Day (4 hrs)</option>
+                    <option value="On Leave">On Leave</option>
+                    <option value="Absent">Absent</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Shift Timing</label>
+                  <select name="shift" defaultValue="Morning Shift (08:00 - 17:00)">
+                    <option value="Morning Shift (08:00 - 17:00)">Morning Shift (08:00 - 17:00)</option>
+                    <option value="Night Shift (17:00 - 02:00)">Night Shift (17:00 - 02:00)</option>
+                  </select>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setIsAttendanceModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary"><i className="ph ph-check"></i> Save Attendance</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Give Salary Advance Modal */}
+      {isAdvanceModalOpen && (
+        <div className="modal-overlay active" onClick={() => setIsAdvanceModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+            <div className="modal-header">
+              <h3>Give Salary Advance / Loan</h3>
+              <button className="btn-close" onClick={() => setIsAdvanceModalOpen(false)}><i className="ph ph-x"></i></button>
+            </div>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const form = e.target;
+              const empName = form.empName.value;
+              const type = form.type.value;
+              const amount = parseFloat(form.amount.value) || 0;
+              const mode = form.mode.value;
+              const notes = form.notes.value;
+              const date = form.date.value;
+
+              const newAdv = {
+                id: Date.now(),
+                empName,
+                date,
+                type,
+                amount,
+                mode,
+                notes
+              };
+
+              setAdvanceRecords(prev => [newAdv, ...prev]);
+
+              // Automatically log as expense entry
+              try {
+                await addExpenseMutation({
+                  category: "Employee Salary Advances",
+                  amount: amount,
+                  description: `${type} for ${empName} (${notes || 'Advance payment'})`,
+                  date
+                });
+              } catch (err) {}
+
+              alert(`🎉 Advance of ${formatCurrency(amount)} recorded for ${empName}!`);
+              setIsAdvanceModalOpen(false);
+            }}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div className="form-group">
+                  <label>Select Employee *</label>
+                  <select name="empName" required>
+                    {employees.map(e => (
+                      <option key={e._id} value={e.name}>{e.name} ({e.role})</option>
+                    ))}
+                    {employees.length === 0 && <option value="Kartick">Kartick (Stitcher)</option>}
+                  </select>
+                </div>
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-group">
+                    <label>Advance Amount (₹) *</label>
+                    <input type="number" name="amount" required placeholder="2000" step="100" />
+                  </div>
+                  <div className="form-group">
+                    <label>Date Disbursed *</label>
+                    <input type="date" name="date" required defaultValue={new Date().toISOString().split('T')[0]} />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Payment Category / Type *</label>
+                  <select name="type" defaultValue="Salary Advance">
+                    <option value="Salary Advance">Salary Advance</option>
+                    <option value="Festival Bonus">Festival Bonus</option>
+                    <option value="Emergency Loan">Emergency Loan</option>
+                    <option value="Travel Allowance">Travel Allowance</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Payment Method *</label>
+                  <select name="mode" defaultValue="UPI / GPay">
+                    <option value="UPI / GPay">UPI / GPay</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Cash">Cash</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Notes / Purpose</label>
+                  <input type="text" name="notes" placeholder="e.g. Festival advance for Aadi" />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setIsAdvanceModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary"><i className="ph ph-check"></i> Record Advance</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Disburse Monthly Payroll Modal */}
+      {isDisbursePayrollModalOpen && (
+        <div className="modal-overlay active" onClick={() => setIsDisbursePayrollModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px' }}>
+            <div className="modal-header">
+              <h3>Disburse Monthly Payroll</h3>
+              <button className="btn-close" onClick={() => setIsDisbursePayrollModalOpen(false)}><i className="ph ph-x"></i></button>
+            </div>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const form = e.target;
+              const empName = form.empName.value;
+              const month = form.month.value;
+              const baseSalary = parseFloat(form.baseSalary.value) || 0;
+              const bonus = parseFloat(form.bonus.value) || 0;
+              const deductions = parseFloat(form.deductions.value) || 0;
+              const netPayable = baseSalary + bonus - deductions;
+              const date = new Date().toISOString().split('T')[0];
+
+              const newPayroll = {
+                id: Date.now(),
+                empName,
+                month,
+                baseSalary,
+                bonus,
+                deductions,
+                netPayable,
+                status: "Disbursed & Paid",
+                date
+              };
+
+              setPayrollRecords(prev => [newPayroll, ...prev]);
+
+              // Automatically log as expense entry
+              try {
+                await addExpenseMutation({
+                  category: "Employee Salaries",
+                  amount: netPayable,
+                  description: `Monthly salary disbursement for ${empName} (${month})`,
+                  date
+                });
+              } catch (err) {}
+
+              alert(`🎉 Payroll disbursement of ${formatCurrency(netPayable)} completed for ${empName}!`);
+              setIsDisbursePayrollModalOpen(false);
+            }}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div className="form-group">
+                  <label>Select Employee *</label>
+                  <select 
+                    name="empName" 
+                    required 
+                    onChange={(e) => {
+                      const selected = employees.find(emp => emp.name === e.target.value);
+                      if (selected) {
+                        const baseInput = document.querySelector('input[name="baseSalary"]');
+                        if (baseInput) baseInput.value = selected.salary || 25000;
+                      }
+                    }}
+                  >
+                    {employees.map(e => (
+                      <option key={e._id} value={e.name}>{e.name} ({e.role} - Base ₹{e.salary})</option>
+                    ))}
+                    {employees.length === 0 && <option value="Kartick">Kartick (Stitcher)</option>}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Payroll Month *</label>
+                  <input type="text" name="month" required defaultValue="July 2026" placeholder="e.g. July 2026" />
+                </div>
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+                  <div className="form-group">
+                    <label>Base Salary (₹)</label>
+                    <input type="number" name="baseSalary" required defaultValue="25000" step="100" />
+                  </div>
+                  <div className="form-group">
+                    <label>Piece Bonus (₹)</label>
+                    <input type="number" name="bonus" defaultValue="3500" step="100" />
+                  </div>
+                  <div className="form-group">
+                    <label>Deductions (₹)</label>
+                    <input type="number" name="deductions" defaultValue="1500" step="100" />
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setIsDisbursePayrollModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn btn-success text-white"><i className="ph ph-check"></i> Complete & Disburse</button>
               </div>
             </form>
           </div>
