@@ -223,6 +223,19 @@ export default function App() {
     isSiriFloatingBarOpenRef.current = isSiriFloatingBarOpen;
   }, [isSiriFloatingBarOpen]);
 
+  // Linear Cmd + K Keyboard Shortcut Listener
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsSiriFloatingBarOpen(true);
+        startVoiceAssistant();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const latestTranscriptRef = useRef('');
 
   // Varahi System Sub-Module Tabs States
@@ -2266,14 +2279,27 @@ export default function App() {
     <div style={{ display: 'flex', minHeight: '100vh', width: '100%' }}>
       {/* Sidebar Navigation */}
       <aside className="sidebar">
-        <div className="brand">
-          <div className="brand-logo">
-            <i className="ph-fill ph-wallet"></i>
+        <div className="brand" style={{ justifyContent: 'space-between', width: '100%', marginBottom: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="brand-logo" style={{ width: '24px', height: '24px', borderRadius: '5px', backgroundColor: '#5E6AD2', color: '#fff', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+              V
+            </div>
+            <span className="brand-name" style={{ fontSize: '14px', fontWeight: 600, color: '#1C1C21' }}>Varahi Export ▾</span>
           </div>
-          <span className="brand-name">Varahi Export</span>
+          <button 
+            className="btn-icon" 
+            onClick={startVoiceAssistant}
+            style={{ width: '26px', height: '26px', padding: 0, fontSize: '14px', color: '#62636C' }}
+            title="Search or Voice Command (⌘K)"
+          >
+            <i className="ph ph-magnifying-glass"></i>
+          </button>
         </div>
 
         <nav className="nav-menu">
+          <div style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '8px 8px 4px 8px' }}>
+            Workspace ▾
+          </div>
           <button className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => handleTabChange('dashboard')}>
             <i className="ph ph-squares-four"></i>
             <span>Dashboard</span>
@@ -2290,14 +2316,30 @@ export default function App() {
             <i className="ph ph-identification-card"></i>
             <span>Employees</span>
           </button>
+
+          <div style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '14px 8px 4px 8px' }}>
+            Financials ▾
+          </div>
+          <button className={`nav-item ${activeTab === 'bills' ? 'active' : ''}`} onClick={() => handleTabChange('bills')}>
+            <i className="ph ph-receipt"></i>
+            <span>Invoices</span>
+          </button>
           <button className={`nav-item ${activeTab === 'expenses' ? 'active' : ''}`} onClick={() => handleTabChange('expenses')}>
             <i className="ph ph-coins"></i>
             <span>Expenses</span>
+          </button>
+          <button className={`nav-item ${activeTab === 'fabrics' ? 'active' : ''}`} onClick={() => handleTabChange('fabrics')}>
+            <i className="ph ph-scissors"></i>
+            <span>Fabrics</span>
           </button>
           <button className={`nav-item ${activeTab === 'reports' ? 'active' : ''}`} onClick={() => handleTabChange('reports')}>
             <i className="ph ph-chart-pie-slice"></i>
             <span>Reports</span>
           </button>
+
+          <div style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '14px 8px 4px 8px' }}>
+            System ▾
+          </div>
           <button className={`nav-item ${activeTab === 'notifications' ? 'active' : ''}`} onClick={() => handleTabChange('notifications')}>
             <i className="ph ph-bell"></i>
             <span>Notifications</span>
@@ -2305,14 +2347,6 @@ export default function App() {
           <button className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => handleTabChange('settings')}>
             <i className="ph ph-gear"></i>
             <span>Settings</span>
-          </button>
-          <button className={`nav-item ${activeTab === 'bills' ? 'active' : ''}`} onClick={() => handleTabChange('bills')}>
-            <i className="ph ph-receipt"></i>
-            <span>Invoices</span>
-          </button>
-          <button className={`nav-item ${activeTab === 'fabrics' ? 'active' : ''}`} onClick={() => handleTabChange('fabrics')}>
-            <i className="ph ph-scissors"></i>
-            <span>Fabrics</span>
           </button>
           <button className="nav-item mobile-only-nav" onClick={() => setIsMobileMenuOpen(true)}>
             <i className="ph ph-dots-three-outline"></i>
