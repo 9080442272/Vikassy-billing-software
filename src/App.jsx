@@ -2496,9 +2496,6 @@ export default function App() {
                 <button className="btn" onClick={startVoiceAssistant} style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)', color: '#ffffff', fontWeight: 600, border: 'none' }} title="Voice Billing Assistant">
                   <i className="ph-fill ph-microphone"></i> Siri Voice
                 </button>
-                <button className="btn btn-secondary text-red" onClick={handleClearDatabase} title="Clear All Database Entries">
-                  <i className="ph ph-trash"></i> Clear Data
-                </button>
                 <button className="btn btn-primary" onClick={() => setIsBillModalOpen(true)}>
                   <i className="ph ph-plus-circle"></i> New Bill
                 </button>
