@@ -6,66 +6,70 @@
    ========================================== */
 
 :root {
-  --background: 0 0% 98%;
-  --foreground: 222.2 84% 4.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
-  --primary: 262.1 83.3% 57.8%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 210 40% 96.1%;
-  --accent-foreground: 222.2 47.4% 11.2%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 262.1 83.3% 57.8%;
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --card: 240 10% 6.5%;
+  --card-foreground: 0 0% 98%;
+  --popover: 240 10% 6.5%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 238.9 59% 59.6%;     /* Linear Violet #5E6AD2 */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --accent: 187 100% 50%;          /* Linear Cyan #00E5FF */
+  --accent-foreground: 240 5.9% 10%;
+  --destructive: 343 89.8% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 238.9 59% 59.6%;
   --radius: 0.75rem;
 
-  --color-primary: #7C3AED;       /* Tailwind Purple-600 */
-  --color-secondary: #6D28D9;     /* Tailwind Purple-700 */
-  --color-accent: #4F46E5;        /* Tailwind Indigo-600 */
-  --color-accent-light: rgba(124, 58, 237, 0.08);
+  /* Linear.app High-Precision Dark Design System Tokens */
+  --color-primary: #5E6AD2;       /* Linear Electric Violet */
+  --color-primary-hover: #707BE8; /* Linear Hover Glow */
+  --color-secondary: #4F56C6;     /* Linear Indigo Slate */
+  --color-accent: #00E5FF;        /* Linear Electric Cyan */
+  --color-accent-light: rgba(94, 106, 210, 0.15);
   
-  /* Light Theme (White Background) */
-  --color-background: #F9FAFB;    /* Tailwind Gray-50 */
-  --color-surface: #FFFFFF;       /* Pure White Cards */
-  --color-surface-hover: #F3F4F6; /* Gray-100 */
-  --color-foreground: #111827;    /* Gray-900 */
-  --color-text-primary: #111827;  /* Gray-900 */
-  --color-text-secondary: #4B5563; /* Gray-600 */
-  --color-muted: #F3F4F6;         /* Gray-100 */
-  --color-border: #E5E7EB;        /* Gray-200 */
-  --color-border-focus: #7C3AED;  /* Purple-600 */
+  /* Linear Dark Theme Obsidian Palette */
+  --color-background: #08090A;    /* Linear Ultra-Dark Base Canvas */
+  --color-surface: #141517;       /* Linear Precision Surface Card */
+  --color-surface-hover: #1C1D21; /* Linear Card Hover */
+  --color-foreground: #F7F8F8;    /* Linear High-Contrast White Text */
+  --color-text-primary: #F7F8F8;  /* Linear Primary Text */
+  --color-text-secondary: #8A8F98;/* Linear Slate Secondary Text */
+  --color-muted: #1A1B20;         /* Linear Muted Container */
+  --color-border: rgba(255, 255, 255, 0.08); /* Linear Hairline 1px Glass Border */
+  --color-border-hover: rgba(255, 255, 255, 0.16);
+  --color-border-focus: #5E6AD2;  /* Linear Violet Focus Ring */
   --color-on-primary: #FFFFFF;
   
-  --color-destructive: #EF4444;   /* Red */
-  --color-success: #10B981;       /* Emerald Green */
+  --color-destructive: #F43F5E;   /* Linear Rose */
+  --color-success: #10B981;       /* Linear Emerald */
+  --color-warning: #F59E0B;       /* Linear Amber */
   
   /* Fonts */
-  --font-heading: 'Calistoga', serif;
-  --font-body: 'Inter', -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  --font-mono: 'JetBrains Mono', SFMono-Regular, monospace;
   
-  /* Effects */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
-  --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-border: rgba(229, 231, 235, 0.6);
-  --glass-blur: blur(12px);
+  /* Linear Precision Effects & Glass Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px -2px rgba(0, 0, 0, 0.6), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 20px 40px -4px rgba(0, 0, 0, 0.8), 0 0 30px rgba(94, 106, 210, 0.25);
+  --glass-bg: rgba(20, 21, 23, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-blur: blur(16px);
   
   --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
   
-  --transition-fast: 150ms ease;
-  --transition-normal: 250ms ease;
+  --transition-fast: 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-normal: 250ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ==========================================
