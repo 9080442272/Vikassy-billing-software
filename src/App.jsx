@@ -3183,53 +3183,141 @@ export default function App() {
                 </div>
               </div>
             ) : (
-              <div className="table-card bg-surface border desktop-table-container">
-                <div className="table-responsive">
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>Job Title</th>
-                        <th>Client Name</th>
-                        <th>Delivery Date</th>
-                        <th>Estimated Value</th>
-                        <th>Status</th>
-                        <th className="text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {upcomingOrders
-                        .filter(order => {
-                          if (jobsSubTab === 'ongoing') return order.status === 'In Production';
-                          if (jobsSubTab === 'completed') return order.status === 'Delivered' || order.status === 'Ready';
-                          if (jobsSubTab === 'delayed') return new Date(order.deliveryDate) < new Date();
-                          return true;
-                        })
-                        .map(order => (
-                          <tr key={order._id}>
-                            <td className="font-semibold">{order.orderTitle}</td>
-                            <td>{order.clientName}</td>
-                            <td>{order.deliveryDate}</td>
-                            <td className="font-bold text-primary">{formatCurrency(order.estimatedValue)}</td>
-                            <td>
-                              <span className={`badge ${order.status === 'In Production' ? 'badge-warning' : order.status === 'Delivered' ? 'badge-success' : 'badge-info'}`}>
-                                {order.status}
-                              </span>
-                            </td>
-                            <td className="text-right">
-                              <button className="btn btn-secondary btn-sm" onClick={() => { setSelectedJob(order); setJobsSubTab('details'); }}>
-                                View Details
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      {upcomingOrders.length === 0 && (
-                        <tr>
-                          <td colSpan="6" className="text-center text-muted">No production jobs found. Click "Create Job" to start a new job order.</td>
-                        </tr>
+              <div className="desktop-table-container">
+                {/* Linear Grouped Table Layout */}
+                {(() => {
+                  const filteredJobs = upcomingOrders.filter(order => {
+                    if (jobsSubTab === 'ongoing') return order.status === 'In Production';
+                    if (jobsSubTab === 'completed') return order.status === 'Delivered' || order.status === 'Ready';
+                    if (jobsSubTab === 'delayed') return new Date(order.deliveryDate) < new Date();
+                    return true;
+                  });
+
+                  const plannedJobs = filteredJobs.filter(o => o.status === 'Planned' || o.status === 'Scheduled');
+                  const inProdJobs = filteredJobs.filter(o => o.status === 'In Production');
+                  const completedJobs = filteredJobs.filter(o => o.status === 'Delivered' || o.status === 'Ready' || o.status === 'Completed');
+
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {/* Section 1: In Production Group */}
+                      {(jobsSubTab === 'all' || jobsSubTab === 'ongoing') && (
+                        <div>
+                          <div className="linear-group-header">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <i className="ph ph-caret-down" style={{ fontSize: '11px', color: '#8C8D96' }}></i>
+                              <i className="ph ph-spinner text-gold" style={{ fontSize: '14px' }}></i>
+                              <span style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21' }}>In Production</span>
+                              <span style={{ fontSize: '11px', color: '#8C8D96', fontWeight: 500 }}>{inProdJobs.length}</span>
+                            </div>
+                            <button className="btn-icon" onClick={() => setJobsSubTab('create')} title="Quick Add Job" style={{ padding: '2px 6px', fontSize: '13px', color: '#62636C' }}>
+                              <i className="ph ph-plus"></i>
+                            </button>
+                          </div>
+                          {inProdJobs.map(ord => (
+                            <div 
+                              key={ord._id} 
+                              className="linear-table-row" 
+                              onClick={() => { setSelectedJob(ord); setJobsSubTab('details'); }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <i className="ph ph-dots-six-vertical" style={{ color: '#C2C2CB', fontSize: '14px' }}></i>
+                                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#5E6AD2', fontWeight: 600 }}>JOB-{ord._id.substring(0, 4).toUpperCase()}</span>
+                                <i className="ph ph-circle-dashed" style={{ color: '#F59E0B', fontSize: '14px' }}></i>
+                                <span style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21' }}>{ord.orderTitle}</span>
+                                <span style={{ fontSize: '12px', color: '#8C8D96' }}>— {ord.clientName}</span>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                                <span className="badge badge-warning" style={{ fontSize: '10px' }}>In Production</span>
+                                <span style={{ fontSize: '12px', fontWeight: 600, color: '#10B981', fontFamily: 'var(--font-mono)' }}>{formatCurrency(ord.estimatedValue)}</span>
+                                <span style={{ fontSize: '12px', color: '#8C8D96' }}>Due {formatDate(ord.deliveryDate)}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       )}
-                    </tbody>
-                  </table>
-                </div>
+
+                      {/* Section 2: Planned / Backlog Group */}
+                      {(jobsSubTab === 'all' || jobsSubTab === 'delayed') && (
+                        <div>
+                          <div className="linear-group-header">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <i className="ph ph-caret-down" style={{ fontSize: '11px', color: '#8C8D96' }}></i>
+                              <i className="ph ph-circle-dashed" style={{ fontSize: '14px', color: '#8C8D96' }}></i>
+                              <span style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21' }}>Backlog & Planned</span>
+                              <span style={{ fontSize: '11px', color: '#8C8D96', fontWeight: 500 }}>{plannedJobs.length}</span>
+                            </div>
+                            <button className="btn-icon" onClick={() => setJobsSubTab('create')} title="Quick Add Job" style={{ padding: '2px 6px', fontSize: '13px', color: '#62636C' }}>
+                              <i className="ph ph-plus"></i>
+                            </button>
+                          </div>
+                          {plannedJobs.map(ord => (
+                            <div 
+                              key={ord._id} 
+                              className="linear-table-row"
+                              onClick={() => { setSelectedJob(ord); setJobsSubTab('details'); }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <i className="ph ph-dots-six-vertical" style={{ color: '#C2C2CB', fontSize: '14px' }}></i>
+                                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#8C8D96', fontWeight: 500 }}>JOB-{ord._id.substring(0, 4).toUpperCase()}</span>
+                                <i className="ph ph-circle-dashed" style={{ color: '#8C8D96', fontSize: '14px' }}></i>
+                                <span style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21' }}>{ord.orderTitle}</span>
+                                <span style={{ fontSize: '12px', color: '#8C8D96' }}>— {ord.clientName}</span>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                                <span className="badge badge-info" style={{ fontSize: '10px' }}>{ord.status}</span>
+                                <span style={{ fontSize: '12px', fontWeight: 600, color: '#10B981', fontFamily: 'var(--font-mono)' }}>{formatCurrency(ord.estimatedValue)}</span>
+                                <span style={{ fontSize: '12px', color: '#8C8D96' }}>Target {formatDate(ord.deliveryDate)}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Section 3: Completed Group */}
+                      {(jobsSubTab === 'all' || jobsSubTab === 'completed') && (
+                        <div>
+                          <div className="linear-group-header">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <i className="ph ph-caret-down" style={{ fontSize: '11px', color: '#8C8D96' }}></i>
+                              <i className="ph ph-check-circle text-green" style={{ fontSize: '14px' }}></i>
+                              <span style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21' }}>Completed & Delivered</span>
+                              <span style={{ fontSize: '11px', color: '#8C8D96', fontWeight: 500 }}>{completedJobs.length}</span>
+                            </div>
+                            <button className="btn-icon" onClick={() => setJobsSubTab('create')} title="Quick Add Job" style={{ padding: '2px 6px', fontSize: '13px', color: '#62636C' }}>
+                              <i className="ph ph-plus"></i>
+                            </button>
+                          </div>
+                          {completedJobs.map(ord => (
+                            <div 
+                              key={ord._id} 
+                              className="linear-table-row"
+                              onClick={() => { setSelectedJob(ord); setJobsSubTab('details'); }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <i className="ph ph-dots-six-vertical" style={{ color: '#C2C2CB', fontSize: '14px' }}></i>
+                                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#8C8D96', fontWeight: 500 }}>JOB-{ord._id.substring(0, 4).toUpperCase()}</span>
+                                <i className="ph ph-check-circle" style={{ color: '#10B981', fontSize: '14px' }}></i>
+                                <span style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21', textDecoration: 'line-through', opacity: 0.8 }}>{ord.orderTitle}</span>
+                                <span style={{ fontSize: '12px', color: '#8C8D96' }}>— {ord.clientName}</span>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                                <span className="badge badge-success" style={{ fontSize: '10px' }}>Delivered</span>
+                                <span style={{ fontSize: '12px', fontWeight: 600, color: '#10B981', fontFamily: 'var(--font-mono)' }}>{formatCurrency(ord.estimatedValue)}</span>
+                                <span style={{ fontSize: '12px', color: '#8C8D96' }}>{formatDate(ord.deliveryDate)}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {filteredJobs.length === 0 && (
+                        <div style={{ padding: '32px', textAlign: 'center', color: '#8C8D96', fontSize: '13px' }}>
+                          No production jobs found for this tab filter.
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             )}
           </section>
