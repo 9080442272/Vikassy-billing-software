@@ -217,6 +217,7 @@ export default function App() {
   const [voiceParsedData, setVoiceParsedData] = useState(null);
   const [voiceInputManual, setVoiceInputManual] = useState('');
   const [speechRecognitionRef, setSpeechRecognitionRef] = useState(null);
+  const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
   const [isSiriFloatingBarOpen, setIsSiriFloatingBarOpen] = useState(false);
   const isSiriFloatingBarOpenRef = useRef(false);
   useEffect(() => {
@@ -2970,25 +2971,59 @@ export default function App() {
               </button>
             </header>
 
-            <div className="sub-tab-bar">
-              <button className={`sub-tab-btn ${jobsSubTab === 'all' ? 'active' : ''}`} onClick={() => setJobsSubTab('all')}>
-                <i className="ph ph-list-checks"></i> All Jobs
-              </button>
-              <button className={`sub-tab-btn ${jobsSubTab === 'create' ? 'active' : ''}`} onClick={() => setJobsSubTab('create')}>
-                <i className="ph ph-plus-circle"></i> Create Job
-              </button>
-              <button className={`sub-tab-btn ${jobsSubTab === 'ongoing' ? 'active' : ''}`} onClick={() => setJobsSubTab('ongoing')}>
-                <i className="ph ph-gear-six"></i> Ongoing Jobs
-              </button>
-              <button className={`sub-tab-btn ${jobsSubTab === 'completed' ? 'active' : ''}`} onClick={() => setJobsSubTab('completed')}>
-                <i className="ph ph-check-circle"></i> Completed Jobs
-              </button>
-              <button className={`sub-tab-btn ${jobsSubTab === 'delayed' ? 'active' : ''}`} onClick={() => setJobsSubTab('delayed')}>
-                <i className="ph ph-warning-circle"></i> Delayed Jobs
-              </button>
-              <button className={`sub-tab-btn ${jobsSubTab === 'details' ? 'active' : ''}`} onClick={() => setJobsSubTab('details')}>
-                <i className="ph ph-article"></i> Job Details
-              </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #E6E6EB', paddingBottom: '8px' }}>
+              <div className="sub-tab-bar" style={{ margin: 0, border: 'none', padding: 0 }}>
+                <button className={`sub-tab-btn ${jobsSubTab === 'all' ? 'active' : ''}`} onClick={() => setJobsSubTab('all')}>
+                  <i className="ph ph-list-checks"></i> All Jobs
+                </button>
+                <button className={`sub-tab-btn ${jobsSubTab === 'create' ? 'active' : ''}`} onClick={() => setJobsSubTab('create')}>
+                  <i className="ph ph-plus-circle"></i> Create Job
+                </button>
+                <button className={`sub-tab-btn ${jobsSubTab === 'ongoing' ? 'active' : ''}`} onClick={() => setJobsSubTab('ongoing')}>
+                  <i className="ph ph-gear-six"></i> Ongoing Jobs
+                </button>
+                <button className={`sub-tab-btn ${jobsSubTab === 'completed' ? 'active' : ''}`} onClick={() => setJobsSubTab('completed')}>
+                  <i className="ph ph-check-circle"></i> Completed Jobs
+                </button>
+                <button className={`sub-tab-btn ${jobsSubTab === 'delayed' ? 'active' : ''}`} onClick={() => setJobsSubTab('delayed')}>
+                  <i className="ph ph-warning-circle"></i> Delayed Jobs
+                </button>
+              </div>
+
+              {/* Linear Filter Controls Bar */}
+              <div style={{ position: 'relative', display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <button 
+                  className="btn-icon" 
+                  onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)} 
+                  style={{ padding: '4px 10px', fontSize: '12px', borderRadius: '14px', border: '1px solid #E6E6EB', backgroundColor: '#FFFFFF', color: '#1C1C21', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500, cursor: 'pointer' }}
+                  title="Filter options"
+                >
+                  <i className="ph ph-funnel" style={{ fontSize: '13px', color: '#62636C' }}></i>
+                  <span>Filter</span>
+                  <i className="ph ph-caret-down" style={{ fontSize: '10px', color: '#8C8D96' }}></i>
+                </button>
+
+                <button className="btn-icon" style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #E6E6EB', backgroundColor: '#FFFFFF', color: '#62636C', display: 'flex', alignItems: 'center', justifyCenter: 'center' }} title="Display Options">
+                  <i className="ph ph-sliders"></i>
+                </button>
+
+                {isFilterMenuOpen && (
+                  <div className="linear-filter-menu" onClick={(e) => e.stopPropagation()}>
+                    <div className="filter-menu-header">
+                      <input type="text" placeholder="Add Filter..." autoFocus />
+                      <span style={{ fontSize: '10px', fontWeight: 600, color: '#8C8D96', backgroundColor: '#F4F4F6', padding: '1px 5px', borderRadius: '4px' }}>F</span>
+                    </div>
+                    <div className="filter-menu-item"><div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><i className="ph ph-sparkle"></i> AI Filter</div><i className="ph ph-caret-right"></i></div>
+                    <div className="filter-menu-item"><div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><i className="ph ph-sliders-horizontal"></i> Advanced Filter</div><i className="ph ph-caret-right"></i></div>
+                    <div style={{ borderTop: '1px solid #F0F0F4', margin: '4px 0' }}></div>
+                    <div className="filter-menu-item"><div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><i className="ph ph-circle-dashed"></i> Status</div><i className="ph ph-caret-right"></i></div>
+                    <div className="filter-menu-item"><div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><i className="ph ph-user"></i> Assignee</div><i className="ph ph-caret-right"></i></div>
+                    <div className="filter-menu-item"><div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><i className="ph ph-chart-bar"></i> Priority</div><i className="ph ph-caret-right"></i></div>
+                    <div className="filter-menu-item"><div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><i className="ph ph-tag"></i> Labels</div><i className="ph ph-caret-right"></i></div>
+                    <div className="filter-menu-item"><div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><i className="ph ph-calendar"></i> Target Date</div><i className="ph ph-caret-right"></i></div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {jobsSubTab === 'create' ? (
@@ -5721,43 +5756,51 @@ export default function App() {
         </div>
       )}
 
-      {/* ==================== UPCOMING ORDER MODAL ==================== */}
+      {/* ==================== UPCOMING ORDER MODAL (Linear Style) ==================== */}
       {isUpcomingOrderModalOpen && (
         <div id="upcoming-order-modal" className="modal-overlay active">
           <div className="modal-card">
             <div className="modal-header">
-              <h3>{editingUpcomingOrder ? 'Edit Scheduled Company Order' : 'Schedule Upcoming Company Order'}</h3>
-              <button className="btn-close" onClick={closeUpcomingOrderModal}><i className="ph ph-x"></i></button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ width: '20px', height: '20px', borderRadius: '4px', backgroundColor: '#5E6AD2', color: '#fff', fontSize: '11px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>V</div>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21' }}>Varahi</span>
+                <span style={{ color: '#8C8D96', fontSize: '12px' }}>›</span>
+                <span style={{ fontSize: '13px', fontWeight: 500, color: '#62636C' }}>{editingUpcomingOrder ? 'Edit issue' : 'New issue'}</span>
+              </div>
+              <div className="modal-header-actions">
+                <button type="button" className="btn-close" style={{ fontSize: '14px' }} title="Full Screen"><i className="ph ph-arrows-out-simple"></i></button>
+                <button type="button" className="btn-close" onClick={closeUpcomingOrderModal} title="Close"><i className="ph ph-x"></i></button>
+              </div>
             </div>
             <form id="upcoming-order-form" onSubmit={handleUpcomingOrderSubmit}>
               <div className="modal-body" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div className="form-group">
-                  <label htmlFor="up-client-name">Client / Customer Name *</label>
+                  <label htmlFor="up-order-title" style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Issue Title *</label>
+                  <input type="text" id="up-order-title" required placeholder="e.g. 1000 Pcs Premium Denim Jackets" style={{ fontSize: '16px', fontWeight: 600, border: 'none', borderBottom: '1px solid #E6E6EB', borderRadius: 0, padding: '8px 0' }} />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="up-client-name" style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Client / Customer Name *</label>
                   <input type="text" id="up-client-name" required placeholder="e.g. Sri Varahi Exports" list="order-clients-list" />
                   <datalist id="order-clients-list">
                     {clients.map(c => <option key={c._id} value={c.name} />)}
                   </datalist>
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="up-order-title">Order Description / Title *</label>
-                  <input type="text" id="up-order-title" required placeholder="e.g. 1000 Pcs Premium Denim Jackets" />
-                </div>
-
                 <div className="form-row">
                   <div className="form-group">
-                    <label htmlFor="up-delivery-date">Target Delivery Date *</label>
+                    <label htmlFor="up-delivery-date" style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Target Delivery Date *</label>
                     <input type="date" id="up-delivery-date" required defaultValue={new Date().toISOString().split('T')[0]} />
                   </div>
                   <div className="form-group">
-                    <label htmlFor="up-val">Estimated Value (₹) *</label>
-                    <input type="number" id="up-val" min="0" required placeholder="0.00" style={{ fontWeight: 600 }} />
+                    <label htmlFor="up-val" style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Estimated Budget (₹) *</label>
+                    <input type="number" id="up-val" min="0" required placeholder="0.00" style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }} />
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="up-status">Order Status *</label>
-                  <select id="up-status" required style={{ fontSize: '15px', padding: '12px 14px' }}>
+                  <label htmlFor="up-status" style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Status *</label>
+                  <select id="up-status" required style={{ fontSize: '14px', padding: '10px 14px' }}>
                     <option value="Planned">Planned</option>
                     <option value="In Production">In Production</option>
                     <option value="Ready for Dispatch">Ready for Dispatch</option>
@@ -5766,13 +5809,32 @@ export default function App() {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="up-notes">Notes / Guidelines (Optional)</label>
-                  <textarea id="up-notes" rows="3" placeholder="Add specific fabric color rolls requirements or stitch rate payouts details..."></textarea>
+                  <label htmlFor="up-notes" style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Description / Guidelines</label>
+                  <textarea id="up-notes" rows="2" placeholder="Add specific fabric color rolls requirements or stitch rate payouts details..."></textarea>
                 </div>
               </div>
-              <div className="modal-footer" style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                <button type="button" className="btn btn-secondary" onClick={closeUpcomingOrderModal}>Cancel</button>
-                <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 600 }}>Schedule Order</button>
+
+              {/* Linear Chip Bar */}
+              <div className="modal-chip-bar">
+                <div className="modal-chip"><i className="ph ph-circle-dashed" style={{ color: '#5E6AD2' }}></i> Backlog</div>
+                <div className="modal-chip"><i className="ph ph-chart-bar"></i> Priority</div>
+                <div className="modal-chip"><i className="ph ph-user"></i> Assignee</div>
+                <div className="modal-chip"><i className="ph ph-tag"></i> Labels</div>
+                <div className="modal-chip"><i className="ph ph-dots-three"></i></div>
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" className="btn-icon" style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #E6E6EB', backgroundColor: '#FFFFFF', color: '#62636C', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Attach File">
+                  <i className="ph ph-paperclip"></i>
+                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <label style={{ fontSize: '12px', color: '#62636C', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                    <input type="checkbox" style={{ accentColor: '#5E6AD2' }} /> Create more
+                  </label>
+                  <button type="submit" className="btn btn-primary" style={{ borderRadius: '14px', padding: '7px 18px', fontWeight: 600, backgroundColor: '#5E6AD2', borderColor: '#5E6AD2' }}>
+                    {editingUpcomingOrder ? 'Save changes' : 'Create issue'}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
