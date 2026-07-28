@@ -3801,9 +3801,16 @@ export default function App() {
                       <tbody>
                         {employees.filter(e => e.name.toLowerCase().includes(employeeSearch.toLowerCase())).map(emp => (
                           <tr key={emp._id}>
-                            <td>
-                              <div style={{ fontWeight: 600 }}>{emp.name}</div>
-                              {emp.subCategory && <span className="small text-muted">{emp.subCategory}</span>}
+                            <td 
+                              onClick={() => openEditEmployee(emp)} 
+                              style={{ cursor: 'pointer' }}
+                              title={`Click to edit ${emp.name}'s profile & rates`}
+                            >
+                              <div style={{ fontWeight: 700, color: 'var(--color-primary)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                <span>{emp.name}</span>
+                                <i className="ph ph-pencil-simple" style={{ fontSize: '12px', opacity: 0.7 }}></i>
+                              </div>
+                              {emp.subCategory && <div className="small text-muted">{emp.subCategory}</div>}
                             </td>
                             <td>{emp.phone || '-'}</td>
                             <td>
@@ -3812,8 +3819,8 @@ export default function App() {
                             <td className="text-right">{formatCurrency(emp.stitchRate)}</td>
                             <td className="text-right">{formatCurrency(emp.salary)}</td>
                             <td className="text-right">
-                              <button className="btn-icon" onClick={() => openEditEmployee(emp)}><i className="ph ph-pencil-simple"></i></button>
-                              <button className="btn-icon text-red" onClick={() => deleteEmployee(emp._id)}><i className="ph ph-trash"></i></button>
+                              <button className="btn-icon" onClick={() => openEditEmployee(emp)} title="Edit Employee"><i className="ph ph-pencil-simple"></i></button>
+                              <button className="btn-icon text-red" onClick={() => deleteEmployee(emp._id)} title="Delete Employee"><i className="ph ph-trash"></i></button>
                             </td>
                           </tr>
                         ))}
@@ -3849,7 +3856,15 @@ export default function App() {
                   {employees.filter(e => e.name.toLowerCase().includes(employeeSearch.toLowerCase())).map(emp => (
                     <div key={emp._id} className="mobile-card">
                       <div className="mobile-card-header">
-                        <div className="mobile-card-title">{emp.name}</div>
+                        <div 
+                          className="mobile-card-title text-primary" 
+                          onClick={() => openEditEmployee(emp)} 
+                          style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                          title={`Click to edit ${emp.name}`}
+                        >
+                          <span>{emp.name}</span>
+                          <i className="ph ph-pencil-simple" style={{ fontSize: '12px', opacity: 0.7 }}></i>
+                        </div>
                         <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                           <span className="badge" style={{ backgroundColor: 'rgba(124,58,237,0.08)', color: 'var(--color-primary)', border: '1px solid rgba(124,58,237,0.15)', fontSize: '10px', padding: '2px 6px', borderRadius: '8px' }}>{emp.role}</span>
                           {emp.subCategory && (
