@@ -2585,9 +2585,6 @@ export default function App() {
                 <button className="btn btn-primary" onClick={() => setIsBillModalOpen(true)}>
                   <i className="ph ph-plus-circle"></i> New Bill
                 </button>
-                <button className="btn btn-accent" onClick={() => setIsScanModalOpen(true)}>
-                  <i className="ph ph-scan"></i> Scan Receipt
-                </button>
               </div>
             </header>
 
