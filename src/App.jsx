@@ -6171,35 +6171,36 @@ export default function App() {
         </div>
       )}
 
-      {/* Persistent Ambient Floating Siri Bottom Bar (Modal-Free) */}
+      {/* Persistent Ambient Floating Siri Bottom Bar (Modal-Free & Perfectly Aligned) */}
       {isSiriFloatingBarOpen && (
         <div className="floating-siri-bar shadow-2xl no-print" style={{
           position: 'fixed',
-          bottom: '20px',
+          bottom: '24px',
           left: '50%',
           transform: 'translateX(-50%)',
           zIndex: 99999,
-          backgroundColor: 'rgba(24, 24, 27, 0.95)',
-          backdropFilter: 'blur(16px)',
+          backgroundColor: 'rgba(18, 18, 20, 0.96)',
+          backdropFilter: 'blur(20px)',
           color: '#ffffff',
           borderRadius: '24px',
-          padding: '12px 20px',
+          padding: '12px 18px',
           display: 'flex',
           flexDirection: 'column',
           gap: '10px',
-          border: '1px solid rgba(124, 58, 237, 0.4)',
-          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(124, 58, 237, 0.3)',
-          width: 'calc(100% - 40px)',
-          maxWidth: '680px'
+          border: '1px solid rgba(124, 58, 237, 0.45)',
+          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(124, 58, 237, 0.35)',
+          width: '92%',
+          maxWidth: '580px',
+          boxSizing: 'border-box'
         }}>
-          {/* Main Voice Bar Row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          {/* Main Siri Status & Action Row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
             {/* Glowing Siri Orb */}
             <div
               onClick={startVoiceAssistant}
               style={{
-                width: '40px',
-                height: '40px',
+                width: '38px',
+                height: '38px',
                 borderRadius: '50%',
                 background: isVoiceListening 
                   ? 'radial-gradient(circle, #EC4899, #7C3AED, #4F46E5)' 
@@ -6213,62 +6214,34 @@ export default function App() {
               }}
               title="Click to Speak to Siri"
             >
-              <i className={`ph-fill ${isVoiceListening ? 'ph-microphone' : 'ph-sparkle'}`} style={{ color: '#fff', fontSize: '20px' }}></i>
+              <i className={`ph-fill ${isVoiceListening ? 'ph-microphone' : 'ph-sparkle'}`} style={{ color: '#fff', fontSize: '18px' }}></i>
             </div>
 
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className="pulse-dot" style={{ width: '8px', height: '8px', backgroundColor: isVoiceListening ? '#10B981' : '#F59E0B', borderRadius: '50%', display: 'inline-block' }}></span>
+            {/* Transcript & Status Text */}
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span className="pulse-dot" style={{ width: '8px', height: '8px', backgroundColor: isVoiceListening ? '#10B981' : '#F59E0B', borderRadius: '50%', display: 'inline-block', flexShrink: 0 }}></span>
                 <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)' }}>
                   {isVoiceListening ? 'Siri Listening Live...' : voiceStatus === 'success' ? 'Live Action Completed' : 'Siri Ambient Voice AI'}
                 </span>
               </div>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: '#F4F4F5', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {voiceTranscript ? `"${voiceTranscript}"` : voiceMessage || 'Say e.g. "open employee tab" or "enter Srimathi as a new employee"'}
+              <div style={{ fontSize: '12px', fontWeight: 600, color: '#F4F4F5', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {voiceTranscript ? `"${voiceTranscript}"` : voiceMessage || 'Say e.g. "open employee tab"'}
               </div>
             </div>
 
-            {/* Manual Type Input & Actions */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input
-                type="text"
-                placeholder="Or type voice command..."
-                value={voiceInputManual}
-                onChange={(e) => setVoiceInputManual(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    processVoiceCommand(voiceInputManual || voiceTranscript);
-                  }
-                }}
-                style={{
-                  width: '180px',
-                  padding: '6px 12px',
-                  borderRadius: '14px',
-                  border: '1px solid rgba(255,255,255,0.15)',
-                  backgroundColor: 'rgba(255,255,255,0.06)',
-                  color: '#ffffff',
-                  fontSize: '11px'
-                }}
-              />
-              <button
-                onClick={() => processVoiceCommand(voiceInputManual || voiceTranscript)}
-                className="btn btn-primary btn-sm"
-                style={{ fontSize: '11px', padding: '6px 12px', borderRadius: '14px' }}
-              >
-                Send
-              </button>
-              <button
-                onClick={() => { setIsSiriFloatingBarOpen(false); stopVoiceAssistant(); }}
-                style={{ background: 'none', border: 'none', color: '#A1A1AA', cursor: 'pointer', padding: '4px', fontSize: '18px' }}
-                title="Close Siri"
-              >
-                <i className="ph ph-x"></i>
-              </button>
-            </div>
+            {/* Close Button */}
+            <button
+              onClick={() => { setIsSiriFloatingBarOpen(false); stopVoiceAssistant(); }}
+              style={{ background: 'none', border: 'none', color: '#A1A1AA', cursor: 'pointer', padding: '4px', fontSize: '18px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              title="Close Siri"
+            >
+              <i className="ph ph-x"></i>
+            </button>
           </div>
 
-          {/* Quick Voice Command Chips Bar */}
-          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
+          {/* Quick Voice Command Chips Bar - EXACTLY 2 EXAMPLES */}
+          <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
             <button
               type="button"
               onClick={() => {
@@ -6276,20 +6249,9 @@ export default function App() {
                 setVoiceInputManual(cmd);
                 processVoiceCommand(cmd);
               }}
-              style={{ fontSize: '10px', padding: '3px 9px', borderRadius: '12px', backgroundColor: 'rgba(124, 58, 237, 0.2)', color: '#D8B4FE', border: '1px solid rgba(124, 58, 237, 0.4)', fontWeight: 600, cursor: 'pointer', whitespace: 'nowrap' }}
+              style={{ flex: 1, fontSize: '11px', padding: '6px 10px', borderRadius: '12px', backgroundColor: 'rgba(124, 58, 237, 0.2)', color: '#D8B4FE', border: '1px solid rgba(124, 58, 237, 0.4)', fontWeight: 600, cursor: 'pointer', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
             >
               🎙️ "open employee tab"
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const cmd = "go back";
-                setVoiceInputManual(cmd);
-                processVoiceCommand(cmd);
-              }}
-              style={{ fontSize: '10px', padding: '3px 9px', borderRadius: '12px', backgroundColor: 'rgba(239, 68, 68, 0.2)', color: '#FCA5A5', border: '1px solid rgba(239, 68, 68, 0.4)', fontWeight: 600, cursor: 'pointer', whitespace: 'nowrap' }}
-            >
-              ↩️ "go back"
             </button>
             <button
               type="button"
@@ -6298,42 +6260,9 @@ export default function App() {
                 setVoiceInputManual(cmd);
                 processVoiceCommand(cmd);
               }}
-              style={{ fontSize: '10px', padding: '3px 9px', borderRadius: '12px', backgroundColor: 'rgba(236, 72, 153, 0.2)', color: '#FBCFE8', border: '1px solid rgba(236, 72, 153, 0.4)', fontWeight: 600, cursor: 'pointer', whitespace: 'nowrap' }}
+              style={{ flex: 1, fontSize: '11px', padding: '6px 10px', borderRadius: '12px', backgroundColor: 'rgba(236, 72, 153, 0.2)', color: '#FBCFE8', border: '1px solid rgba(236, 72, 153, 0.4)', fontWeight: 600, cursor: 'pointer', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
             >
               🎙️ "enter srimathi as a new employee"
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const cmd = "click on srimathi name";
-                setVoiceInputManual(cmd);
-                processVoiceCommand(cmd);
-              }}
-              style={{ fontSize: '10px', padding: '3px 9px', borderRadius: '12px', backgroundColor: 'rgba(168, 85, 247, 0.2)', color: '#E9D5FF', border: '1px solid rgba(168, 85, 247, 0.4)', fontWeight: 600, cursor: 'pointer', whitespace: 'nowrap' }}
-            >
-              🎙️ "click on srimathi name"
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const cmd = "enter payroll for Kartick";
-                setVoiceInputManual(cmd);
-                processVoiceCommand(cmd);
-              }}
-              style={{ fontSize: '10px', padding: '3px 9px', borderRadius: '12px', backgroundColor: 'rgba(16, 185, 129, 0.2)', color: '#A7F3D0', border: '1px solid rgba(16, 185, 129, 0.4)', fontWeight: 600, cursor: 'pointer', whitespace: 'nowrap' }}
-            >
-              🎙️ "enter payroll for Kartick"
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const cmd = "add invoice for Sri Varahi Exports for 2.5 lakhs";
-                setVoiceInputManual(cmd);
-                processVoiceCommand(cmd);
-              }}
-              style={{ fontSize: '10px', padding: '3px 9px', borderRadius: '12px', backgroundColor: 'rgba(59, 130, 246, 0.2)', color: '#BFDBFE', border: '1px solid rgba(59, 130, 246, 0.4)', fontWeight: 600, cursor: 'pointer', whitespace: 'nowrap' }}
-            >
-              🎙️ "add invoice for Sri Varahi Exports for 2.5 lakhs"
             </button>
           </div>
         </div>
