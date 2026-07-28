@@ -264,6 +264,37 @@ export default function App() {
   const [notificationsSubTab, setNotificationsSubTab] = useState('job-updates'); // 'job-updates' | 'attendance-alerts' | 'salary-alerts' | 'system-notifications'
   const [settingsSubTab, setSettingsSubTab] = useState('company-profile'); // 'company-profile' | 'users-roles' | 'departments' | 'job-categories' | 'expense-categories' | 'payroll-settings' | 'preferences'
 
+  // Settings Modules Data States
+  const [systemUsers, setSystemUsers] = useState([
+    { id: 1, name: "Vikashini Balasubramanian", email: "vikashini@varahiexport.com", role: "Administrator (Full Access)", status: "Active" },
+    { id: 2, name: "Production Auditor", email: "auditor@varahiexport.com", role: "Production Supervisor", status: "Active" },
+    { id: 3, name: "Billing Accountant", email: "billing@varahiexport.com", role: "Billing Accountant", status: "Active" }
+  ]);
+
+  const [systemDepartments, setSystemDepartments] = useState([
+    { id: 1, name: "Stitching & Sewing", head: "Kartick", staffCount: "24 Members", location: "Unit 1 - Main Floor" },
+    { id: 2, name: "Cutting & Master Unit", head: "Ramesh Kumar", staffCount: "8 Members", location: "Unit 1 - Ground Floor" },
+    { id: 3, name: "Quality Control (QC)", head: "Srimathi", staffCount: "6 Members", location: "Unit 2 - Inspection" },
+    { id: 4, name: "Packing & Dispatch", head: "Anitha Devi", staffCount: "10 Members", location: "Unit 2 - Warehouse" },
+    { id: 5, name: "Finance & Accounts", head: "Vikashini B.", staffCount: "3 Members", location: "Executive Suite" }
+  ]);
+
+  const [jobCategoriesList, setJobCategoriesList] = useState([
+    { id: 1, name: "Export T-Shirts", gstRate: "5%", rateRange: "₹12 - ₹25 / Pcs", description: "Round neck & Polo cotton t-shirts" },
+    { id: 2, name: "Denim Jackets & Pants", gstRate: "12%", rateRange: "₹35 - ₹65 / Pcs", description: "Heavyweight denim stitching" },
+    { id: 3, name: "Woven Shirts", gstRate: "5%", rateRange: "₹18 - ₹32 / Pcs", description: "Formal & casual woven shirts" },
+    { id: 4, name: "Kidswear Garments", gstRate: "5%", rateRange: "₹10 - ₹20 / Pcs", description: "Bulk export kidswear sets" }
+  ]);
+
+  const [expenseCategoriesList, setExpenseCategoriesList] = useState([
+    { id: 1, name: "Employee Salaries", budget: "₹2,50,000 / Mo", deductible: "Yes (Tax Deductible)" },
+    { id: 2, name: "Employee Salary Advances", budget: "₹50,000 / Mo", deductible: "Yes" },
+    { id: 3, name: "Transportation (Auto / Freight)", budget: "₹30,000 / Mo", deductible: "Yes" },
+    { id: 4, name: "Petrol / Diesel Fuel", budget: "₹20,000 / Mo", deductible: "Yes" },
+    { id: 5, name: "Materials & Accessories", budget: "₹1,00,000 / Mo", deductible: "Yes" },
+    { id: 6, name: "Power & Electricity Overhead", budget: "₹45,000 / Mo", deductible: "Yes" }
+  ]);
+
   // Edit / Details target selections
   const [editingClient, setEditingClient] = useState(null);
   const [editingBill, setEditingBill] = useState(null);
@@ -3320,38 +3351,291 @@ export default function App() {
               </button>
             </div>
 
-            <div className="card bg-surface border" style={{ padding: '24px', borderRadius: '16px', maxWidth: '750px' }}>
-              <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 700 }}>Varahi Export Company Profile</h3>
-              <form onSubmit={(e) => { e.preventDefault(); alert("Company profile updated!"); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <div className="form-group">
-                    <label>Company Legal Name</label>
-                    <input type="text" defaultValue="Varahi Export Management System" />
+            {settingsSubTab === 'company-profile' ? (
+              <div className="card bg-surface border" style={{ padding: '24px', borderRadius: '16px', maxWidth: '800px' }}>
+                <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 700 }}>Varahi Export Company Profile</h3>
+                <form onSubmit={(e) => { e.preventDefault(); alert("Company profile updated successfully!"); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div className="form-group">
+                      <label>Company Legal Name</label>
+                      <input type="text" defaultValue="Varahi Export Management System" />
+                    </div>
+                    <div className="form-group">
+                      <label>GSTIN Registration</label>
+                      <input type="text" defaultValue="33AAAAA0000A1Z5" />
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div className="form-group">
+                      <label>Primary Contact Email</label>
+                      <input type="email" defaultValue="varahi.export@gmail.com" />
+                    </div>
+                    <div className="form-group">
+                      <label>Primary Contact Phone</label>
+                      <input type="text" defaultValue="+91 98422 12345" />
+                    </div>
                   </div>
                   <div className="form-group">
-                    <label>GSTIN Registration</label>
-                    <input type="text" defaultValue="33AAAAA0000A1Z5" />
-                  </div>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <div className="form-group">
-                    <label>Primary Contact Email</label>
-                    <input type="email" defaultValue="varahi.export@gmail.com" />
-                  </div>
-                  <div className="form-group">
-                    <label>Primary Contact Phone</label>
-                    <input type="text" defaultValue="+91 98422 12345" />
-                  </div>
-                </div>
-                <div className="form-group">
                     <label>Registered Factory & Office Address</label>
                     <input type="text" defaultValue="124 Garment Park, Main Road, Tirupur, Tamil Nadu - 641603" />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+                    <button type="submit" className="btn btn-primary"><i className="ph ph-check"></i> Update Profile</button>
+                  </div>
+                </form>
+              </div>
+            ) : settingsSubTab === 'users-roles' ? (
+              <div className="table-card bg-surface border" style={{ marginTop: '10px' }}>
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>System Users & Access Role Permissions</h3>
+                    <p className="small text-muted" style={{ margin: '2px 0 0 0' }}>Manage administrative accounts, role privileges, and security access levels.</p>
+                  </div>
+                  <button className="btn btn-primary btn-sm" onClick={() => {
+                    const uName = prompt("Enter User Name:");
+                    const uEmail = prompt("Enter User Email:");
+                    if (uName && uEmail) {
+                      setSystemUsers(prev => [...prev, { id: Date.now(), name: uName, email: uEmail, role: "Billing Accountant", status: "Active" }]);
+                    }
+                  }}>
+                    <i className="ph ph-user-plus"></i> + Add System User
+                  </button>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
-                  <button type="submit" className="btn btn-primary"><i className="ph ph-check"></i> Update Profile</button>
+                <div className="table-responsive">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>User Name</th>
+                        <th>Email / Login ID</th>
+                        <th>Assigned Access Role</th>
+                        <th>Account Status</th>
+                        <th className="text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {systemUsers.map(usr => (
+                        <tr key={usr.id}>
+                          <td className="font-semibold">{usr.name}</td>
+                          <td className="text-muted">{usr.email}</td>
+                          <td><span className="badge badge-gst">{usr.role}</span></td>
+                          <td><span className="badge badge-success">{usr.status}</span></td>
+                          <td className="text-right">
+                            <button className="btn btn-secondary btn-sm" onClick={() => alert(`Editing permissions for ${usr.name}`)}>
+                              Edit Permissions
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              </form>
-            </div>
+              </div>
+            ) : settingsSubTab === 'departments' ? (
+              <div className="table-card bg-surface border" style={{ marginTop: '10px' }}>
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Factory Departments & Production Units</h3>
+                    <p className="small text-muted" style={{ margin: '2px 0 0 0' }}>Configure operational units, department heads, and floor staff allocations.</p>
+                  </div>
+                  <button className="btn btn-primary btn-sm" onClick={() => {
+                    const dName = prompt("Enter Department Name:");
+                    if (dName) {
+                      setSystemDepartments(prev => [...prev, { id: Date.now(), name: dName, head: "Supervisor", staffCount: "5 Members", location: "Unit 1" }]);
+                    }
+                  }}>
+                    <i className="ph ph-plus-circle"></i> + Add Department
+                  </button>
+                </div>
+                <div className="table-responsive">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Department Name</th>
+                        <th>Department Head</th>
+                        <th>Staff Count</th>
+                        <th>Factory Location</th>
+                        <th className="text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {systemDepartments.map(dept => (
+                        <tr key={dept.id}>
+                          <td className="font-semibold">{dept.name}</td>
+                          <td>{dept.head}</td>
+                          <td className="font-bold">{dept.staffCount}</td>
+                          <td className="text-muted">{dept.location}</td>
+                          <td className="text-right">
+                            <button className="btn btn-secondary btn-sm" onClick={() => alert(`Department details for ${dept.name}`)}>
+                              Manage Unit
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : settingsSubTab === 'job-categories' ? (
+              <div className="table-card bg-surface border" style={{ marginTop: '10px' }}>
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Garment Job Categories & Stitch Rates</h3>
+                    <p className="small text-muted" style={{ margin: '2px 0 0 0' }}>Define standard garment categories, GST slabs, and piece rate guidelines.</p>
+                  </div>
+                  <button className="btn btn-primary btn-sm" onClick={() => {
+                    const cName = prompt("Enter Category Name:");
+                    if (cName) {
+                      setJobCategoriesList(prev => [...prev, { id: Date.now(), name: cName, gstRate: "5%", rateRange: "₹15 - ₹30 / Pcs", description: "Custom stitching category" }]);
+                    }
+                  }}>
+                    <i className="ph ph-plus-circle"></i> + Add Job Category
+                  </button>
+                </div>
+                <div className="table-responsive">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Category Name</th>
+                        <th>GST Slab</th>
+                        <th>Piece Rate Standard</th>
+                        <th>Category Description</th>
+                        <th className="text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {jobCategoriesList.map(cat => (
+                        <tr key={cat.id}>
+                          <td className="font-semibold">{cat.name}</td>
+                          <td><span className="badge badge-gst">{cat.gstRate}</span></td>
+                          <td className="font-bold text-primary">{cat.rateRange}</td>
+                          <td className="text-muted">{cat.description}</td>
+                          <td className="text-right">
+                            <button className="btn btn-secondary btn-sm" onClick={() => alert(`Editing rates for ${cat.name}`)}>
+                              Configure Rates
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : settingsSubTab === 'expense-categories' ? (
+              <div className="table-card bg-surface border" style={{ marginTop: '10px' }}>
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Expense Ledger Categories & Budget Limits</h3>
+                    <p className="small text-muted" style={{ margin: '2px 0 0 0' }}>Set up operational expense categories for financial auditing.</p>
+                  </div>
+                  <button className="btn btn-primary btn-sm" onClick={() => {
+                    const expCat = prompt("Enter Expense Category Name:");
+                    if (expCat) {
+                      setExpenseCategoriesList(prev => [...prev, { id: Date.now(), name: expCat, budget: "₹25,000 / Mo", deductible: "Yes" }]);
+                    }
+                  }}>
+                    <i className="ph ph-plus-circle"></i> + Add Category
+                  </button>
+                </div>
+                <div className="table-responsive">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Category Name</th>
+                        <th>Monthly Budget Allocation</th>
+                        <th>Tax Deductible</th>
+                        <th className="text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {expenseCategoriesList.map(exp => (
+                        <tr key={exp.id}>
+                          <td className="font-semibold">{exp.name}</td>
+                          <td className="font-bold">{exp.budget}</td>
+                          <td><span className="badge badge-success">{exp.deductible}</span></td>
+                          <td className="text-right">
+                            <button className="btn btn-secondary btn-sm" onClick={() => alert(`Budget updated for ${exp.name}`)}>
+                              Edit Budget
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : settingsSubTab === 'payroll-settings' ? (
+              <div className="card bg-surface border" style={{ padding: '24px', borderRadius: '16px', maxWidth: '800px' }}>
+                <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 700 }}>Payroll Rules & Overtime Calculations</h3>
+                <form onSubmit={(e) => { e.preventDefault(); alert("Payroll rules saved successfully!"); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div className="form-group">
+                      <label>Standard Shift Work Hours</label>
+                      <input type="text" defaultValue="8 Hours / Shift" />
+                    </div>
+                    <div className="form-group">
+                      <label>Overtime Multiplier Rate</label>
+                      <input type="text" defaultValue="1.5x Hourly Rate" />
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div className="form-group">
+                      <label>EPF Deduction Percentage (%)</label>
+                      <input type="text" defaultValue="12%" />
+                    </div>
+                    <div className="form-group">
+                      <label>ESI Employee Contribution (%)</label>
+                      <input type="text" defaultValue="0.75%" />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label>Salary Advance Auto-Deduction Schedule</label>
+                    <select defaultValue="Deduct 50% Per Payroll Cycle">
+                      <option value="Deduct 50% Per Payroll Cycle">Deduct 50% Per Payroll Cycle</option>
+                      <option value="Deduct 100% Full Repayment">Deduct 100% Full Repayment</option>
+                      <option value="Manual Deduction Approval">Manual Deduction Approval</option>
+                    </select>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+                    <button type="submit" className="btn btn-primary"><i className="ph ph-check"></i> Save Payroll Rules</button>
+                  </div>
+                </form>
+              </div>
+            ) : (
+              <div className="card bg-surface border" style={{ padding: '24px', borderRadius: '16px', maxWidth: '800px' }}>
+                <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 700 }}>System Preferences & Display</h3>
+                <form onSubmit={(e) => { e.preventDefault(); alert("System preferences saved!"); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div className="form-group">
+                      <label>Currency Format</label>
+                      <input type="text" defaultValue="INR (₹ Indian Rupee)" />
+                    </div>
+                    <div className="form-group">
+                      <label>Invoice Number Prefix</label>
+                      <input type="text" defaultValue="VE-2026-" />
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div className="form-group">
+                      <label>Siri Ambient Voice AI</label>
+                      <select defaultValue="Enabled">
+                        <option value="Enabled">Enabled & Active</option>
+                        <option value="Disabled">Disabled</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label>Audio TTS Speech Output</label>
+                      <select defaultValue="Enabled">
+                        <option value="Enabled">Enabled & Voice Active</option>
+                        <option value="Disabled">Disabled</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+                    <button type="submit" className="btn btn-primary"><i className="ph ph-check"></i> Save Preferences</button>
+                  </div>
+                </form>
+              </div>
+            )}
           </section>
         )}
 
