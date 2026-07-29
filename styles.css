@@ -979,16 +979,18 @@ select:focus, input[type="date"]:focus, input[type="text"]:focus, input[type="pa
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(15, 23, 42, 0.35);
+  background-color: rgba(15, 23, 42, 0.45);
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 10000;
   opacity: 0;
   pointer-events: none;
   transition: opacity 150ms cubic-bezier(0.16, 1, 0.3, 1);
-  padding: 24px;
+  padding: 20px;
+  overflow-y: auto;
 }
 
 .modal-overlay.active {
@@ -1000,14 +1002,26 @@ select:focus, input[type="date"]:focus, input[type="text"]:focus, input[type="pa
   width: 100%;
   max-width: 580px;
   background-color: #FFFFFF;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 16px;
-  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.18), 0 0 1px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.22), 0 0 1px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 48px);
+  max-height: calc(100vh - 40px);
   transform: scale(0.96) translateY(8px);
   transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  position: relative;
+  margin: auto;
+}
+
+/* Ensure forms inside modal-card inherit vertical flex height and scroll body properly */
+.modal-card form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
   overflow: hidden;
 }
 
@@ -1016,22 +1030,25 @@ select:focus, input[type="date"]:focus, input[type="text"]:focus, input[type="pa
 }
 
 .modal-header {
-  padding: 12px 18px;
+  padding: 14px 20px;
   border-bottom: 1px solid #F0F0F4;
   display: flex;
   justify-content: space-between;
   align-items: center;
   background-color: #FFFFFF;
+  flex-shrink: 0;
+  z-index: 2;
 }
 
 .modal-header h3 {
   font-family: var(--font-body);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   color: #1C1C21;
   display: flex;
   align-items: center;
   gap: 8px;
+  margin: 0;
 }
 
 .modal-header-actions {
@@ -1060,18 +1077,40 @@ select:focus, input[type="date"]:focus, input[type="text"]:focus, input[type="pa
 }
 
 .modal-body {
-  padding: 16px 20px;
-  overflow-y: auto;
-  flex-grow: 1;
+  padding: 20px;
+  overflow-y: auto !important;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Custom smooth scrollbar for modal-body */
+.modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+.modal-body::-webkit-scrollbar-track {
+  background: #F4F4F6;
+  border-radius: 4px;
+}
+.modal-body::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
 }
 
 .modal-footer {
-  padding: 12px 20px;
+  padding: 14px 20px;
   background-color: #FAFAFC;
   border-top: 1px solid #F0F0F4;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  z-index: 2;
 }
 
 /* Linear Chip Bar Inside Modal */
@@ -2314,15 +2353,15 @@ input:checked + .slider:before {
   }
 
   .modal-overlay {
-    padding: 0 !important;
+    padding: 8px !important;
     align-items: flex-end !important;
   }
 
   .modal-card {
     margin: 0 !important;
     max-width: 100% !important;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
-    max-height: 85vh !important;
+    border-radius: 16px 16px 0 0 !important;
+    max-height: 90vh !important;
     transform: translateY(100%) !important;
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
   }
@@ -2332,11 +2371,15 @@ input:checked + .slider:before {
   }
 
   .modal-body {
-    padding: 16px;
+    padding: 16px !important;
+    overflow-y: auto !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
   }
 
   .modal-footer {
-    padding: 12px 16px;
+    padding: 12px 16px !important;
+    flex-shrink: 0 !important;
   }
 
   /* AI Advisor mobile overrides */
