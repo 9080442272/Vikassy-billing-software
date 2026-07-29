@@ -382,6 +382,10 @@ export default function App() {
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [isAddExpenseCatModalOpen, setIsAddExpenseCatModalOpen] = useState(false);
 
+  // --- View & Edit System User Permissions State ---
+  const [viewingUser, setViewingUser] = useState(null);
+  const [editingUser, setEditingUser] = useState(null);
+
   // --- References ---
   const chartCanvasRef = useRef(null);
   const chartInstanceRef = useRef(null);
@@ -3871,9 +3875,14 @@ export default function App() {
                           <td><span className="badge badge-gst">{usr.role}</span></td>
                           <td><span className="badge badge-success">{usr.status}</span></td>
                           <td className="text-right">
-                            <button className="btn btn-secondary btn-sm" onClick={() => alert(`Editing permissions for ${usr.name}`)}>
-                              Edit Permissions
-                            </button>
+                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                              <button className="btn btn-ghost btn-sm" onClick={() => setViewingUser(usr)} style={{ padding: '6px 12px', fontSize: '12px', color: '#6E56CF', border: '1px solid rgba(110, 86, 207, 0.2)' }} title="View User Role & Privileges">
+                                <i className="ph ph-eye" style={{ fontSize: '14px' }}></i> View
+                              </button>
+                              <button className="btn btn-primary btn-sm" onClick={() => setEditingUser(usr)} style={{ padding: '6px 12px', fontSize: '12px' }} title="Edit User Permissions">
+                                <i className="ph ph-pencil-simple" style={{ fontSize: '14px' }}></i> Edit Permissions
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -6939,6 +6948,165 @@ export default function App() {
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setIsDisbursePayrollModalOpen(false)}>Cancel</button>
                 <button type="submit" className="btn btn-success text-white"><i className="ph ph-check"></i> Complete & Disburse</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* View System User Privileges Modal */}
+      {viewingUser && (
+        <div className="modal-overlay active" onClick={() => setViewingUser(null)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px' }}>
+            <div className="modal-header">
+              <h3>👤 User Access Privileges - {viewingUser.name}</h3>
+              <button className="btn-close" onClick={() => setViewingUser(null)}><i className="ph ph-x"></i></button>
+            </div>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', backgroundColor: '#FAFAFC', borderRadius: '12px', border: '1px solid #E6E6EB' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#6E56CF', color: '#FFF', fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {viewingUser.name.charAt(0)}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '15px', fontWeight: 700, color: '#1C1C21' }}>{viewingUser.name}</span>
+                  <span style={{ fontSize: '12px', color: '#62636C' }}>{viewingUser.email}</span>
+                </div>
+                <span className="badge badge-success" style={{ marginLeft: 'auto', padding: '4px 10px', fontSize: '11px' }}>{viewingUser.status}</span>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Assigned Security Role</label>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E56CF', marginTop: '4px' }}>
+                  <i className="ph ph-shield-check" style={{ marginRight: '6px' }}></i>{viewingUser.role}
+                </div>
+              </div>
+
+              <div style={{ borderTop: '1px solid #F0F0F4', paddingTop: '12px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '10px' }}>
+                  Granular ERP Module Privileges
+                </label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid #F1F5F9' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>🧾 Bills & GST Invoices</span>
+                    <span className="badge badge-purple" style={{ fontSize: '10px' }}>Full Create & Edit</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid #F1F5F9' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>⚙️ Jobs & Piece-Rate Orders</span>
+                    <span className="badge badge-purple" style={{ fontSize: '10px' }}>
+                      {viewingUser.role.includes("Supervisor") || viewingUser.role.includes("Admin") ? "Full Create & Edit" : "View Only"}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid #F1F5F9' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>📦 Fabric Rolls Inventory</span>
+                    <span className="badge badge-purple" style={{ fontSize: '10px' }}>
+                      {viewingUser.role.includes("Admin") || viewingUser.role.includes("Clerk") ? "Full Adjustments" : "View Stock"}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid #F1F5F9' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>👥 Employee Payroll & Advances</span>
+                    <span className="badge badge-purple" style={{ fontSize: '10px' }}>
+                      {viewingUser.role.includes("Admin") || viewingUser.role.includes("Accountant") ? "Disburse & Approve" : "Restricted"}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid #F1F5F9' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>📊 Tax Filings & Financial Reports</span>
+                    <span className="badge badge-purple" style={{ fontSize: '10px' }}>
+                      {viewingUser.role.includes("Admin") || viewingUser.role.includes("Accountant") ? "Full Access" : "Restricted"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" onClick={() => setViewingUser(null)}>Close</button>
+              <button type="button" className="btn btn-primary" onClick={() => { const target = viewingUser; setViewingUser(null); setEditingUser(target); }}>
+                <i className="ph ph-pencil-simple"></i> Edit Permissions
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit System User Permissions Modal */}
+      {editingUser && (
+        <div className="modal-overlay active" onClick={() => setEditingUser(null)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px' }}>
+            <div className="modal-header">
+              <h3>✏️ Edit User Permissions - {editingUser.name}</h3>
+              <button className="btn-close" onClick={() => setEditingUser(null)}><i className="ph ph-x"></i></button>
+            </div>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const form = e.target;
+              const newName = form.editName.value.trim();
+              const newEmail = form.editEmail.value.trim();
+              const newRole = form.editRole.value;
+              const newStatus = form.editStatus.value;
+
+              setSystemUsers(prev => prev.map(u => u.id === editingUser.id ? { ...u, name: newName, email: newEmail, role: newRole, status: newStatus } : u));
+              setEditingUser(null);
+              alert(`🎉 Permissions and role updated for ${newName}!`);
+            }}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div className="form-group">
+                  <label>Full User Name *</label>
+                  <input type="text" name="editName" required defaultValue={editingUser.name} />
+                </div>
+                <div className="form-group">
+                  <label>Email Address / Login ID *</label>
+                  <input type="email" name="editEmail" required defaultValue={editingUser.email} />
+                </div>
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div className="form-group">
+                    <label>Assigned Access Role *</label>
+                    <select name="editRole" defaultValue={editingUser.role}>
+                      <option value="Administrator (Full Access)">Administrator (Full Access)</option>
+                      <option value="Billing Accountant">Billing Accountant</option>
+                      <option value="Production Supervisor">Production Supervisor</option>
+                      <option value="Inventory & Fabric Clerk">Inventory & Fabric Clerk</option>
+                      <option value="Audit & Compliance Officer">Audit & Compliance Officer</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Account Security Status</label>
+                    <select name="editStatus" defaultValue={editingUser.status || "Active"}>
+                      <option value="Active">Active (Full Login)</option>
+                      <option value="Suspended">Suspended (Access Revoked)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ borderTop: '1px solid #F0F0F4', paddingTop: '12px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '10px' }}>
+                    Granular Access Permission Toggles
+                  </label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+                      <input type="checkbox" defaultChecked={true} style={{ width: '16px', height: '16px' }} />
+                      <span>Allow Invoicing & GST Billing Creation</span>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+                      <input type="checkbox" defaultChecked={editingUser.role.includes("Admin") || editingUser.role.includes("Supervisor")} style={{ width: '16px', height: '16px' }} />
+                      <span>Allow Job Order Dispatching & Piece Rate Overrides</span>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+                      <input type="checkbox" defaultChecked={editingUser.role.includes("Admin") || editingUser.role.includes("Clerk")} style={{ width: '16px', height: '16px' }} />
+                      <span>Allow Fabric Stock Inward / Outward Adjustments</span>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+                      <input type="checkbox" defaultChecked={editingUser.role.includes("Admin") || editingUser.role.includes("Accountant")} style={{ width: '16px', height: '16px' }} />
+                      <span>Allow Monthly Payroll Disbursement & Advance Approval</span>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+                      <input type="checkbox" defaultChecked={editingUser.role.includes("Admin")} style={{ width: '16px', height: '16px' }} />
+                      <span>Allow System Settings & GST Tax Configurations</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setEditingUser(null)}>Cancel</button>
+                <button type="submit" className="btn btn-primary"><i className="ph ph-check"></i> Save Changes</button>
               </div>
             </form>
           </div>
