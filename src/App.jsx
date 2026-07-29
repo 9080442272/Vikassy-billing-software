@@ -2923,10 +2923,6 @@ export default function App() {
                   <button className="btn-ghost" onClick={() => setJobsSubTab('create')} style={{ padding: '9px 14px', fontSize: '13px' }}>
                     <i className="ph ph-briefcase" style={{ fontSize: '14px' }}></i> Add Job
                   </button>
-                  <button className="btn-ghost" onClick={startVoiceAssistant} style={{ padding: '9px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <div className="siri-orb-icon"></div>
-                    <span>Voice Assistant</span>
-                  </button>
                 </div>
               </header>
 
