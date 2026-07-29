@@ -385,6 +385,7 @@ export default function App() {
   // --- View & Edit System User Permissions State ---
   const [viewingUser, setViewingUser] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
+  const [userViewMode, setUserViewMode] = useState('tree'); // 'tree' (Employee Tree) or 'table'
 
   // --- References ---
   const chartCanvasRef = useRef(null);
@@ -3847,48 +3848,351 @@ export default function App() {
               </div>
             ) : settingsSubTab === 'users-roles' ? (
               <div className="table-card bg-surface border" style={{ marginTop: '10px' }}>
-                <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                {/* Header Bar with Employee Tree View Switcher */}
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                   <div>
-                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>System Users & Access Role Permissions</h3>
-                    <p className="small text-muted" style={{ margin: '2px 0 0 0' }}>Manage administrative accounts, role privileges, and security access levels.</p>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span>System Users & Access Role Permissions</span>
+                      <span className="badge badge-purple" style={{ fontSize: '11px', padding: '2px 8px' }}>
+                        {userViewMode === 'tree' ? '🌳 Employee Tree View' : '📋 List View'}
+                      </span>
+                    </h3>
+                    <p className="small text-muted" style={{ margin: '2px 0 0 0' }}>Organizational hierarchy, role privileges, and security access levels.</p>
                   </div>
-                  <button className="btn btn-primary btn-sm" onClick={() => setIsAddUserModalOpen(true)}>
-                    <i className="ph ph-user-plus"></i> + Add System User
-                  </button>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    {/* View Switcher Pills */}
+                    <div style={{ display: 'flex', backgroundColor: '#F1F5F9', padding: '3px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                      <button
+                        type="button"
+                        onClick={() => setUserViewMode('tree')}
+                        style={{
+                          padding: '6px 14px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          borderRadius: '8px',
+                          border: 'none',
+                          cursor: 'pointer',
+                          backgroundColor: userViewMode === 'tree' ? '#FFFFFF' : 'transparent',
+                          color: userViewMode === 'tree' ? '#6E56CF' : '#64748B',
+                          boxShadow: userViewMode === 'tree' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                          transition: 'all 120ms ease',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <i className="ph ph-tree-structure" style={{ fontSize: '14px' }}></i> Employee Tree
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setUserViewMode('table')}
+                        style={{
+                          padding: '6px 14px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          borderRadius: '8px',
+                          border: 'none',
+                          cursor: 'pointer',
+                          backgroundColor: userViewMode === 'table' ? '#FFFFFF' : 'transparent',
+                          color: userViewMode === 'table' ? '#6E56CF' : '#64748B',
+                          boxShadow: userViewMode === 'table' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                          transition: 'all 120ms ease',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <i className="ph ph-table" style={{ fontSize: '14px' }}></i> Table List
+                      </button>
+                    </div>
+
+                    <button className="btn btn-primary btn-sm" onClick={() => setIsAddUserModalOpen(true)} style={{ borderRadius: '10px', padding: '8px 16px' }}>
+                      <i className="ph ph-user-plus"></i> + Add System User
+                    </button>
+                  </div>
                 </div>
-                <div className="table-responsive">
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>User Name</th>
-                        <th>Email / Login ID</th>
-                        <th>Assigned Access Role</th>
-                        <th>Account Status</th>
-                        <th className="text-right">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {systemUsers.map(usr => (
-                        <tr key={usr.id}>
-                          <td className="font-semibold">{usr.name}</td>
-                          <td className="text-muted">{usr.email}</td>
-                          <td><span className="badge badge-gst">{usr.role}</span></td>
-                          <td><span className="badge badge-success">{usr.status}</span></td>
-                          <td className="text-right">
-                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                              <button className="btn btn-ghost btn-sm" onClick={() => setViewingUser(usr)} style={{ padding: '6px 12px', fontSize: '12px', color: '#6E56CF', border: '1px solid rgba(110, 86, 207, 0.2)' }} title="View User Role & Privileges">
-                                <i className="ph ph-eye" style={{ fontSize: '14px' }}></i> View
-                              </button>
-                              <button className="btn btn-primary btn-sm" onClick={() => setEditingUser(usr)} style={{ padding: '6px 12px', fontSize: '12px' }} title="Edit User Permissions">
-                                <i className="ph ph-pencil-simple" style={{ fontSize: '14px' }}></i> Edit Permissions
-                              </button>
+
+                {/* VIEW 1: INTERACTIVE EMPLOYEE TREE CANVAS */}
+                {userViewMode === 'tree' ? (
+                  <div style={{ padding: '24px', backgroundColor: '#F8FAFC', minHeight: '520px', overflowX: 'auto' }}>
+                    {/* Top Team Avatars Strip */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'between', gap: '12px', padding: '12px 18px', backgroundColor: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', marginBottom: '24px', boxShadow: '0 2px 8px rgba(15,23,42,0.04)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          Active Team Crew
+                        </span>
+                        <span className="badge badge-purple" style={{ fontSize: '10px' }}>{systemUsers.length + 4} Personnel</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '-6px', marginLeft: 'auto' }}>
+                        {['Vikashini', 'Production Auditor', 'Billing Accountant', 'Kartick', 'Ramesh', 'Srimathi', 'Anitha'].map((name, idx) => {
+                          const colors = ['#6E56CF', '#2563EB', '#059669', '#D97706', '#DC2626', '#7C3AED', '#2563EB'];
+                          return (
+                            <div
+                              key={name}
+                              title={`${name} (Active)`}
+                              style={{
+                                width: '36px',
+                                height: '36px',
+                                borderRadius: '50%',
+                                backgroundColor: colors[idx % colors.length],
+                                color: '#FFF',
+                                fontSize: '13px',
+                                fontWeight: 800,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                border: '3px solid #FFFFFF',
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                                marginLeft: idx > 0 ? '-10px' : '0',
+                                position: 'relative',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              {name.charAt(0)}
+                              <span style={{ position: 'absolute', bottom: '0', right: '0', width: '9px', height: '9px', borderRadius: '50%', backgroundColor: '#10B981', border: '2px solid #FFF' }}></span>
                             </div>
-                          </td>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* 4-Stage Tree Hierarchy Columns */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(250px, 1fr))', gap: '20px', position: 'relative' }}>
+
+                      {/* STAGE 1: EXECUTIVE & LEADERSHIP */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', paddingBottom: '6px', borderBottom: '2px solid #6E56CF', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <i className="ph ph-crown" style={{ color: '#6E56CF' }}></i> 1. Executive Leadership
+                        </div>
+
+                        {/* Node Card: Admin */}
+                        <div 
+                          className="shadow-sm hover:shadow-md transition-all"
+                          onClick={() => setViewingUser(systemUsers[0] || { name: 'Vikashini Balasubramanian', email: 'vikashini@varahiexport.com', role: 'Administrator (Full Access)', status: 'Active' })}
+                          style={{ backgroundColor: '#FFFFFF', border: '2px solid #6E56CF', borderRadius: '16px', padding: '16px', cursor: 'pointer', position: 'relative' }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', justifyBetween: 'space-between', gap: '10px', marginBottom: '10px' }}>
+                            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #6E56CF 0%, #4C1D95 100%)', color: '#FFF', fontSize: '16px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              V
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A' }}>Vikashini B.</div>
+                              <div style={{ fontSize: '11px', color: '#6E56CF', fontWeight: 700 }}>Managing Director</div>
+                            </div>
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#64748B', backgroundColor: '#F8FAFC', padding: '6px 10px', borderRadius: '8px', border: '1px solid #F1F5F9', marginTop: '8px' }}>
+                            🔑 Full Administrator Control, GST Filings & System Overrides
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #F1F5F9' }}>
+                            <span className="badge badge-success" style={{ fontSize: '10px' }}>🟢 Active</span>
+                            <span style={{ fontSize: '11px', color: '#6E56CF', fontWeight: 700 }}>View Privileges →</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* STAGE 2: FLOOR SUPERVISORS */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', paddingBottom: '6px', borderBottom: '2px solid #2563EB', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <i className="ph ph-tree-structure" style={{ color: '#2563EB' }}></i> 2. Floor Supervisors
+                        </div>
+
+                        {/* Node Card: Production Auditor */}
+                        <div 
+                          className="shadow-sm hover:shadow-md transition-all"
+                          onClick={() => setViewingUser(systemUsers[1] || { name: 'Production Auditor', email: 'auditor@varahiexport.com', role: 'Production Supervisor', status: 'Active' })}
+                          style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px', padding: '14px', cursor: 'pointer' }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', color: '#FFF', fontSize: '14px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              P
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>Production Auditor</div>
+                              <div style={{ fontSize: '10.5px', color: '#2563EB', fontWeight: 600 }}>Production Supervisor</div>
+                            </div>
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#64748B' }}>⚙️ Job Dispatches & Stitching Rate Audits</div>
+                        </div>
+
+                        {/* Node Card: Cutting Master */}
+                        <div 
+                          className="shadow-sm hover:shadow-md transition-all"
+                          onClick={() => alert('Viewing Cutting Master Unit Privileges')}
+                          style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px', padding: '14px', cursor: 'pointer' }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg, #059669 0%, #047857 100%)', color: '#FFF', fontSize: '14px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              R
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>Ramesh Kumar</div>
+                              <div style={{ fontSize: '10.5px', color: '#059669', fontWeight: 600 }}>Cutting Master Lead</div>
+                            </div>
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#64748B' }}>✂️ Fabric Laying & Marker Pattern Cuts</div>
+                        </div>
+
+                        {/* Node Card: QC Lead */}
+                        <div 
+                          className="shadow-sm hover:shadow-md transition-all"
+                          onClick={() => alert('Viewing Quality Control Inspection Privileges')}
+                          style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px', padding: '14px', cursor: 'pointer' }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)', color: '#FFF', fontSize: '14px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              S
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>Srimathi</div>
+                              <div style={{ fontSize: '10.5px', color: '#7C3AED', fontWeight: 600 }}>QC Inspection Lead</div>
+                            </div>
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#64748B' }}>🔍 Garment Defect Inspection & Passing</div>
+                        </div>
+                      </div>
+
+                      {/* STAGE 3: SKILLED CREW & ACCOUNTING */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', paddingBottom: '6px', borderBottom: '2px solid #D97706', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <i className="ph ph-t-shirt" style={{ color: '#D97706' }}></i> 3. Skilled Crew & Accounting
+                        </div>
+
+                        {/* Node Card: Kartick */}
+                        <div 
+                          className="shadow-sm hover:shadow-md transition-all"
+                          onClick={() => alert('Viewing Kartick Master Stitcher Rates')}
+                          style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px', padding: '14px', cursor: 'pointer' }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', color: '#FFF', fontSize: '14px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              K
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>Kartick</div>
+                              <div style={{ fontSize: '10.5px', color: '#D97706', fontWeight: 600 }}>Master Stitcher (24 Crew)</div>
+                            </div>
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#64748B' }}>🧵 Assembly Rate: ₹25 / Piece</div>
+                        </div>
+
+                        {/* Node Card: Accountant */}
+                        <div 
+                          className="shadow-sm hover:shadow-md transition-all"
+                          onClick={() => setViewingUser(systemUsers[2] || { name: 'Billing Accountant', email: 'billing@varahiexport.com', role: 'Billing Accountant', status: 'Active' })}
+                          style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px', padding: '14px', cursor: 'pointer' }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%)', color: '#FFF', fontSize: '14px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              B
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>Billing Accountant</div>
+                              <div style={{ fontSize: '10.5px', color: '#2563EB', fontWeight: 600 }}>Finance & GST Specialist</div>
+                            </div>
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#64748B' }}>🧾 Invoicing, Payments & Expense Logs</div>
+                        </div>
+
+                        {/* Node Card: Packing Lead */}
+                        <div 
+                          className="shadow-sm hover:shadow-md transition-all"
+                          onClick={() => alert('Viewing Packing & Dispatch Privileges')}
+                          style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px', padding: '14px', cursor: 'pointer' }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg, #059669 0%, #064E3B 100%)', color: '#FFF', fontSize: '14px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              A
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>Anitha Devi</div>
+                              <div style={{ fontSize: '10.5px', color: '#059669', fontWeight: 600 }}>Packing & Dispatch Lead</div>
+                            </div>
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#64748B' }}>📦 Polybagging, Box Sealing & Courier</div>
+                        </div>
+                      </div>
+
+                      {/* STAGE 4: AI & AUTOMATION */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', paddingBottom: '6px', borderBottom: '2px solid #8B5CF6', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <i className="ph ph-sparkle" style={{ color: '#8B5CF6' }}></i> 4. AI & Cloud Automation
+                        </div>
+
+                        {/* Node Card: Siri Assistant */}
+                        <div 
+                          className="shadow-sm hover:shadow-md transition-all"
+                          onClick={() => startVoiceAssistant()}
+                          style={{ backgroundColor: '#FFFFFF', border: '1px solid #8B5CF6', borderRadius: '16px', padding: '14px', cursor: 'pointer' }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)', color: '#FFF', fontSize: '14px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <i className="ph ph-microphone"></i>
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>Siri ERP Assistant</div>
+                              <div style={{ fontSize: '10.5px', color: '#8B5CF6', fontWeight: 600 }}>Voice AI Command Agent</div>
+                            </div>
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#64748B' }}>🎙️ Hands-free Voice Search & Navigation</div>
+                        </div>
+
+                        {/* Node Card: Real-time Cloud */}
+                        <div 
+                          className="shadow-sm hover:shadow-md transition-all"
+                          style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px', padding: '14px' }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)', color: '#FFF', fontSize: '14px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <i className="ph ph-cloud"></i>
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>Convex Real-Time Engine</div>
+                              <div style={{ fontSize: '10.5px', color: '#3B82F6', fontWeight: 600 }}>Reactive Data Stream</div>
+                            </div>
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#64748B' }}>⚡ Zero-latency multi-device sync</div>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                ) : (
+                  /* VIEW 2: TABLE LIST VIEW */
+                  <div className="table-responsive">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>User Name</th>
+                          <th>Email / Login ID</th>
+                          <th>Assigned Access Role</th>
+                          <th>Account Status</th>
+                          <th className="text-right">Action</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {systemUsers.map(usr => (
+                          <tr key={usr.id}>
+                            <td className="font-semibold">{usr.name}</td>
+                            <td className="text-muted">{usr.email}</td>
+                            <td><span className="badge badge-gst">{usr.role}</span></td>
+                            <td><span className="badge badge-success">{usr.status}</span></td>
+                            <td className="text-right">
+                              <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                                <button className="btn btn-ghost btn-sm" onClick={() => setViewingUser(usr)} style={{ padding: '6px 12px', fontSize: '12px', color: '#6E56CF', border: '1px solid rgba(110, 86, 207, 0.2)' }} title="View User Role & Privileges">
+                                  <i className="ph ph-eye" style={{ fontSize: '14px' }}></i> View
+                                </button>
+                                <button className="btn btn-primary btn-sm" onClick={() => setEditingUser(usr)} style={{ padding: '6px 12px', fontSize: '12px' }} title="Edit User Permissions">
+                                  <i className="ph ph-pencil-simple" style={{ fontSize: '14px' }}></i> Edit Permissions
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             ) : settingsSubTab === 'departments' ? (
               <div className="table-card bg-surface border" style={{ marginTop: '10px' }}>
