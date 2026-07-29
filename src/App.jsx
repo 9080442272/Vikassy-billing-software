@@ -5100,7 +5100,7 @@ export default function App() {
             </header>
 
             {/* Statistics indicators */}
-            <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', marginBottom: '24px' }}>
+            <div className="metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
               <div className="metric-card">
                 <div className="metric-card-header">
                   <span className="metric-label">Accomplishments Logged</span>
@@ -5276,7 +5276,7 @@ export default function App() {
               </div>
 
               {/* Expenses Metrics Summary */}
-              <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', marginBottom: '24px' }}>
+              <div className="metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
                 <div className="metric-card">
                   <div className="metric-card-header">
                     <span className="metric-label">Total Expenses</span>

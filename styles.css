@@ -438,6 +438,13 @@ button, input, select, textarea {
 /* ==========================================
    TEXTILE ERP DASHBOARD SYSTEM STYLES
    ========================================== */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
 .metrics-grid-6 {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
