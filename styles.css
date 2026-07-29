@@ -475,10 +475,10 @@ button, input, select, textarea {
 .factory-snapshot-card {
   background: #FFFFFF;
   border: 1px solid #E6E6EB;
-  border-left: 4px solid #6E56CF;
+  border-left: 4px solid #4F46E5;
   border-radius: 14px;
   padding: 18px 24px;
-  box-shadow: 0 4px 16px rgba(110, 86, 207, 0.06);
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.06);
   margin-bottom: 24px;
   display: flex;
   flex-direction: column;
@@ -606,7 +606,7 @@ button, input, select, textarea {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background-color: #6E56CF;
+  background-color: #4F46E5;
   border: 2px solid #FFFFFF;
   box-shadow: 0 0 0 2px #E2E8F0;
 }
@@ -827,8 +827,8 @@ button, input, select, textarea {
 
 .btn-ghost:hover {
   background-color: #FFFFFF;
-  border-color: #6E56CF;
-  color: #6E56CF;
+  border-color: #4F46E5;
+  color: #4F46E5;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
