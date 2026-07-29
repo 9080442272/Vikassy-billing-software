@@ -2689,10 +2689,10 @@ export default function App() {
                 </div>
               </header>
 
-              {/* 6 Priority Operational KPI Cards */}
+              {/* 6 Priority Operational KPI Cards (Interlinked) */}
               <div className="metrics-grid-6">
                 {/* 1. Today's Billing */}
-                <div className="metric-card">
+                <div className="metric-card" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Invoices & Bills">
                   <div className="metric-card-header">
                     <span className="metric-label">Today's Billing</span>
                     <div className="metric-icon purple"><i className="ph ph-receipt"></i></div>
@@ -2705,7 +2705,7 @@ export default function App() {
                 </div>
 
                 {/* 2. Pending Payments */}
-                <div className="metric-card">
+                <div className="metric-card" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Pending & Overdue Invoices">
                   <div className="metric-card-header">
                     <span className="metric-label">Pending Payments</span>
                     <div className="metric-icon gold"><i className="ph ph-clock-countdown"></i></div>
@@ -2718,7 +2718,7 @@ export default function App() {
                 </div>
 
                 {/* 3. Active Production Jobs */}
-                <div className="metric-card">
+                <div className="metric-card" onClick={() => { setActiveTab('jobs'); setJobsSubTab('active'); }} style={{ cursor: 'pointer' }} title="Click to view Active Production Jobs">
                   <div className="metric-card-header">
                     <span className="metric-label">Active Jobs</span>
                     <div className="metric-icon purple"><i className="ph ph-gear-six"></i></div>
@@ -2730,7 +2730,7 @@ export default function App() {
                 </div>
 
                 {/* 4. Employees Present */}
-                <div className="metric-card">
+                <div className="metric-card" onClick={() => { setActiveTab('employees'); setEmployeesSubTab('attendance'); }} style={{ cursor: 'pointer' }} title="Click to view Staff Attendance">
                   <div className="metric-card-header">
                     <span className="metric-label">Staff Attendance</span>
                     <div className="metric-icon" style={{ color: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)' }}><i className="ph ph-users-three"></i></div>
@@ -2743,7 +2743,7 @@ export default function App() {
                 </div>
 
                 {/* 5. Pending Deliveries */}
-                <div className="metric-card">
+                <div className="metric-card" onClick={() => { setActiveTab('jobs'); setJobsSubTab('active'); }} style={{ cursor: 'pointer' }} title="Click to view Pending Deliveries">
                   <div className="metric-card-header">
                     <span className="metric-label">Pending Deliveries</span>
                     <div className="metric-icon gold"><i className="ph ph-truck"></i></div>
@@ -2755,7 +2755,7 @@ export default function App() {
                 </div>
 
                 {/* 6. Available Fabric Stock */}
-                <div className="metric-card">
+                <div className="metric-card" onClick={() => setActiveTab('fabrics')} style={{ cursor: 'pointer' }} title="Click to view Fabric Stock Inventory">
                   <div className="metric-card-header">
                     <span className="metric-label">Fabric Inventory</span>
                     <div className="metric-icon"><i className="ph ph-package"></i></div>
@@ -2767,7 +2767,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Today's Factory Snapshot (Highlighted Operational Summary Card) */}
+              {/* Today's Factory Snapshot (Interlinked Summary Pills) */}
               <div className="factory-snapshot-card">
                 <div className="snapshot-header">
                   <div className="snapshot-title">
@@ -2779,27 +2779,27 @@ export default function App() {
                   </span>
                 </div>
                 <div className="snapshot-pills-row">
-                  <div className="snapshot-pill">
+                  <div className="snapshot-pill" onClick={() => { setActiveTab('jobs'); setJobsSubTab('active'); }} style={{ cursor: 'pointer' }} title="Click to view Running Jobs">
                     <span className="status-dot green"></span>
                     <span><strong>18</strong> Jobs Running</span>
                   </div>
-                  <div className="snapshot-pill">
+                  <div className="snapshot-pill" onClick={() => { setActiveTab('jobs'); setJobsSubTab('active'); }} style={{ cursor: 'pointer' }} title="Click to view Completed Jobs">
                     <span className="status-dot blue"></span>
                     <span><strong>7</strong> Jobs Completed</span>
                   </div>
-                  <div className="snapshot-pill">
+                  <div className="snapshot-pill" onClick={() => { setActiveTab('jobs'); setJobsSubTab('active'); }} style={{ cursor: 'pointer' }} title="Click to view Pending Dispatches">
                     <span className="status-dot amber"></span>
                     <span><strong>3</strong> Waiting for Dispatch</span>
                   </div>
-                  <div className="snapshot-pill">
+                  <div className="snapshot-pill" onClick={() => { setActiveTab('employees'); setEmployeesSubTab('attendance'); }} style={{ cursor: 'pointer' }} title="Click to view Staff Attendance">
                     <span className="status-dot green"></span>
                     <span><strong>14</strong> Employees Present</span>
                   </div>
-                  <div className="snapshot-pill">
+                  <div className="snapshot-pill" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Pending Invoices">
                     <span className="status-dot amber"></span>
                     <span><strong>2</strong> Bills Pending</span>
                   </div>
-                  <div className="snapshot-pill" style={{ borderColor: 'rgba(239,68,68,0.3)', backgroundColor: '#FEF2F2' }}>
+                  <div className="snapshot-pill" onClick={() => setActiveTab('bills')} style={{ borderColor: 'rgba(239,68,68,0.3)', backgroundColor: '#FEF2F2', cursor: 'pointer' }} title="Click to view Overdue Payments">
                     <span className="status-dot red"></span>
                     <span style={{ color: '#991B1B' }}><strong>1</strong> Payment Overdue</span>
                   </div>
@@ -2823,7 +2823,7 @@ export default function App() {
                   </div>
 
                   {/* SVG Area Line Chart */}
-                  <div style={{ width: '100%', height: '220px', position: 'relative', marginTop: '10px' }}>
+                  <div style={{ width: '100%', height: '220px', position: 'relative', marginTop: '10px', cursor: 'pointer' }} onClick={() => setActiveTab('bills')}>
                     <svg viewBox="0 0 500 180" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
                       <defs>
                         <linearGradient id="billingGrad" x1="0" y1="0" x2="0" y2="1">
@@ -2869,7 +2869,7 @@ export default function App() {
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {/* Client 1 */}
-                    <div>
+                    <div onClick={() => setActiveTab('clients')} style={{ cursor: 'pointer' }} title="Click to view Client Directory">
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
                         <span style={{ fontWeight: 600, color: '#1C1C21' }}>Sounder Exports</span>
                         <span style={{ fontWeight: 700, color: '#6E56CF', fontFamily: 'var(--font-mono)' }}>₹4,85,000 (62%)</span>
@@ -2880,7 +2880,7 @@ export default function App() {
                     </div>
 
                     {/* Client 2 */}
-                    <div>
+                    <div onClick={() => setActiveTab('clients')} style={{ cursor: 'pointer' }} title="Click to view Client Directory">
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
                         <span style={{ fontWeight: 600, color: '#1C1C21' }}>Raj Textiles</span>
                         <span style={{ fontWeight: 700, color: '#10B981', fontFamily: 'var(--font-mono)' }}>₹1,45,000 (18%)</span>
@@ -2891,7 +2891,7 @@ export default function App() {
                     </div>
 
                     {/* Client 3 */}
-                    <div>
+                    <div onClick={() => setActiveTab('clients')} style={{ cursor: 'pointer' }} title="Click to view Client Directory">
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
                         <span style={{ fontWeight: 600, color: '#1C1C21' }}>Anand Mills</span>
                         <span style={{ fontWeight: 700, color: '#F59E0B', fontFamily: 'var(--font-mono)' }}>₹95,000 (12%)</span>
@@ -2902,7 +2902,7 @@ export default function App() {
                     </div>
 
                     {/* Client 4 */}
-                    <div>
+                    <div onClick={() => setActiveTab('clients')} style={{ cursor: 'pointer' }} title="Click to view Client Directory">
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
                         <span style={{ fontWeight: 600, color: '#1C1C21' }}>Varahi Domestic</span>
                         <span style={{ fontWeight: 700, color: '#64748B', fontFamily: 'var(--font-mono)' }}>₹65,000 (8%)</span>
@@ -2915,8 +2915,8 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Actionable Insights: Client Concentration Risk */}
-              <div className="table-card bg-surface border" style={{ padding: '20px', marginBottom: '24px', backgroundColor: '#FFFAED', borderColor: '#FDE68A' }}>
+              {/* Actionable Insights: Client Concentration Risk (Interlinked) */}
+              <div className="table-card bg-surface border" onClick={() => setActiveTab('clients')} style={{ padding: '20px', marginBottom: '24px', backgroundColor: '#FFFAED', borderColor: '#FDE68A', cursor: 'pointer' }} title="Click to open Clients directory to manage accounts">
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
                   <div style={{ width: '38px', height: '38px', borderRadius: '10px', backgroundColor: '#FEF3C7', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>
                     <i className="ph ph-warning"></i>
@@ -2939,7 +2939,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Action Required (Pending Tasks) & Recent Activity Timeline (2-Column Grid) */}
+              {/* Action Required (Pending Tasks) & Recent Activity Timeline (Interlinked) */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
                 {/* Left: Action Required (Pending Tasks) */}
                 <div className="action-required-card">
@@ -2950,7 +2950,7 @@ export default function App() {
                     <span className="badge badge-warning" style={{ fontSize: '11px' }}>4 Urgent Items</span>
                   </div>
 
-                  <div className="action-item red-border">
+                  <div className="action-item red-border" onClick={() => setActiveTab('reports')} style={{ cursor: 'pointer' }} title="Click to view Reports & Tax Compliance">
                     <i className="ph ph-calendar-blank" style={{ color: '#EF4444', fontSize: '18px', marginTop: '2px' }}></i>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '13px', fontWeight: 700, color: '#991B1B' }}>GST Filing Due in 3 Days</div>
@@ -2958,7 +2958,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="action-item red-border">
+                  <div className="action-item red-border" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Overdue Invoices">
                     <i className="ph ph-clock-countdown" style={{ color: '#EF4444', fontSize: '18px', marginTop: '2px' }}></i>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '13px', fontWeight: 700, color: '#991B1B' }}>2 Payments Overdue</div>
@@ -2966,7 +2966,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="action-item orange-border">
+                  <div className="action-item orange-border" onClick={() => { setActiveTab('jobs'); setJobsSubTab('active'); }} style={{ cursor: 'pointer' }} title="Click to view Production Jobs">
                     <i className="ph ph-truck" style={{ color: '#F59E0B', fontSize: '18px', marginTop: '2px' }}></i>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '13px', fontWeight: 700, color: '#92400E' }}>1 Delivery Delayed</div>
@@ -2974,7 +2974,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="action-item yellow-border">
+                  <div className="action-item yellow-border" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Invoices & Bills">
                     <i className="ph ph-file-search" style={{ color: '#D97706', fontSize: '18px', marginTop: '2px' }}></i>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '13px', fontWeight: 700, color: '#92400E' }}>4 Invoices Awaiting Approval</div>
@@ -2993,7 +2993,7 @@ export default function App() {
                   </div>
 
                   <div className="activity-timeline">
-                    <div className="timeline-event">
+                    <div className="timeline-event" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Bills">
                       <div>
                         <div style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21' }}>Bill #VE-2026-024 Created</div>
                         <div style={{ fontSize: '12px', color: '#62636C' }}>Generated invoice for Sounder Exports (₹1,50,000)</div>
@@ -3001,7 +3001,7 @@ export default function App() {
                       <span style={{ fontSize: '11px', color: '#8C8D96', fontWeight: 500 }}>10:15 AM</span>
                     </div>
 
-                    <div className="timeline-event">
+                    <div className="timeline-event" onClick={() => { setActiveTab('jobs'); setJobsSubTab('active'); }} style={{ cursor: 'pointer' }} title="Click to view Jobs">
                       <div>
                         <div style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21' }}>Job #102 Completed</div>
                         <div style={{ fontSize: '12px', color: '#62636C' }}>Stitching Unit completed 1,000 Denim Jackets</div>
@@ -3009,7 +3009,7 @@ export default function App() {
                       <span style={{ fontSize: '11px', color: '#8C8D96', fontWeight: 500 }}>09:40 AM</span>
                     </div>
 
-                    <div className="timeline-event">
+                    <div className="timeline-event" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Payments">
                       <div>
                         <div style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21' }}>Payment Received</div>
                         <div style={{ fontSize: '12px', color: '#62636C' }}>Received ₹45,000 via HDFC Bank transfer</div>
@@ -3017,7 +3017,7 @@ export default function App() {
                       <span style={{ fontSize: '11px', color: '#8C8D96', fontWeight: 500 }}>09:15 AM</span>
                     </div>
 
-                    <div className="timeline-event">
+                    <div className="timeline-event" onClick={() => { setActiveTab('employees'); setEmployeesSubTab('attendance'); }} style={{ cursor: 'pointer' }} title="Click to view Staff Attendance">
                       <div>
                         <div style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21' }}>Employee Checked In</div>
                         <div style={{ fontSize: '12px', color: '#62636C' }}>Srimathi logged present for Morning Shift</div>
@@ -3025,7 +3025,7 @@ export default function App() {
                       <span style={{ fontSize: '11px', color: '#8C8D96', fontWeight: 500 }}>08:05 AM</span>
                     </div>
 
-                    <div className="timeline-event">
+                    <div className="timeline-event" onClick={() => setActiveTab('fabrics')} style={{ cursor: 'pointer' }} title="Click to view Inventory Stock">
                       <div>
                         <div style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21' }}>Fabric Stock Added</div>
                         <div style={{ fontSize: '12px', color: '#62636C' }}>Added 500 Mtrs Denim Roll (Roll #D-402)</div>
