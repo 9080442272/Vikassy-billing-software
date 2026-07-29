@@ -376,6 +376,12 @@ export default function App() {
 
   const activeCompany = companies.find(c => c.id === activeCompanyId) || companies[0];
 
+  // --- Settings Custom Modals State ---
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+  const [isAddDeptModalOpen, setIsAddDeptModalOpen] = useState(false);
+  const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
+  const [isAddExpenseCatModalOpen, setIsAddExpenseCatModalOpen] = useState(false);
+
   // --- References ---
   const chartCanvasRef = useRef(null);
   const chartInstanceRef = useRef(null);
@@ -3900,13 +3906,7 @@ export default function App() {
                     <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>System Users & Access Role Permissions</h3>
                     <p className="small text-muted" style={{ margin: '2px 0 0 0' }}>Manage administrative accounts, role privileges, and security access levels.</p>
                   </div>
-                  <button className="btn btn-primary btn-sm" onClick={() => {
-                    const uName = prompt("Enter User Name:");
-                    const uEmail = prompt("Enter User Email:");
-                    if (uName && uEmail) {
-                      setSystemUsers(prev => [...prev, { id: Date.now(), name: uName, email: uEmail, role: "Billing Accountant", status: "Active" }]);
-                    }
-                  }}>
+                  <button className="btn btn-primary btn-sm" onClick={() => setIsAddUserModalOpen(true)}>
                     <i className="ph ph-user-plus"></i> + Add System User
                   </button>
                 </div>
@@ -3946,12 +3946,7 @@ export default function App() {
                     <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1C1C21' }}>Factory Departments & Production Units</h3>
                     <p className="small text-muted" style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#62636C' }}>Configure operational units, floor supervisors, and staff allocations.</p>
                   </div>
-                  <button className="btn btn-primary btn-sm" style={{ borderRadius: '14px', padding: '6px 14px' }} onClick={() => {
-                    const dName = prompt("Enter Department Name:");
-                    if (dName) {
-                      setSystemDepartments(prev => [...prev, { id: Date.now(), name: dName, head: "Supervisor", staffCount: "5 Members", location: "Unit 1" }]);
-                    }
-                  }}>
+                  <button className="btn btn-primary btn-sm" style={{ borderRadius: '14px', padding: '6px 14px' }} onClick={() => setIsAddDeptModalOpen(true)}>
                     <i className="ph ph-plus"></i> Add Department
                   </button>
                 </div>
@@ -4007,12 +4002,7 @@ export default function App() {
                     <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1C1C21' }}>Garment Job Categories & Stitch Rates</h3>
                     <p className="small text-muted" style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#62636C' }}>Define standard garment categories, GST slabs, and piece rate guidelines.</p>
                   </div>
-                  <button className="btn btn-primary btn-sm" style={{ borderRadius: '14px', padding: '6px 14px' }} onClick={() => {
-                    const cName = prompt("Enter Category Name:");
-                    if (cName) {
-                      setJobCategoriesList(prev => [...prev, { id: Date.now(), name: cName, gstRate: "5%", rateRange: "₹15 - ₹30 / Pcs", description: "Custom stitching category" }]);
-                    }
-                  }}>
+                  <button className="btn btn-primary btn-sm" style={{ borderRadius: '14px', padding: '6px 14px' }} onClick={() => setIsAddCategoryModalOpen(true)}>
                     <i className="ph ph-plus"></i> Add Category
                   </button>
                 </div>
@@ -4057,12 +4047,7 @@ export default function App() {
                     <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1C1C21' }}>Expense Ledger Categories & Budget Limits</h3>
                     <p className="small text-muted" style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#62636C' }}>Set up operational expense categories for financial auditing.</p>
                   </div>
-                  <button className="btn btn-primary btn-sm" style={{ borderRadius: '14px', padding: '6px 14px' }} onClick={() => {
-                    const expCat = prompt("Enter Expense Category Name:");
-                    if (expCat) {
-                      setExpenseCategoriesList(prev => [...prev, { id: Date.now(), name: expCat, budget: "₹25,000 / Mo", deductible: "Yes" }]);
-                    }
-                  }}>
+                  <button className="btn btn-primary btn-sm" style={{ borderRadius: '14px', padding: '6px 14px' }} onClick={() => setIsAddExpenseCatModalOpen(true)}>
                     <i className="ph ph-plus"></i> Add Category
                   </button>
                 </div>
@@ -7012,6 +6997,216 @@ export default function App() {
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setIsDisbursePayrollModalOpen(false)}>Cancel</button>
                 <button type="submit" className="btn btn-success text-white"><i className="ph ph-check"></i> Complete & Disburse</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add System User Modal */}
+      {isAddUserModalOpen && (
+        <div className="modal-overlay active" onClick={() => setIsAddUserModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+            <div className="modal-header">
+              <h3>👤 Add System User & Assign Role</h3>
+              <button className="btn-close" onClick={() => setIsAddUserModalOpen(false)}><i className="ph ph-x"></i></button>
+            </div>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const form = e.target;
+              const name = form.userName.value.trim();
+              const email = form.userEmail.value.trim();
+              const role = form.userRole.value;
+
+              if (name && email) {
+                setSystemUsers(prev => [...prev, { id: Date.now(), name, email, role, status: "Active" }]);
+                setIsAddUserModalOpen(false);
+                alert(`🎉 System user account created for ${name} (${role})!`);
+              }
+            }}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div className="form-group">
+                  <label>Full User Name *</label>
+                  <input type="text" name="userName" required placeholder="e.g. Anand Kumar" />
+                </div>
+                <div className="form-group">
+                  <label>Email Address / Login ID *</label>
+                  <input type="email" name="userEmail" required placeholder="e.g. anand@varahiexport.com" />
+                </div>
+                <div className="form-group">
+                  <label>Assigned Access Role *</label>
+                  <select name="userRole" defaultValue="Billing Accountant">
+                    <option value="Administrator (Full Access)">Administrator (Full Access)</option>
+                    <option value="Billing Accountant">Billing Accountant</option>
+                    <option value="Production Supervisor">Production Supervisor</option>
+                    <option value="Inventory & Fabric Clerk">Inventory & Fabric Clerk</option>
+                    <option value="Audit & Compliance Officer">Audit & Compliance Officer</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Temporary Password *</label>
+                  <input type="password" required defaultValue="Varahi@2026" placeholder="••••••••" />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setIsAddUserModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary"><i className="ph ph-user-plus"></i> Save System User</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Department Modal */}
+      {isAddDeptModalOpen && (
+        <div className="modal-overlay active" onClick={() => setIsAddDeptModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+            <div className="modal-header">
+              <h3>🏢 Add Factory Department</h3>
+              <button className="btn-close" onClick={() => setIsAddDeptModalOpen(false)}><i className="ph ph-x"></i></button>
+            </div>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const form = e.target;
+              const name = form.deptName.value.trim();
+              const head = form.deptHead.value.trim();
+              const staff = form.deptStaff.value.trim();
+              const location = form.deptLocation.value.trim();
+
+              if (name) {
+                setSystemDepartments(prev => [...prev, { id: Date.now(), name, head: head || 'Supervisor', staffCount: staff || '5 Members', location: location || 'Unit 1' }]);
+                setIsAddDeptModalOpen(false);
+                alert(`🎉 Department "${name}" created successfully!`);
+              }
+            }}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div className="form-group">
+                  <label>Department Title *</label>
+                  <input type="text" name="deptName" required placeholder="e.g. Embroidery & Finishing Unit" />
+                </div>
+                <div className="form-group">
+                  <label>Floor Supervisor / Department Head</label>
+                  <input type="text" name="deptHead" placeholder="e.g. Ramesh Kumar" />
+                </div>
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div className="form-group">
+                    <label>Staff Members Count</label>
+                    <input type="text" name="deptStaff" defaultValue="8 Members" placeholder="e.g. 8 Members" />
+                  </div>
+                  <div className="form-group">
+                    <label>Factory Floor Location</label>
+                    <input type="text" name="deptLocation" defaultValue="Tirupur Floor 2" placeholder="e.g. Floor 2" />
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setIsAddDeptModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary"><i className="ph ph-check"></i> Create Department</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Job Category Modal */}
+      {isAddCategoryModalOpen && (
+        <div className="modal-overlay active" onClick={() => setIsAddCategoryModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+            <div className="modal-header">
+              <h3>🏷️ Add Garment Job Category</h3>
+              <button className="btn-close" onClick={() => setIsAddCategoryModalOpen(false)}><i className="ph ph-x"></i></button>
+            </div>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const form = e.target;
+              const name = form.catName.value.trim();
+              const gst = form.catGst.value;
+              const rate = form.catRate.value.trim();
+              const desc = form.catDesc.value.trim();
+
+              if (name) {
+                setJobCategoriesList(prev => [...prev, { id: Date.now(), name, gstRate: gst, rateRange: rate || '₹20 - ₹40 / Pcs', description: desc || 'Custom garment category' }]);
+                setIsAddCategoryModalOpen(false);
+                alert(`🎉 Job Category "${name}" added!`);
+              }
+            }}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div className="form-group">
+                  <label>Category Title *</label>
+                  <input type="text" name="catName" required placeholder="e.g. Printed Hoodies & Sweatshirts" />
+                </div>
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div className="form-group">
+                    <label>GST Slab *</label>
+                    <select name="catGst" defaultValue="5%">
+                      <option value="5%">5% (Standard Garments)</option>
+                      <option value="12%">12% (Premium Apparel)</option>
+                      <option value="18%">18% (Job Work Processing)</option>
+                      <option value="0%">0% (Exempt Export)</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Piece Rate Standard (₹)</label>
+                    <input type="text" name="catRate" defaultValue="₹25 - ₹45 / Pcs" placeholder="e.g. ₹25 - ₹45 / Pcs" />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Category Description</label>
+                  <input type="text" name="catDesc" placeholder="e.g. Fleece heavy knit hoodies stitching" />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setIsAddCategoryModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary"><i className="ph ph-check"></i> Save Category</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Expense Category Modal */}
+      {isAddExpenseCatModalOpen && (
+        <div className="modal-overlay active" onClick={() => setIsAddExpenseCatModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+            <div className="modal-header">
+              <h3>💰 Add Expense Category</h3>
+              <button className="btn-close" onClick={() => setIsAddExpenseCatModalOpen(false)}><i className="ph ph-x"></i></button>
+            </div>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const form = e.target;
+              const name = form.expName.value.trim();
+              const budget = form.expBudget.value.trim();
+              const deductible = form.expDeductible.value;
+
+              if (name) {
+                setExpenseCategoriesList(prev => [...prev, { id: Date.now(), name, budget: budget || '₹30,000 / Mo', deductible }]);
+                setIsAddExpenseCatModalOpen(false);
+                alert(`🎉 Expense Category "${name}" created!`);
+              }
+            }}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div className="form-group">
+                  <label>Expense Category Title *</label>
+                  <input type="text" name="expName" required placeholder="e.g. Thread & Accessories Procurement" />
+                </div>
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div className="form-group">
+                    <label>Monthly Budget Limit (₹)</label>
+                    <input type="text" name="expBudget" defaultValue="₹35,000 / Mo" placeholder="e.g. ₹35,000 / Mo" />
+                  </div>
+                  <div className="form-group">
+                    <label>Tax Deductible?</label>
+                    <select name="expDeductible" defaultValue="Yes">
+                      <option value="Yes">Yes (Deductible Business Expense)</option>
+                      <option value="No">No (Non-Deductible)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setIsAddExpenseCatModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary"><i className="ph ph-check"></i> Save Expense Category</button>
               </div>
             </form>
           </div>
