@@ -364,6 +364,18 @@ export default function App() {
   // --- PWA Installation state ---
   const [pwaPrompt, setPwaPrompt] = useState(null);
 
+  // --- Multi-Company & Branch Switcher State ---
+  const [companies, setCompanies] = useState([
+    { id: 'varahi-hq', name: 'Varahi Export', branch: 'Tirupur HQ', gst: '33AAAAA0000A1Z5', phone: '+91 98765 43210', city: 'Tirupur', badge: 'HQ' },
+    { id: 'vikas-exp', name: 'Vikas Export', branch: 'Coimbatore Unit', gst: '33BBBBB1111B1Z6', phone: '+91 91234 56789', city: 'Coimbatore', badge: 'Branch' },
+    { id: 'sri-varahi', name: 'Sri Varahi Garments', branch: 'Chennai Unit', gst: '33CCCCC2222C1Z7', phone: '+91 94444 88888', city: 'Chennai', badge: 'Branch' }
+  ]);
+  const [activeCompanyId, setActiveCompanyId] = useState('varahi-hq');
+  const [isCompanyDropdownOpen, setIsCompanyDropdownOpen] = useState(false);
+  const [isAddBranchModalOpen, setIsAddBranchModalOpen] = useState(false);
+
+  const activeCompany = companies.find(c => c.id === activeCompanyId) || companies[0];
+
   // --- References ---
   const chartCanvasRef = useRef(null);
   const chartInstanceRef = useRef(null);
@@ -2440,21 +2452,117 @@ export default function App() {
     <div style={{ display: 'flex', minHeight: '100vh', width: '100%' }}>
       {/* Sidebar Navigation */}
       <aside className="sidebar">
-        <div className="brand" style={{ justifyContent: 'space-between', width: '100%', marginBottom: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div className="brand-logo" style={{ width: '24px', height: '24px', borderRadius: '5px', backgroundColor: '#5E6AD2', color: '#fff', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
-              V
-            </div>
-            <span className="brand-name" style={{ fontSize: '14px', fontWeight: 600, color: '#1C1C21' }}>Varahi Export ▾</span>
-          </div>
-          <button 
-            className="btn-icon" 
-            onClick={startVoiceAssistant}
-            style={{ width: '26px', height: '26px', padding: 0, fontSize: '14px', color: '#62636C' }}
-            title="Search or Voice Command (⌘K)"
+        {/* Multi-Company & Branch Switcher Header */}
+        <div className="brand" style={{ position: 'relative', width: '100%', marginBottom: '16px' }}>
+          <div 
+            onClick={() => setIsCompanyDropdownOpen(!isCompanyDropdownOpen)}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              gap: '8px', 
+              width: '100%', 
+              cursor: 'pointer',
+              padding: '6px 8px',
+              borderRadius: '8px',
+              backgroundColor: isCompanyDropdownOpen ? '#F4F4F6' : 'transparent',
+              border: '1px solid #E6E6EB',
+              transition: 'all 120ms ease'
+            }}
+            title="Click to Switch Company Branch"
           >
-            <i className="ph ph-magnifying-glass"></i>
-          </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+              <div className="brand-logo" style={{ width: '26px', height: '26px', borderRadius: '6px', backgroundColor: '#6E56CF', color: '#fff', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, flexShrink: 0 }}>
+                {activeCompany.name.charAt(0)}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <span className="brand-name" style={{ fontSize: '13.5px', fontWeight: 700, color: '#1C1C21', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {activeCompany.name}
+                </span>
+                <span style={{ fontSize: '10.5px', color: '#8C8D96', fontWeight: 500 }}>
+                  {activeCompany.branch}
+                </span>
+              </div>
+            </div>
+            <i className="ph ph-caret-down" style={{ fontSize: '12px', color: '#8C8D96', transition: 'transform 120ms ease', transform: isCompanyDropdownOpen ? 'rotate(180deg)' : 'none' }}></i>
+          </div>
+
+          {/* Company & Branch Switcher Menu Popover */}
+          {isCompanyDropdownOpen && (
+            <div className="shadow-2xl border" style={{
+              position: 'absolute',
+              top: '100%',
+              left: '0',
+              zIndex: 9999,
+              width: '240px',
+              backgroundColor: '#FFFFFF',
+              borderRadius: '12px',
+              padding: '8px',
+              marginTop: '4px',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)'
+            }}>
+              <div style={{ fontSize: '10px', fontWeight: 700, color: '#8C8D96', textTransform: 'uppercase', padding: '4px 8px 6px 8px', letterSpacing: '0.05em' }}>
+                Select Active Branch
+              </div>
+
+              {companies.map((comp) => (
+                <div
+                  key={comp.id}
+                  onClick={() => {
+                    setActiveCompanyId(comp.id);
+                    setIsCompanyDropdownOpen(false);
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    backgroundColor: comp.id === activeCompanyId ? 'rgba(110, 86, 207, 0.08)' : 'transparent',
+                    transition: 'all 120ms ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '24px', height: '24px', borderRadius: '6px', backgroundColor: comp.id === activeCompanyId ? '#6E56CF' : '#E2E8F0', color: comp.id === activeCompanyId ? '#FFF' : '#64748B', fontSize: '11px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {comp.name.charAt(0)}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#1C1C21' }}>{comp.name}</span>
+                      <span style={{ fontSize: '10px', color: '#8C8D96' }}>{comp.branch}</span>
+                    </div>
+                  </div>
+                  {comp.id === activeCompanyId && <i className="ph ph-check-circle" style={{ color: '#6E56CF', fontSize: '14px' }}></i>}
+                </div>
+              ))}
+
+              <div style={{ borderTop: '1px solid #E6E6EB', marginTop: '6px', paddingTop: '6px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCompanyDropdownOpen(false);
+                    setIsAddBranchModalOpen(true);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '6px 8px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: '#6E56CF',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    borderRadius: '6px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <i className="ph ph-plus-circle" style={{ fontSize: '14px' }}></i> Add New Company Branch
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <nav className="nav-menu">
@@ -2730,11 +2838,14 @@ export default function App() {
               {/* Dashboard Header Bar */}
               <header className="view-header" style={{ marginBottom: '24px', alignItems: 'flex-start' }}>
                 <div>
-                  <h1 style={{ fontSize: '32px', fontWeight: 800, color: '#1C1C21', letterSpacing: '-0.02em', margin: '0 0 6px 0' }}>
-                    Varahi Export ERP Dashboard
+                  <h1 style={{ fontSize: '30px', fontWeight: 800, color: '#1C1C21', letterSpacing: '-0.02em', margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                    <span>{activeCompany.name} ERP Dashboard</span>
+                    <span className="badge badge-purple" style={{ fontSize: '11px', padding: '3px 10px', borderRadius: '12px', fontWeight: 600 }}>
+                      📍 {activeCompany.branch} ({activeCompany.city})
+                    </span>
                   </h1>
                   <p className="subtitle" style={{ fontSize: '14px', color: '#62636C', margin: 0 }}>
-                    Operational visibility for textile manufacturing, piece-rate billing, and job work management.
+                    Operational visibility for {activeCompany.name} textile manufacturing, piece-rate billing, and job work management.
                   </p>
                 </div>
 
@@ -6794,6 +6905,73 @@ export default function App() {
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setIsDisbursePayrollModalOpen(false)}>Cancel</button>
                 <button type="submit" className="btn btn-success text-white"><i className="ph ph-check"></i> Complete & Disburse</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add New Company Branch Modal */}
+      {isAddBranchModalOpen && (
+        <div className="modal-overlay active" onClick={() => setIsAddBranchModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+            <div className="modal-header">
+              <h3>🏢 Add New Company Branch</h3>
+              <button className="btn-close" onClick={() => setIsAddBranchModalOpen(false)}><i className="ph ph-x"></i></button>
+            </div>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const form = e.target;
+              const name = form.compName.value.trim();
+              const branch = form.compBranch.value.trim();
+              const gst = form.compGst.value.trim();
+              const city = form.compCity.value.trim();
+              const phone = form.compPhone.value.trim();
+
+              const newCompId = 'comp-' + Date.now();
+              const newComp = {
+                id: newCompId,
+                name: name || 'Vikas Export',
+                branch: branch || `${city} Unit`,
+                gst: gst || '33BBBBB1111B1Z6',
+                phone: phone || '+91 91234 56789',
+                city: city || 'Coimbatore',
+                badge: 'Branch'
+              };
+
+              setCompanies(prev => [...prev, newComp]);
+              setActiveCompanyId(newCompId);
+              setIsAddBranchModalOpen(false);
+
+              alert(`🎉 Company Branch "${name} (${branch})" added and set as active!`);
+            }}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div className="form-group">
+                  <label>Company Name *</label>
+                  <input type="text" name="compName" required defaultValue="Vikas Export" placeholder="e.g. Vikas Export" />
+                </div>
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div className="form-group">
+                    <label>Branch Title *</label>
+                    <input type="text" name="compBranch" required defaultValue="Coimbatore Unit" placeholder="e.g. Coimbatore Unit" />
+                  </div>
+                  <div className="form-group">
+                    <label>City / Location *</label>
+                    <input type="text" name="compCity" required defaultValue="Coimbatore" placeholder="e.g. Coimbatore" />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>GSTIN Tax Registration Number</label>
+                  <input type="text" name="compGst" defaultValue="33BBBBB1111B1Z6" placeholder="e.g. 33BBBBB1111B1Z6" />
+                </div>
+                <div className="form-group">
+                  <label>Branch Phone / Contact</label>
+                  <input type="text" name="compPhone" defaultValue="+91 91234 56789" placeholder="e.g. +91 91234 56789" />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setIsAddBranchModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary"><i className="ph ph-check"></i> Save & Switch Branch</button>
               </div>
             </form>
           </div>
