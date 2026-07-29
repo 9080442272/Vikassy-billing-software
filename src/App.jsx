@@ -3916,47 +3916,6 @@ export default function App() {
                 {/* VIEW 1: INTERACTIVE EMPLOYEE TREE CANVAS */}
                 {userViewMode === 'tree' ? (
                   <div style={{ padding: '24px', backgroundColor: '#F8FAFC', minHeight: '520px', overflowX: 'auto' }}>
-                    {/* Top Team Avatars Strip */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'between', gap: '12px', padding: '12px 18px', backgroundColor: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', marginBottom: '24px', boxShadow: '0 2px 8px rgba(15,23,42,0.04)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                          Active Team Crew
-                        </span>
-                        <span className="badge badge-purple" style={{ fontSize: '10px' }}>{systemUsers.length + 4} Personnel</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '-6px', marginLeft: 'auto' }}>
-                        {['Vikashini', 'Production Auditor', 'Billing Accountant', 'Kartick', 'Ramesh', 'Srimathi', 'Anitha'].map((name, idx) => {
-                          const colors = ['#6E56CF', '#2563EB', '#059669', '#D97706', '#DC2626', '#7C3AED', '#2563EB'];
-                          return (
-                            <div
-                              key={name}
-                              title={`${name} (Active)`}
-                              style={{
-                                width: '36px',
-                                height: '36px',
-                                borderRadius: '50%',
-                                backgroundColor: colors[idx % colors.length],
-                                color: '#FFF',
-                                fontSize: '13px',
-                                fontWeight: 800,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                border: '3px solid #FFFFFF',
-                                boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-                                marginLeft: idx > 0 ? '-10px' : '0',
-                                position: 'relative',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              {name.charAt(0)}
-                              <span style={{ position: 'absolute', bottom: '0', right: '0', width: '9px', height: '9px', borderRadius: '50%', backgroundColor: '#10B981', border: '2px solid #FFF' }}></span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
                     {/* 4-Stage Tree Hierarchy Columns */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(250px, 1fr))', gap: '20px', position: 'relative' }}>
 
