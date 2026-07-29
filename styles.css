@@ -2715,13 +2715,65 @@ input:checked + .slider:before {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-.tab-count-badge {
-  background-color: #E4E4E9;
-  color: #62636C;
-  border-radius: 10px;
-  padding: 1px 6px;
-  font-size: 11px;
-  font-weight: 600;
+/* ==========================================
+   ANIMATED APPLE SIRI WAVE ORB ICON
+   ========================================== */
+.siri-orb-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    #FF2D55 0deg,
+    #5856D6 72deg,
+    #007AFF 144deg,
+    #5AC8FA 216deg,
+    #AF52DE 288deg,
+    #FF2D55 360deg
+  );
+  box-shadow: 0 0 10px rgba(175, 82, 222, 0.5), inset 0 0 4px rgba(255, 255, 255, 0.8);
+  display: inline-block;
+  vertical-align: middle;
+  animation: siriRotate 4s linear infinite;
+  position: relative;
+  flex-shrink: 0;
+}
+
+@keyframes siriRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.siri-orb-icon-lg {
+  width: 52px;
+  height: 52px;
+  box-shadow: 0 0 24px rgba(175, 82, 222, 0.6), inset 0 0 8px rgba(255, 255, 255, 0.9);
+  animation: siriRotate 3s linear infinite, siriPulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes siriPulse {
+  0% { transform: rotate(0deg) scale(0.96); box-shadow: 0 0 16px rgba(175, 82, 222, 0.5); }
+  100% { transform: rotate(180deg) scale(1.08); box-shadow: 0 0 32px rgba(90, 200, 250, 0.85); }
+}
+
+.siri-btn-gradient {
+  background: linear-gradient(135deg, #1C1C21, #2A2B36) !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(175, 82, 222, 0.3) !important;
+  box-shadow: 0 2px 12px rgba(88, 86, 214, 0.25) !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 14px !important;
+  padding: 7px 16px !important;
+  transition: all 150ms ease !important;
+  font-weight: 600 !important;
+}
+
+.siri-btn-gradient:hover {
+  box-shadow: 0 4px 18px rgba(175, 82, 222, 0.45) !important;
+  border-color: rgba(175, 82, 222, 0.6) !important;
+  transform: translateY(-1px);
 }
 
 

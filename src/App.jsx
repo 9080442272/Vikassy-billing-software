@@ -667,7 +667,7 @@ export default function App() {
   };
 
   const parseVoiceCommand = (rawText) => {
-    if (!rawText) return { intent: 'invoice', companyName: '', amount: 0, rawText: '' };
+    if (!rawText) return { intent: 'unknown', rawText: '' };
     
     // Clean string, remove punctuation except decimals
     let text = rawText.toLowerCase().replace(/[,]/g, '').trim();
@@ -677,114 +677,86 @@ export default function App() {
     text = text.replace(/^(siri|alexa|google|jarvis|assistant)\s*/i, '');
     text = text.replace(/^(please|kindly|can\s+you|would\s+you)\s*/i, '');
 
-    let intent = 'invoice';
+    let intent = 'unknown';
+    let companyName = '';
     let employeeName = '';
     let role = 'Tailor';
     let targetTab = '';
-
     let targetEntity = '';
+    let amount = 0;
 
-    // Go Back / Clear Search Intent Matcher: "go back", "back", "return", "clear search", "reset filter"
-    if (text === 'go back' || text === 'back' || text === 'return' || text.includes('go back') || text.includes('clear search') || text.includes('reset search') || text.includes('show all')) {
+    // 1. Direct Modal Action Triggers
+    if (text.includes('create job') || text.includes('new job') || text.includes('add job') || text.includes('schedule order') || text.includes('production job')) {
+      intent = 'create_job';
+    } else if (text.includes('create bill') || text.includes('new bill') || text.includes('create invoice') || text.includes('new invoice') || text.includes('add invoice') || text.includes('generate invoice')) {
+      intent = 'create_bill';
+    } else if (text.includes('add client') || text.includes('new client') || text.includes('create client') || text.includes('add customer') || text.includes('new customer')) {
+      intent = 'add_client';
+    } else if (text.includes('mark attendance') || text.includes('record attendance') || text.includes('take attendance') || text.includes('enter attendance')) {
+      intent = 'mark_attendance';
+    } else if (text.includes('salary advance') || text.includes('give advance') || text.includes('add advance') || text.includes('employee advance')) {
+      intent = 'add_advance';
+    } else if (text.includes('disburse payroll') || text.includes('pay salary') || text.includes('pay payroll') || text.includes('process payroll')) {
+      intent = 'disburse_payroll';
+    } else if (text.includes('log expense') || text.includes('add expense') || text.includes('record expense') || text.includes('new expense')) {
+      intent = 'log_expense';
+    } else if (text.includes('download report') || text.includes('download pdf') || text.includes('export pdf')) {
+      intent = 'download_report';
+    } else if (text.includes('filter') || text.includes('open filter') || text.includes('add filter')) {
+      intent = 'open_filter';
+
+    // 2. Go Back / Reset Intent
+    } else if (text === 'go back' || text === 'back' || text === 'return' || text.includes('clear search') || text.includes('reset search') || text.includes('show all')) {
       intent = 'go_back';
 
-    // Universal Accessibility Intent Matcher: "click on [ANY name]", "select [ANY entity]", "view [ANY bill/fabric/client/employee]"
-    } else if (text.includes('click') || text.includes('select') || text.includes('view') || text.includes('show detail') || text.includes('open detail') || (text.includes('open') && !text.includes('tab') && !text.includes('page') && !text.includes('section') && !text.includes('menu'))) {
-      intent = 'select_entity';
-      const clickMatch = text.match(/(?:click|click\s+on|select|view|open|show)\s+(?:the\s+)?(?:employee\s+|client\s+|bill\s+|invoice\s+|fabric\s+|order\s+)?([a-z0-9\s\.\-]+?)(?:\s+(?:name|profile|details|tab|invoice|bill)|$)/i);
-      if (clickMatch) {
-        targetEntity = clickMatch[1].replace(/\b(name|profile|details|tab|page|on|the|invoice|bill|record)\b/gi, '').trim();
-      }
-      if (!targetEntity) {
-        targetEntity = text.replace(/\b(click|on|select|view|open|show|the|name|profile|details|employee|client|invoice|bill)\b/gi, '').trim();
-      }
-
-    } else if ((text.includes('employee') || text.includes('tailor') || text.includes('stitcher') || text.includes('worker') || text.includes('staff')) && (text.includes('add') || text.includes('register') || text.includes('create') || text.includes('enter') || text.includes('new'))) {
-      intent = 'add_employee';
-
-      // Match employee name: "enter srimathi as a new employee", "add ramesh employee", "add employee anitha"
-      const empNameMatch = text.match(/(?:add|register|create|enter)\s+(?:the\s+)?(?:employee\s+)?([a-z0-9\s]+?)(?:\s+(?:as|is|role|a|new|employee|tailor|stitcher|signer|cutter|master|she|he)|$)/i);
-      if (empNameMatch) {
-        employeeName = empNameMatch[1].replace(/\b(the|employee|tab|and|a|she|is|new|as|enter|add)\b/gi, '').trim();
-      }
-
-      if (!employeeName) {
-        const altMatch = text.match(/(?:enter|add|register)\s+([a-z0-9]+)/i);
-        if (altMatch) employeeName = altMatch[1].trim();
-      }
-
-      // Match role: "she is a tailor", "as tailor", "role stitcher", "signer"
-      if (text.includes('tailor')) role = 'Tailor';
-      else if (text.includes('stitcher')) role = 'Stitcher';
-      else if (text.includes('signer')) role = 'Signer';
-      else if (text.includes('cutter')) role = 'Cutter';
-      else if (text.includes('master')) role = 'Master';
-
-    } else if (text.startsWith('open ') || text.startsWith('go to ') || text.startsWith('show ')) {
+    // 3. Navigation & Section Intent
+    } else if (text.startsWith('open ') || text.startsWith('go to ') || text.startsWith('show ') || text.startsWith('navigate to ')) {
       intent = 'navigate';
       if (text.includes('employee') || text.includes('crew') || text.includes('staff')) targetTab = 'employees';
       else if (text.includes('client') || text.includes('customer')) targetTab = 'clients';
+      else if (text.includes('job') || text.includes('order') || text.includes('production')) targetTab = 'jobs';
       else if (text.includes('bill') || text.includes('invoice')) targetTab = 'bills';
       else if (text.includes('dashboard') || text.includes('home')) targetTab = 'dashboard';
       else if (text.includes('fabric')) targetTab = 'fabrics';
       else if (text.includes('expense')) targetTab = 'expenses';
       else if (text.includes('report') || text.includes('analytics')) targetTab = 'reports';
+      else if (text.includes('notification') || text.includes('alert')) targetTab = 'notifications';
+      else if (text.includes('user') || text.includes('role')) { targetTab = 'settings'; }
+      else if (text.includes('department')) { targetTab = 'settings'; }
       else if (text.includes('setting')) targetTab = 'settings';
 
-    } else if (text.includes('payroll') || text.includes('salary') || text.includes('wage') || text.includes('pay employee') || text.includes('pay salary')) {
-      intent = 'payroll';
-    } else if (text.includes('expense')) {
-      intent = 'expense';
-    } else if (text.includes('schedule') || text.includes('upcoming order')) {
-      intent = 'upcoming_order';
-    } else if (text.includes('invoice') || text.includes('bill')) {
-      intent = 'invoice';
-    }
+    // 4. Add Employee Intent
+    } else if ((text.includes('employee') || text.includes('tailor') || text.includes('stitcher') || text.includes('staff')) && (text.includes('add') || text.includes('register') || text.includes('create') || text.includes('enter') || text.includes('new'))) {
+      intent = 'add_employee';
+      const empNameMatch = text.match(/(?:add|register|create|enter)\s+(?:the\s+)?(?:employee\s+)?([a-z0-9\s]+?)(?:\s+(?:as|is|role|a|new|employee|tailor|stitcher|signer|cutter|master|she|he)|$)/i);
+      if (empNameMatch) {
+        employeeName = empNameMatch[1].replace(/\b(the|employee|tab|and|a|she|is|new|as|enter|add)\b/gi, '').trim();
+      }
+      if (text.includes('tailor')) role = 'Tailor';
+      else if (text.includes('stitcher')) role = 'Stitcher';
+      else if (text.includes('master')) role = 'Master';
 
-    // 1. Amount Extraction
-    let amount = 0;
-    const lakhMatch = text.match(/(\d+(?:\.\d+)?)\s*(lakh|lakhs|lk|lac|lacs)/i);
-    const thousandMatch = text.match(/(\d+(?:\.\d+)?)\s*(k|thousand|thousands)/i);
-    const croreMatch = text.match(/(\d+(?:\.\d+)?)\s*(crore|crores|cr)/i);
-    const rawNumMatch = text.match(/(?:for|amount|of|rs|\u20B9|\$)?\s*(\d{4,9})/i);
-
-    if (lakhMatch) {
-      amount = parseFloat(lakhMatch[1]) * 100000;
-    } else if (thousandMatch) {
-      amount = parseFloat(thousandMatch[1]) * 1000;
-    } else if (croreMatch) {
-      amount = parseFloat(croreMatch[1]) * 10000000;
-    } else if (rawNumMatch) {
-      amount = parseFloat(rawNumMatch[1]);
-    } else {
-      if (text.includes('one lakh') || text.includes('1 lakh')) amount = 100000;
-      else if (text.includes('two lakh') || text.includes('two lakhs')) amount = 200000;
-      else if (text.includes('three lakh') || text.includes('three lakhs')) amount = 300000;
-      else if (text.includes('five lakh') || text.includes('five lakhs')) amount = 500000;
-      else if (text.includes('ten thousand')) amount = 10000;
-      else if (text.includes('twenty thousand')) amount = 20000;
-      else if (text.includes('twenty five thousand') || text.includes('25 thousand')) amount = 25000;
-      else if (text.includes('thirty thousand')) amount = 30000;
-      else if (text.includes('fifty thousand')) amount = 50000;
-    }
-
-    // 2. Company / Person Extraction
-    let companyName = "";
-    const companyMatch = text.match(/(?:for|to|client|payroll|salary|wage|wages|pay)\s+([a-z0-9\s\.\&\-]+?)(?:\s+(?:for|amount|of|rs|\u20B9|\$|\d|lakh|lk|k|thousand)|$)/i);
-    if (companyMatch) {
-      companyName = companyMatch[1].trim();
-      companyName = companyName.replace(/\b(invoice|bill|record|add|create|enter|payroll|salary|wage|wages|pay)\b/gi, '').trim();
-    }
-
-    if (!companyName) {
-      const fallbackMatch = text.match(/(?:invoice|bill|payroll|salary)\s+(?:for\s+)?([a-z0-9\s\.\&\-]+?)(?:\s+(?:for|amount|of|rs|\u20B9|\$|\d)|$)/i);
-      if (fallbackMatch) {
-        companyName = fallbackMatch[1].trim();
+    // 5. Select Entity / Click Intent
+    } else if (text.includes('click') || text.includes('select') || text.includes('view') || text.includes('show detail')) {
+      intent = 'select_entity';
+      const clickMatch = text.match(/(?:click|click\s+on|select|view|open|show)\s+(?:the\s+)?(?:employee\s+|client\s+|bill\s+|invoice\s+|fabric\s+|order\s+)?([a-z0-9\s\.\-]+?)(?:\s+(?:name|profile|details|tab|invoice|bill)|$)/i);
+      if (clickMatch) {
+        targetEntity = clickMatch[1].replace(/\b(name|profile|details|tab|page|on|the|invoice|bill|record)\b/gi, '').trim();
       }
     }
 
-    // Clean residual filler words
-    companyName = companyName.replace(/\b(for|amount|of|rs|lakh|lakhs|lk|lac|k|thousand|rupees)\b/gi, '').trim();
+    // Amount Extraction
+    const lakhMatch = text.match(/(\d+(?:\.\d+)?)\s*(lakh|lakhs|lk|lac|lacs)/i);
+    const thousandMatch = text.match(/(\d+(?:\.\d+)?)\s*(k|thousand|thousands)/i);
+    const rawNumMatch = text.match(/(?:for|amount|of|rs|\u20B9|\$)?\s*(\d{3,9})/i);
+
+    if (lakhMatch) amount = parseFloat(lakhMatch[1]) * 100000;
+    else if (thousandMatch) amount = parseFloat(thousandMatch[1]) * 1000;
+    else if (rawNumMatch) amount = parseFloat(rawNumMatch[1]);
+
+    // Company/Name extraction
+    const companyMatch = text.match(/(?:for|to|client|payroll|salary|wage|pay)\s+([a-z0-9\s\.\&\-]+?)(?:\s+(?:for|amount|of|rs|\u20B9|\$|\d|lakh|lk|k|thousand)|$)/i);
+    if (companyMatch) companyName = companyMatch[1].trim();
 
     return { intent, companyName, employeeName, role, targetTab, targetEntity, amount, rawText };
   };
@@ -797,6 +769,76 @@ export default function App() {
 
     const parsed = parseVoiceCommand(commandString);
     setVoiceParsedData(parsed);
+
+    // Direct Intent Action Handlers
+    if (parsed.intent === 'create_job') {
+      setActiveTab('jobs');
+      setJobsSubTab('create');
+      setVoiceStatus('success');
+      setVoiceMessage("Opened Create New Production Job form!");
+      speakText("Opening Create New Production Job form.");
+      return;
+    } else if (parsed.intent === 'create_bill') {
+      setActiveTab('bills');
+      setIsBillModalOpen(true);
+      setVoiceStatus('success');
+      setVoiceMessage("Opened Create New Invoice modal!");
+      speakText("Opening Create New Invoice form.");
+      return;
+    } else if (parsed.intent === 'add_client') {
+      setActiveTab('clients');
+      setIsClientModalOpen(true);
+      setVoiceStatus('success');
+      setVoiceMessage("Opened Add New Client modal!");
+      speakText("Opening Add New Client modal.");
+      return;
+    } else if (parsed.intent === 'mark_attendance') {
+      setActiveTab('employees');
+      setEmployeesSubTab('attendance');
+      setIsAttendanceModalOpen(true);
+      setVoiceStatus('success');
+      setVoiceMessage("Opened Daily Staff Attendance Entry!");
+      speakText("Opening Daily Staff Attendance Entry.");
+      return;
+    } else if (parsed.intent === 'add_advance') {
+      setActiveTab('employees');
+      setEmployeesSubTab('payroll');
+      setPayrollSubTab('advances');
+      setIsAdvanceModalOpen(true);
+      setVoiceStatus('success');
+      setVoiceMessage("Opened Employee Salary Advance Entry!");
+      speakText("Opening Salary Advance Entry.");
+      return;
+    } else if (parsed.intent === 'disburse_payroll') {
+      setActiveTab('employees');
+      setEmployeesSubTab('payroll');
+      setIsDisbursePayrollModalOpen(true);
+      setVoiceStatus('success');
+      setVoiceMessage("Opened Disburse Payroll Calculator!");
+      speakText("Opening Disburse Payroll Calculator.");
+      return;
+    } else if (parsed.intent === 'log_expense') {
+      setActiveTab('expenses');
+      setIsExpenseModalOpen(true);
+      setVoiceStatus('success');
+      setVoiceMessage("Opened Log New Operating Expense modal!");
+      speakText("Opening Log New Operating Expense modal.");
+      return;
+    } else if (parsed.intent === 'download_report') {
+      setActiveTab('reports');
+      setVoiceStatus('success');
+      setVoiceMessage("Downloading PDF Summary Report...");
+      speakText("Downloading PDF Summary Report.");
+      alert("Downloading PDF Summary Report for Varahi Exports...");
+      return;
+    } else if (parsed.intent === 'open_filter') {
+      setActiveTab('jobs');
+      setIsFilterMenuOpen(true);
+      setVoiceStatus('success');
+      setVoiceMessage("Opened Linear Filter Dropdown Menu!");
+      speakText("Opening Filter Menu.");
+      return;
+    }
 
     if (parsed.intent === 'go_back') {
       setEmployeeSearch('');
@@ -1186,17 +1228,18 @@ export default function App() {
       }
 
       const recognition = new SpeechRecognition();
-      recognition.continuous = false;
+      recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = 'en-IN'; // Optimized for Indian English pronunciations
 
       recognition.onresult = (event) => {
-        let currentTranscript = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          currentTranscript += event.results[i][0].transcript;
+        let fullTranscript = '';
+        for (let i = 0; i < event.results.length; i++) {
+          fullTranscript += event.results[i][0].transcript + ' ';
         }
-        setVoiceTranscript(currentTranscript);
-        latestTranscriptRef.current = currentTranscript;
+        fullTranscript = fullTranscript.trim();
+        setVoiceTranscript(fullTranscript);
+        latestTranscriptRef.current = fullTranscript;
       };
 
       recognition.onerror = (event) => {
@@ -2579,8 +2622,9 @@ export default function App() {
                 <p className="subtitle">Monitor your business performance, client revenues, and GST filings.</p>
               </div>
               <div className="header-actions">
-                <button className="btn" onClick={startVoiceAssistant} style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)', color: '#ffffff', fontWeight: 600, border: 'none' }} title="Voice Billing Assistant">
-                  <i className="ph-fill ph-microphone"></i> Siri Voice
+                <button className="siri-btn-gradient" onClick={startVoiceAssistant} title="Siri Voice Assistant">
+                  <div className="siri-orb-icon"></div>
+                  <span>Ask Siri</span>
                 </button>
                 <button className="btn btn-primary" onClick={() => setIsBillModalOpen(true)}>
                   <i className="ph ph-plus-circle"></i> New Bill
@@ -3873,8 +3917,9 @@ export default function App() {
                 <p className="subtitle">Log transactional bills, print tax compliance layouts, and track scanned receipts.</p>
               </div>
               <div className="header-actions">
-                <button className="btn" onClick={startVoiceAssistant} style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)', color: '#ffffff', fontWeight: 600, border: 'none' }} title="Voice Billing Assistant">
-                  <i className="ph-fill ph-microphone"></i> Siri Voice
+                <button className="siri-btn-gradient" onClick={startVoiceAssistant} title="Siri Voice Assistant">
+                  <div className="siri-orb-icon"></div>
+                  <span>Ask Siri</span>
                 </button>
                 <button className="btn btn-primary" onClick={() => setIsBillModalOpen(true)}>
                   <i className="ph ph-plus-circle"></i> Record Invoice
@@ -6600,26 +6645,13 @@ export default function App() {
         }}>
           {/* Main Siri Status & Action Row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
-            {/* Glowing Siri Orb */}
+            {/* Animated Apple Siri Glowing Orb */}
             <div
               onClick={startVoiceAssistant}
-              style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '50%',
-                background: isVoiceListening 
-                  ? 'radial-gradient(circle, #EC4899, #7C3AED, #4F46E5)' 
-                  : 'linear-gradient(135deg, #7C3AED, #6366F1)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                flexShrink: 0,
-                boxShadow: isVoiceListening ? '0 0 16px rgba(236, 72, 153, 0.8)' : '0 0 10px rgba(124, 58, 237, 0.5)'
-              }}
+              style={{ cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               title="Click to Speak to Siri"
             >
-              <i className={`ph-fill ${isVoiceListening ? 'ph-microphone' : 'ph-sparkle'}`} style={{ color: '#fff', fontSize: '18px' }}></i>
+              <div className="siri-orb-icon siri-orb-icon-lg"></div>
             </div>
 
             {/* Transcript & Status Text */}
@@ -6630,10 +6662,20 @@ export default function App() {
                   {isVoiceListening ? 'Siri Listening Live...' : voiceStatus === 'success' ? 'Live Action Completed' : 'Siri Ambient Voice AI'}
                 </span>
               </div>
-              <div style={{ fontSize: '12px', fontWeight: 600, color: '#F4F4F5', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {voiceTranscript ? `"${voiceTranscript}"` : voiceMessage || 'Say e.g. "open employee tab"'}
+              <div style={{ fontSize: '12.5px', fontWeight: 600, color: '#F4F4F5', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {voiceTranscript ? `"${voiceTranscript}"` : voiceMessage || 'Say e.g. "create job" or "mark attendance"'}
               </div>
             </div>
+
+            {/* Execute Speech Button */}
+            {voiceTranscript && (
+              <button
+                onClick={() => processVoiceCommand(voiceTranscript)}
+                style={{ backgroundColor: '#6E56CF', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}
+              >
+                Run
+              </button>
+            )}
 
             {/* Close Button */}
             <button
