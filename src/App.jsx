@@ -656,13 +656,30 @@ export default function App() {
   };
 
   // --- Voice AI Assistant (Speech Recognition & Speech Synthesis) ---
+  // --- Voice AI Assistant (Speech Recognition & Speech Synthesis) ---
   const speakText = (text) => {
     if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
-      window.speechSynthesis.speak(utterance);
+      try {
+        window.speechSynthesis.cancel();
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+
+        const voices = window.speechSynthesis.getVoices();
+        if (voices && voices.length > 0) {
+          const preferredVoice = voices.find(v => v.lang.includes('en-IN') || v.lang.includes('en-US') || v.lang.includes('en-GB') || v.lang.startsWith('en')) || voices[0];
+          if (preferredVoice) utterance.voice = preferredVoice;
+        }
+
+        window.speechSynthesis.speak(utterance);
+      } catch (err) {
+        console.warn("Speech synthesis notice:", err);
+      }
     }
   };
 
@@ -709,21 +726,34 @@ export default function App() {
     } else if (text === 'go back' || text === 'back' || text === 'return' || text.includes('clear search') || text.includes('reset search') || text.includes('show all')) {
       intent = 'go_back';
 
-    // 3. Navigation & Section Intent
-    } else if (text.startsWith('open ') || text.startsWith('go to ') || text.startsWith('show ') || text.startsWith('navigate to ')) {
+    // 3. Navigation & Section Intent (Matches "open bills tab", "bills tab", "bills", "open invoice", etc.)
+    } else if (
+      text.startsWith('open') || 
+      text.startsWith('go to') || 
+      text.startsWith('show') || 
+      text.startsWith('navigate') || 
+      text.startsWith('switch to') || 
+      text.includes('tab') || 
+      text.includes('view') ||
+      text.includes('bill') || text.includes('invoice') ||
+      text.includes('job') || text.includes('client') ||
+      text.includes('employee') || text.includes('fabric') ||
+      text.includes('inventory') || text.includes('expense') ||
+      text.includes('report') || text.includes('setting') ||
+      text.includes('dashboard')
+    ) {
       intent = 'navigate';
-      if (text.includes('employee') || text.includes('crew') || text.includes('staff')) targetTab = 'employees';
-      else if (text.includes('client') || text.includes('customer')) targetTab = 'clients';
+      if (text.includes('bill') || text.includes('invoice')) targetTab = 'bills';
       else if (text.includes('job') || text.includes('order') || text.includes('production')) targetTab = 'jobs';
-      else if (text.includes('bill') || text.includes('invoice')) targetTab = 'bills';
-      else if (text.includes('dashboard') || text.includes('home')) targetTab = 'dashboard';
-      else if (text.includes('fabric')) targetTab = 'fabrics';
+      else if (text.includes('client') || text.includes('customer')) targetTab = 'clients';
+      else if (text.includes('employee') || text.includes('crew') || text.includes('staff')) targetTab = 'employees';
+      else if (text.includes('fabric') || text.includes('inventory') || text.includes('material')) targetTab = 'fabrics';
       else if (text.includes('expense')) targetTab = 'expenses';
       else if (text.includes('report') || text.includes('analytics')) targetTab = 'reports';
       else if (text.includes('notification') || text.includes('alert')) targetTab = 'notifications';
-      else if (text.includes('user') || text.includes('role')) { targetTab = 'settings'; }
-      else if (text.includes('department')) { targetTab = 'settings'; }
-      else if (text.includes('setting')) targetTab = 'settings';
+      else if (text.includes('setting') || text.includes('user') || text.includes('role') || text.includes('department')) targetTab = 'settings';
+      else if (text.includes('dashboard') || text.includes('home')) targetTab = 'dashboard';
+      else targetTab = 'bills';
 
     // 4. Add Employee Intent
     } else if ((text.includes('employee') || text.includes('tailor') || text.includes('stitcher') || text.includes('staff')) && (text.includes('add') || text.includes('register') || text.includes('create') || text.includes('enter') || text.includes('new'))) {
@@ -1213,11 +1243,17 @@ export default function App() {
     }
 
     if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+      try {
+        window.speechSynthesis.cancel();
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+        window.speechSynthesis.getVoices();
+      } catch (e) {}
     }
 
     setVoiceStatus('listening');
-    setVoiceMessage("Listening... Speak now (e.g. 'open employee tab' or 'enter Srimathi as a new employee')");
+    setVoiceMessage("Listening... Speak now (e.g. 'open bills tab' or 'create job')");
 
     try {
       if (speechRecognitionRef) {
@@ -1232,6 +1268,8 @@ export default function App() {
       recognition.interimResults = true;
       recognition.lang = 'en-IN'; // Optimized for Indian English pronunciations
 
+      let pauseTimer = null;
+
       recognition.onresult = (event) => {
         let fullTranscript = '';
         for (let i = 0; i < event.results.length; i++) {
@@ -1240,6 +1278,15 @@ export default function App() {
         fullTranscript = fullTranscript.trim();
         setVoiceTranscript(fullTranscript);
         latestTranscriptRef.current = fullTranscript;
+
+        // Auto-process command when user stops speaking for 850ms
+        if (pauseTimer) clearTimeout(pauseTimer);
+        pauseTimer = setTimeout(() => {
+          if (fullTranscript && fullTranscript.trim().length > 1) {
+            try { recognition.stop(); } catch(e){}
+            processVoiceCommand(fullTranscript);
+          }
+        }, 850);
       };
 
       recognition.onerror = (event) => {
