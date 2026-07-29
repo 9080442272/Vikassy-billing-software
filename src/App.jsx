@@ -2452,7 +2452,7 @@ export default function App() {
     <div style={{ display: 'flex', minHeight: '100vh', width: '100%' }}>
       {/* Sidebar Navigation */}
       <aside className="sidebar">
-        {/* Multi-Company & Branch Switcher Header */}
+        {/* Modern Multi-Company & Branch Switcher Header */}
         <div className="brand" style={{ position: 'relative', width: '100%', marginBottom: '16px' }}>
           <div 
             onClick={() => setIsCompanyDropdownOpen(!isCompanyDropdownOpen)}
@@ -2460,108 +2460,174 @@ export default function App() {
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'space-between',
-              gap: '8px', 
+              gap: '10px', 
               width: '100%', 
               cursor: 'pointer',
-              padding: '6px 8px',
-              borderRadius: '8px',
-              backgroundColor: isCompanyDropdownOpen ? '#F4F4F6' : 'transparent',
-              border: '1px solid #E6E6EB',
-              transition: 'all 120ms ease'
+              padding: '8px 10px',
+              borderRadius: '10px',
+              backgroundColor: isCompanyDropdownOpen ? 'rgba(110, 86, 207, 0.06)' : '#FFFFFF',
+              border: isCompanyDropdownOpen ? '1px solid #6E56CF' : '1px solid #E2E8F0',
+              boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
+              transition: 'all 150ms cubic-bezier(0.16, 1, 0.3, 1)'
             }}
             title="Click to Switch Company Branch"
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-              <div className="brand-logo" style={{ width: '26px', height: '26px', borderRadius: '6px', backgroundColor: '#6E56CF', color: '#fff', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
+              <div style={{ 
+                width: '30px', 
+                height: '30px', 
+                borderRadius: '8px', 
+                background: activeCompany.id === 'varahi-hq' 
+                  ? 'linear-gradient(135deg, #6E56CF 0%, #4C1D95 100%)' 
+                  : activeCompany.id === 'vikas-exp' 
+                  ? 'linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%)' 
+                  : 'linear-gradient(135deg, #059669 0%, #064E3B 100%)', 
+                color: '#FFFFFF', 
+                fontSize: '14px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                fontWeight: 800, 
+                flexShrink: 0,
+                boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+              }}>
                 {activeCompany.name.charAt(0)}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                <span className="brand-name" style={{ fontSize: '13.5px', fontWeight: 700, color: '#1C1C21', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {activeCompany.name}
-                </span>
-                <span style={{ fontSize: '10.5px', color: '#8C8D96', fontWeight: 500 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span className="brand-name" style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.01em' }}>
+                    {activeCompany.name}
+                  </span>
+                </div>
+                <span style={{ fontSize: '10.5px', color: '#64748B', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#10B981', display: 'inline-block' }}></span>
                   {activeCompany.branch}
                 </span>
               </div>
             </div>
-            <i className="ph ph-caret-down" style={{ fontSize: '12px', color: '#8C8D96', transition: 'transform 120ms ease', transform: isCompanyDropdownOpen ? 'rotate(180deg)' : 'none' }}></i>
+            <i className="ph ph-caret-down" style={{ fontSize: '14px', color: '#64748B', transition: 'transform 180ms ease', transform: isCompanyDropdownOpen ? 'rotate(180deg)' : 'none' }}></i>
           </div>
 
-          {/* Company & Branch Switcher Menu Popover */}
+          {/* Modern Company Switcher Popover Menu */}
           {isCompanyDropdownOpen && (
-            <div className="shadow-2xl border" style={{
-              position: 'absolute',
-              top: '100%',
-              left: '0',
-              zIndex: 9999,
-              width: '240px',
-              backgroundColor: '#FFFFFF',
-              borderRadius: '12px',
-              padding: '8px',
-              marginTop: '4px',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)'
-            }}>
-              <div style={{ fontSize: '10px', fontWeight: 700, color: '#8C8D96', textTransform: 'uppercase', padding: '4px 8px 6px 8px', letterSpacing: '0.05em' }}>
-                Select Active Branch
-              </div>
-
-              {companies.map((comp) => (
-                <div
-                  key={comp.id}
-                  onClick={() => {
-                    setActiveCompanyId(comp.id);
-                    setIsCompanyDropdownOpen(false);
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    backgroundColor: comp.id === activeCompanyId ? 'rgba(110, 86, 207, 0.08)' : 'transparent',
-                    transition: 'all 120ms ease'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ width: '24px', height: '24px', borderRadius: '6px', backgroundColor: comp.id === activeCompanyId ? '#6E56CF' : '#E2E8F0', color: comp.id === activeCompanyId ? '#FFF' : '#64748B', fontSize: '11px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {comp.name.charAt(0)}
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#1C1C21' }}>{comp.name}</span>
-                      <span style={{ fontSize: '10px', color: '#8C8D96' }}>{comp.branch}</span>
-                    </div>
-                  </div>
-                  {comp.id === activeCompanyId && <i className="ph ph-check-circle" style={{ color: '#6E56CF', fontSize: '14px' }}></i>}
+            <>
+              {/* Backdrop listener to close popover */}
+              <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9998 }} onClick={() => setIsCompanyDropdownOpen(false)}></div>
+              
+              <div style={{
+                position: 'absolute',
+                top: 'calc(100% + 6px)',
+                left: '0',
+                zIndex: 9999,
+                width: '260px',
+                backgroundColor: '#FFFFFF',
+                borderRadius: '14px',
+                padding: '8px',
+                border: '1px solid #E2E8F0',
+                boxShadow: '0 20px 40px -8px rgba(15, 23, 42, 0.16), 0 4px 12px rgba(15, 23, 42, 0.04)',
+                animation: 'fadeIn 140ms ease-out'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px 8px 10px' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    Organization Branches
+                  </span>
+                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#6E56CF', backgroundColor: 'rgba(110, 86, 207, 0.1)', padding: '2px 6px', borderRadius: '6px' }}>
+                    {companies.length} Active
+                  </span>
                 </div>
-              ))}
 
-              <div style={{ borderTop: '1px solid #E6E6EB', marginTop: '6px', paddingTop: '6px' }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsCompanyDropdownOpen(false);
-                    setIsAddBranchModalOpen(true);
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '6px 8px',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    color: '#6E56CF',
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    borderRadius: '6px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <i className="ph ph-plus-circle" style={{ fontSize: '14px' }}></i> Add New Company Branch
-                </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '2px' }}>
+                  {companies.map((comp) => {
+                    const isSelected = comp.id === activeCompanyId;
+                    const logoBg = comp.id === 'varahi-hq' 
+                      ? 'linear-gradient(135deg, #6E56CF 0%, #4C1D95 100%)' 
+                      : comp.id === 'vikas-exp' 
+                      ? 'linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%)' 
+                      : 'linear-gradient(135deg, #059669 0%, #064E3B 100%)';
+
+                    return (
+                      <div
+                        key={comp.id}
+                        onClick={() => {
+                          setActiveCompanyId(comp.id);
+                          setIsCompanyDropdownOpen(false);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '8px 10px',
+                          borderRadius: '10px',
+                          cursor: 'pointer',
+                          backgroundColor: isSelected ? 'rgba(110, 86, 207, 0.08)' : 'transparent',
+                          border: isSelected ? '1px solid rgba(110, 86, 207, 0.2)' : '1px solid transparent',
+                          transition: 'all 120ms ease'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
+                          <div style={{ 
+                            width: '28px', 
+                            height: '28px', 
+                            borderRadius: '7px', 
+                            background: logoBg, 
+                            color: '#FFFFFF', 
+                            fontSize: '12px', 
+                            fontWeight: 800, 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            boxShadow: isSelected ? '0 2px 6px rgba(110, 86, 207, 0.3)' : 'none'
+                          }}>
+                            {comp.name.charAt(0)}
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                            <span style={{ fontSize: '13px', fontWeight: isSelected ? 700 : 600, color: isSelected ? '#1E1B4B' : '#334155' }}>
+                              {comp.name}
+                            </span>
+                            <span style={{ fontSize: '10.5px', color: '#64748B', fontWeight: 500 }}>
+                              {comp.branch} ({comp.city})
+                            </span>
+                          </div>
+                        </div>
+
+                        {isSelected && (
+                          <i className="ph ph-check-circle" style={{ color: '#6E56CF', fontSize: '16px', flexShrink: 0 }}></i>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div style={{ borderTop: '1px solid #F1F5F9', marginTop: '8px', paddingTop: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsCompanyDropdownOpen(false);
+                      setIsAddBranchModalOpen(true);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '8px 10px',
+                      fontSize: '12.5px',
+                      fontWeight: 600,
+                      color: '#6E56CF',
+                      backgroundColor: 'rgba(110, 86, 207, 0.05)',
+                      border: '1px dashed rgba(110, 86, 207, 0.3)',
+                      borderRadius: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      cursor: 'pointer',
+                      transition: 'all 120ms ease'
+                    }}
+                  >
+                    <i className="ph ph-plus-circle" style={{ fontSize: '15px' }}></i> Add New Company Branch
+                  </button>
+                </div>
               </div>
-            </div>
+            </>
           )}
         </div>
 
