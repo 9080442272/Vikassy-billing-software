@@ -2615,64 +2615,6 @@ export default function App() {
                 >
                   <i className="ph ph-plus" style={{ fontSize: '14px' }}></i> Add new workspace
                 </button>
-
-                <hr style={{ border: 0, borderTop: '1px solid #F1F5F9', margin: '2px 0' }} />
-
-                {/* Middle Quick Nav Menu Items */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  <div 
-                    onClick={() => { setIsCompanyDropdownOpen(false); setActiveTab('employees'); }}
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: '#334155' }}
-                  >
-                    <i className="ph ph-users-three" style={{ fontSize: '16px', color: '#64748B' }}></i>
-                    <span>Team Profile</span>
-                  </div>
-                  <div 
-                    onClick={() => { setIsCompanyDropdownOpen(false); setActiveTab('reports'); }}
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: '#334155' }}
-                  >
-                    <i className="ph ph-gear" style={{ fontSize: '16px', color: '#64748B' }}></i>
-                    <span>Settings</span>
-                  </div>
-                  <div 
-                    onClick={() => { setIsCompanyDropdownOpen(false); alert('🔒 Private Admin Session Activated! Confidential margins hidden.'); }}
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: '#334155' }}
-                  >
-                    <i className="ph ph-eye" style={{ fontSize: '16px', color: '#64748B' }}></i>
-                    <span>Private session</span>
-                  </div>
-                  <div 
-                    onClick={() => { setIsCompanyDropdownOpen(false); logUserOut(); }}
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: '#DC2626' }}
-                  >
-                    <i className="ph ph-sign-out" style={{ fontSize: '16px', color: '#DC2626' }}></i>
-                    <span>Logout</span>
-                  </div>
-                </div>
-
-                {/* Bottom Storage & Usage Card (Exact HRFusion Widget) */}
-                <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '12px', padding: '10px 12px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#0F172A' }}>You're using 85% space!</span>
-                      <span style={{ fontSize: '10px', color: '#64748B', marginTop: '1px' }}>Upgrade to get more benefits</span>
-                    </div>
-                    <button 
-                      type="button" 
-                      onClick={() => alert('✨ Upgrade to Enterprise Cloud Pro for unlimited cloud backups!')} 
-                      style={{ padding: '4px 10px', fontSize: '11px', fontWeight: 700, color: '#0F172A', backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px', cursor: 'pointer' }}
-                    >
-                      Upgrade
-                    </button>
-                  </div>
-                  {/* Multi-segment progress bar */}
-                  <div style={{ height: '6px', borderRadius: '4px', display: 'flex', gap: '2px', overflow: 'hidden', marginTop: '8px', backgroundColor: '#E2E8F0' }}>
-                    <div style={{ width: '40%', backgroundColor: '#3B82F6', borderRadius: '2px' }}></div>
-                    <div style={{ width: '25%', backgroundColor: '#F97316', borderRadius: '2px' }}></div>
-                    <div style={{ width: '20%', backgroundColor: '#10B981', borderRadius: '2px' }}></div>
-                  </div>
-                </div>
-
               </div>
             </>
           )}
