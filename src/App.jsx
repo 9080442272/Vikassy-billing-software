@@ -2342,11 +2342,15 @@ export default function App() {
 
         <nav className="nav-menu">
           <div style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '8px 8px 4px 8px' }}>
-            Workspace ▾
+            Main Menu ▾
           </div>
           <button className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => handleTabChange('dashboard')}>
-            <i className="ph ph-squares-four"></i>
+            <i className="ph ph-layout"></i>
             <span>Dashboard</span>
+          </button>
+          <button className={`nav-item ${activeTab === 'bills' ? 'active' : ''}`} onClick={() => handleTabChange('bills')}>
+            <i className="ph ph-receipt"></i>
+            <span>Bills</span>
           </button>
           <button className={`nav-item ${activeTab === 'jobs' ? 'active' : ''}`} onClick={() => handleTabChange('jobs')}>
             <i className="ph ph-briefcase"></i>
@@ -2357,27 +2361,23 @@ export default function App() {
             <span>Clients</span>
           </button>
           <button className={`nav-item ${activeTab === 'employees' ? 'active' : ''}`} onClick={() => handleTabChange('employees')}>
-            <i className="ph ph-identification-card"></i>
+            <i className="ph ph-user-list"></i>
             <span>Employees</span>
+          </button>
+          <button className={`nav-item ${activeTab === 'fabrics' ? 'active' : ''}`} onClick={() => handleTabChange('fabrics')}>
+            <i className="ph ph-package"></i>
+            <span>Inventory</span>
           </button>
 
           <div style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '14px 8px 4px 8px' }}>
-            Financials ▾
+            Operations & Financials ▾
           </div>
-          <button className={`nav-item ${activeTab === 'bills' ? 'active' : ''}`} onClick={() => handleTabChange('bills')}>
-            <i className="ph ph-receipt"></i>
-            <span>Invoices</span>
-          </button>
           <button className={`nav-item ${activeTab === 'expenses' ? 'active' : ''}`} onClick={() => handleTabChange('expenses')}>
             <i className="ph ph-coins"></i>
             <span>Expenses</span>
           </button>
-          <button className={`nav-item ${activeTab === 'fabrics' ? 'active' : ''}`} onClick={() => handleTabChange('fabrics')}>
-            <i className="ph ph-scissors"></i>
-            <span>Fabrics</span>
-          </button>
           <button className={`nav-item ${activeTab === 'reports' ? 'active' : ''}`} onClick={() => handleTabChange('reports')}>
-            <i className="ph ph-chart-pie-slice"></i>
+            <i className="ph ph-chart-line-up"></i>
             <span>Reports</span>
           </button>
 
@@ -2593,13 +2593,7 @@ export default function App() {
                   type="button"
                   className="btn btn-secondary btn-sm" 
                   onClick={logUserOut} 
-                  style={{ 
-                    padding: '4px 10px', 
-                    fontSize: '11px', 
-                    borderColor: 'var(--color-destructive)', 
-                    color: 'var(--color-destructive)', 
-                    fontWeight: 600 
-                  }}
+                  style={{ padding: '4px 10px', fontSize: '11px', borderColor: 'var(--color-destructive)', color: 'var(--color-destructive)', fontWeight: 600 }}
                 >
                   <i className="ph ph-sign-out"></i> Log Out
                 </button>
@@ -2612,350 +2606,446 @@ export default function App() {
       {/* Main Content Layout */}
       <main className="main-content">
 
-        {/* ==================== DASHBOARD VIEW ==================== */}
+        {/* ==================== DASHBOARD VIEW (Textile ERP System) ==================== */}
         {activeTab === 'dashboard' && (
           <>
             <section id="dashboard-view" className="tab-view active">
-            <header className="view-header">
-              <div>
-                <h1>Financial Overview</h1>
-                <p className="subtitle">Monitor your business performance, client revenues, and GST filings.</p>
-              </div>
-              <div className="header-actions">
-                <button className="siri-btn-gradient" onClick={startVoiceAssistant} title="Siri Voice Assistant">
-                  <div className="siri-orb-icon"></div>
-                  <span>Ask Siri</span>
-                </button>
-                <button className="btn btn-primary" onClick={() => setIsBillModalOpen(true)}>
-                  <i className="ph ph-plus-circle"></i> New Bill
-                </button>
-              </div>
-            </header>
+              {/* Dashboard Header Bar */}
+              <header className="view-header" style={{ marginBottom: '24px', alignItems: 'flex-start' }}>
+                <div>
+                  <h1 style={{ fontSize: '32px', fontWeight: 800, color: '#1C1C21', letterSpacing: '-0.02em', margin: '0 0 6px 0' }}>
+                    Varahi Export ERP Dashboard
+                  </h1>
+                  <p className="subtitle" style={{ fontSize: '14px', color: '#62636C', margin: 0 }}>
+                    Operational visibility for textile manufacturing, piece-rate billing, and job work management.
+                  </p>
+                </div>
 
-            {/* Statistics Grid Panel */}
-            <div className="metrics-grid" style={{ marginBottom: '24px' }}>
-              {/* Total Billing */}
-              <div className="metric-card">
-                <div className="metric-card-header">
-                  <span className="metric-label">Total Billing</span>
-                  <div className="metric-icon purple"><i className="ph ph-receipt"></i></div>
+                {/* Quick Actions Bar */}
+                <div className="header-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <button className="btn btn-primary" onClick={() => setIsBillModalOpen(true)} style={{ backgroundColor: '#6E56CF', color: '#fff', border: 'none', borderRadius: '12px', padding: '10px 18px', fontWeight: 600, fontSize: '13px', boxShadow: '0 4px 14px rgba(110,86,207,0.25)' }}>
+                    <i className="ph ph-plus" style={{ fontSize: '15px' }}></i> New Bill
+                  </button>
+                  <button className="btn-ghost" onClick={() => setIsScanModalOpen(true)} style={{ padding: '9px 14px', fontSize: '13px' }}>
+                    <i className="ph ph-scan" style={{ fontSize: '14px' }}></i> Scan Receipt
+                  </button>
+                  <button className="btn-ghost" onClick={() => setIsClientModalOpen(true)} style={{ padding: '9px 14px', fontSize: '13px' }}>
+                    <i className="ph ph-user-plus" style={{ fontSize: '14px' }}></i> Add Client
+                  </button>
+                  <button className="btn-ghost" onClick={() => setJobsSubTab('create')} style={{ padding: '9px 14px', fontSize: '13px' }}>
+                    <i className="ph ph-briefcase" style={{ fontSize: '14px' }}></i> Add Job
+                  </button>
+                  <button className="btn-ghost" onClick={startVoiceAssistant} style={{ padding: '9px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div className="siri-orb-icon"></div>
+                    <span>Voice Assistant</span>
+                  </button>
                 </div>
-                <div className="metric-value">{formatCurrency(bills.reduce((sum, b) => sum + b.totalAmount, 0))}</div>
-                <div className="metric-footer">
-                  <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>Active</span>
-                  <span>across client portfolios</span>
+              </header>
+
+              {/* 6 Priority Operational KPI Cards */}
+              <div className="metrics-grid-6">
+                {/* 1. Today's Billing */}
+                <div className="metric-card">
+                  <div className="metric-card-header">
+                    <span className="metric-label">Today's Billing</span>
+                    <div className="metric-icon purple"><i className="ph ph-receipt"></i></div>
+                  </div>
+                  <div className="metric-value font-mono">₹61,346</div>
+                  <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
+                    <span style={{ color: '#10B981', fontWeight: 700 }}>↑ 18%</span>
+                    <span style={{ color: '#8C8D96', marginLeft: '4px' }}>vs Yesterday</span>
+                  </div>
+                </div>
+
+                {/* 2. Pending Payments */}
+                <div className="metric-card">
+                  <div className="metric-card-header">
+                    <span className="metric-label">Pending Payments</span>
+                    <div className="metric-icon gold"><i className="ph ph-clock-countdown"></i></div>
+                  </div>
+                  <div className="metric-value font-mono">₹1,45,200</div>
+                  <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
+                    <span style={{ color: '#F59E0B', fontWeight: 700 }}>4 Overdue</span>
+                    <span style={{ color: '#8C8D96', marginLeft: '4px' }}>Invoices</span>
+                  </div>
+                </div>
+
+                {/* 3. Active Production Jobs */}
+                <div className="metric-card">
+                  <div className="metric-card-header">
+                    <span className="metric-label">Active Jobs</span>
+                    <div className="metric-icon purple"><i className="ph ph-gear-six"></i></div>
+                  </div>
+                  <div className="metric-value font-mono">18 Jobs</div>
+                  <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
+                    <span style={{ color: '#6E56CF', fontWeight: 600 }}>8 Stitching, 6 Cutting</span>
+                  </div>
+                </div>
+
+                {/* 4. Employees Present */}
+                <div className="metric-card">
+                  <div className="metric-card-header">
+                    <span className="metric-label">Staff Attendance</span>
+                    <div className="metric-icon" style={{ color: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)' }}><i className="ph ph-users-three"></i></div>
+                  </div>
+                  <div className="metric-value font-mono">14 / 16</div>
+                  <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
+                    <span style={{ color: '#10B981', fontWeight: 700 }}>87.5%</span>
+                    <span style={{ color: '#8C8D96', marginLeft: '4px' }}>Attendance Rate</span>
+                  </div>
+                </div>
+
+                {/* 5. Pending Deliveries */}
+                <div className="metric-card">
+                  <div className="metric-card-header">
+                    <span className="metric-label">Pending Deliveries</span>
+                    <div className="metric-icon gold"><i className="ph ph-truck"></i></div>
+                  </div>
+                  <div className="metric-value font-mono">3 Orders</div>
+                  <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
+                    <span style={{ color: '#F59E0B', fontWeight: 600 }}>Target Delivery Today</span>
+                  </div>
+                </div>
+
+                {/* 6. Available Fabric Stock */}
+                <div className="metric-card">
+                  <div className="metric-card-header">
+                    <span className="metric-label">Fabric Inventory</span>
+                    <div className="metric-icon"><i className="ph ph-package"></i></div>
+                  </div>
+                  <div className="metric-value font-mono">4,250 Mtrs</div>
+                  <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
+                    <span style={{ color: '#64748B', fontWeight: 500 }}>Cotton & Denim Rolls</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Invoices Logged */}
-              <div className="metric-card">
-                <div className="metric-card-header">
-                  <span className="metric-label">Invoices Logged</span>
-                  <div className="metric-icon purple"><i className="ph ph-file-text"></i></div>
+              {/* Today's Factory Snapshot (Highlighted Operational Summary Card) */}
+              <div className="factory-snapshot-card">
+                <div className="snapshot-header">
+                  <div className="snapshot-title">
+                    <i className="ph ph-lightning" style={{ color: '#6E56CF', fontSize: '18px' }}></i>
+                    <span>Today's Factory Snapshot</span>
+                  </div>
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)', padding: '2px 8px', borderRadius: '10px' }}>
+                    Live Production Operations
+                  </span>
                 </div>
-                <div className="metric-value">{bills.length} Records</div>
-                <div className="metric-footer">
-                  <span>Audit-ready entries</span>
-                </div>
-              </div>
-
-              {/* Active Fabric Rolls */}
-              <div className="metric-card">
-                <div className="metric-card-header">
-                  <span className="metric-label">Active Fabric Rolls</span>
-                  <div className="metric-icon gold"><i className="ph ph-scissors"></i></div>
-                </div>
-                <div className="metric-value">{fabrics.filter(f => f.status !== 'Completed').length} Rolls</div>
-                <div className="metric-footer">
-                  <span>Currently assigned / stored</span>
-                </div>
-              </div>
-
-              {/* CEO Work Logs */}
-              <div className="metric-card">
-                <div className="metric-card-header">
-                  <span className="metric-label">CEO Work logs</span>
-                  <div className="metric-icon purple" style={{ color: 'var(--color-success)', backgroundColor: 'rgba(16,185,129,0.1)' }}><i className="ph ph-clock"></i></div>
-                </div>
-                <div className="metric-value">{ceoActivities.reduce((s, a) => s + a.hoursSpent, 0)} Hrs</div>
-                <div className="metric-footer">
-                  <span>Cumulative hours logged</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Main Dashboard charts and concentration risk layout */}
-            <div className="charts-grid" style={{ marginBottom: '24px' }}>
-              <div className="chart-card bg-surface border">
-                <h3>Revenue Contribution by Client</h3>
-                <div className="chart-container" style={{ height: '300px', position: 'relative', marginTop: '16px' }}>
-                  <canvas ref={chartCanvasRef}></canvas>
+                <div className="snapshot-pills-row">
+                  <div className="snapshot-pill">
+                    <span className="status-dot green"></span>
+                    <span><strong>18</strong> Jobs Running</span>
+                  </div>
+                  <div className="snapshot-pill">
+                    <span className="status-dot blue"></span>
+                    <span><strong>7</strong> Jobs Completed</span>
+                  </div>
+                  <div className="snapshot-pill">
+                    <span className="status-dot amber"></span>
+                    <span><strong>3</strong> Waiting for Dispatch</span>
+                  </div>
+                  <div className="snapshot-pill">
+                    <span className="status-dot green"></span>
+                    <span><strong>14</strong> Employees Present</span>
+                  </div>
+                  <div className="snapshot-pill">
+                    <span className="status-dot amber"></span>
+                    <span><strong>2</strong> Bills Pending</span>
+                  </div>
+                  <div className="snapshot-pill" style={{ borderColor: 'rgba(239,68,68,0.3)', backgroundColor: '#FEF2F2' }}>
+                    <span className="status-dot red"></span>
+                    <span style={{ color: '#991B1B' }}><strong>1</strong> Payment Overdue</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="table-card bg-surface border" style={{ padding: '24px' }}>
-                <h3>Client Concentration Risk</h3>
-                <p className="small text-muted" style={{ marginBottom: '16px' }}>Assess dependency share.</p>
+              {/* Revenue Analytics & Top Clients Breakdown (2-Column Grid) */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '20px', marginBottom: '24px' }}>
+                {/* Left: Monthly Billing Trend Area Chart */}
+                <div className="table-card bg-surface border" style={{ padding: '20px', margin: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#1C1C21' }}>Monthly Billing Trend</h3>
+                      <p className="small text-muted" style={{ margin: '2px 0 0 0', fontSize: '12px' }}>Track daily manufacturing billing volume and GST invoice trends.</p>
+                    </div>
+                    <select style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '8px', border: '1px solid #E6E6EB', backgroundColor: '#FAFAFC', cursor: 'pointer' }}>
+                      <option value="this-month">This Month (July 2026)</option>
+                      <option value="last-month">Last Month (June 2026)</option>
+                      <option value="q3">Q3 2026 Summary</option>
+                    </select>
+                  </div>
+
+                  {/* SVG Area Line Chart */}
+                  <div style={{ width: '100%', height: '220px', position: 'relative', marginTop: '10px' }}>
+                    <svg viewBox="0 0 500 180" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+                      <defs>
+                        <linearGradient id="billingGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#6E56CF" stopOpacity="0.25" />
+                          <stop offset="100%" stopColor="#6E56CF" stopOpacity="0.0" />
+                        </linearGradient>
+                      </defs>
+                      {/* Grid Lines */}
+                      <line x1="0" y1="30" x2="500" y2="30" stroke="#F0F0F4" strokeDasharray="4 4" />
+                      <line x1="0" y1="75" x2="500" y2="75" stroke="#F0F0F4" strokeDasharray="4 4" />
+                      <line x1="0" y1="120" x2="500" y2="120" stroke="#F0F0F4" strokeDasharray="4 4" />
+                      <line x1="0" y1="165" x2="500" y2="165" stroke="#F0F0F4" />
+
+                      {/* Area Fill */}
+                      <path d="M 0 165 L 0 110 Q 125 40 250 85 T 500 25 L 500 165 Z" fill="url(#billingGrad)" />
+                      {/* Trend Line */}
+                      <path d="M 0 110 Q 125 40 250 85 T 500 25" fill="none" stroke="#6E56CF" strokeWidth="3" strokeLinecap="round" />
+
+                      {/* Data Point Dots */}
+                      <circle cx="0" cy="110" r="4" fill="#6E56CF" stroke="#FFF" strokeWidth="2" />
+                      <circle cx="125" cy="55" r="4" fill="#6E56CF" stroke="#FFF" strokeWidth="2" />
+                      <circle cx="250" cy="85" r="4" fill="#6E56CF" stroke="#FFF" strokeWidth="2" />
+                      <circle cx="375" cy="40" r="4" fill="#6E56CF" stroke="#FFF" strokeWidth="2" />
+                      <circle cx="500" cy="25" r="5" fill="#6E56CF" stroke="#FFF" strokeWidth="2.5" />
+                    </svg>
+
+                    {/* Chart X Axis Labels */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#8C8D96', marginTop: '6px', fontWeight: 500 }}>
+                      <span>Week 1 (₹1.2L)</span>
+                      <span>Week 2 (₹1.8L)</span>
+                      <span>Week 3 (₹2.4L)</span>
+                      <span>Week 4 (₹2.9L)</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right: Top Clients Revenue Breakdown */}
+                <div className="table-card bg-surface border" style={{ padding: '20px', margin: 0 }}>
+                  <div style={{ marginBottom: '14px' }}>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#1C1C21' }}>Top Clients Revenue</h3>
+                    <p className="small text-muted" style={{ margin: '2px 0 0 0', fontSize: '12px' }}>Client revenue share & billing volume.</p>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {/* Client 1 */}
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+                        <span style={{ fontWeight: 600, color: '#1C1C21' }}>Sounder Exports</span>
+                        <span style={{ fontWeight: 700, color: '#6E56CF', fontFamily: 'var(--font-mono)' }}>₹4,85,000 (62%)</span>
+                      </div>
+                      <div style={{ height: '6px', width: '100%', backgroundColor: '#F0F0F4', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div style={{ width: '62%', height: '100%', backgroundColor: '#6E56CF', borderRadius: '4px' }}></div>
+                      </div>
+                    </div>
+
+                    {/* Client 2 */}
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+                        <span style={{ fontWeight: 600, color: '#1C1C21' }}>Raj Textiles</span>
+                        <span style={{ fontWeight: 700, color: '#10B981', fontFamily: 'var(--font-mono)' }}>₹1,45,000 (18%)</span>
+                      </div>
+                      <div style={{ height: '6px', width: '100%', backgroundColor: '#F0F0F4', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div style={{ width: '18%', height: '100%', backgroundColor: '#10B981', borderRadius: '4px' }}></div>
+                      </div>
+                    </div>
+
+                    {/* Client 3 */}
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+                        <span style={{ fontWeight: 600, color: '#1C1C21' }}>Anand Mills</span>
+                        <span style={{ fontWeight: 700, color: '#F59E0B', fontFamily: 'var(--font-mono)' }}>₹95,000 (12%)</span>
+                      </div>
+                      <div style={{ height: '6px', width: '100%', backgroundColor: '#F0F0F4', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div style={{ width: '12%', height: '100%', backgroundColor: '#F59E0B', borderRadius: '4px' }}></div>
+                      </div>
+                    </div>
+
+                    {/* Client 4 */}
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+                        <span style={{ fontWeight: 600, color: '#1C1C21' }}>Varahi Domestic</span>
+                        <span style={{ fontWeight: 700, color: '#64748B', fontFamily: 'var(--font-mono)' }}>₹65,000 (8%)</span>
+                      </div>
+                      <div style={{ height: '6px', width: '100%', backgroundColor: '#F0F0F4', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div style={{ width: '8%', height: '100%', backgroundColor: '#64748B', borderRadius: '4px' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actionable Insights: Client Concentration Risk */}
+              <div className="table-card bg-surface border" style={{ padding: '20px', marginBottom: '24px', backgroundColor: '#FFFAED', borderColor: '#FDE68A' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', backgroundColor: '#FEF3C7', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>
+                    <i className="ph ph-warning"></i>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#92400E' }}>Client Concentration Risk Warning</h4>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#D97706', fontFamily: 'var(--font-mono)' }}>92% High Risk Dependency</span>
+                    </div>
+                    <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#78350F', lineHeight: 1.4 }}>
+                      <strong>⚠ 92% of total company revenue</strong> originates from a single buyer (Sounder Exports).
+                    </p>
+                    <div style={{ height: '8px', width: '100%', backgroundColor: '#FDE68A', borderRadius: '4px', overflow: 'hidden', marginBottom: '10px' }}>
+                      <div style={{ width: '92%', height: '100%', backgroundColor: '#D97706', borderRadius: '4px' }}></div>
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#92400E', backgroundColor: '#FEF3C7', padding: '6px 12px', borderRadius: '6px', display: 'inline-block' }}>
+                      <strong>Actionable Recommendation:</strong> Diversify customer portfolio by onboarding new garment export buyers to protect factory cash flow.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Required (Pending Tasks) & Recent Activity Timeline (2-Column Grid) */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+                {/* Left: Action Required (Pending Tasks) */}
+                <div className="action-required-card">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#1C1C21', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <i className="ph ph-check-square" style={{ color: '#EF4444' }}></i> Action Required
+                    </h3>
+                    <span className="badge badge-warning" style={{ fontSize: '11px' }}>4 Urgent Items</span>
+                  </div>
+
+                  <div className="action-item red-border">
+                    <i className="ph ph-calendar-blank" style={{ color: '#EF4444', fontSize: '18px', marginTop: '2px' }}></i>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#991B1B' }}>GST Filing Due in 3 Days</div>
+                      <div style={{ fontSize: '12px', color: '#62636C' }}>GSTR-1 tax compliance filing for July 2026 due by Aug 1.</div>
+                    </div>
+                  </div>
+
+                  <div className="action-item red-border">
+                    <i className="ph ph-clock-countdown" style={{ color: '#EF4444', fontSize: '18px', marginTop: '2px' }}></i>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#991B1B' }}>2 Payments Overdue</div>
+                      <div style={{ fontSize: '12px', color: '#62636C' }}>Sounder Exports invoice #VE-2026-018 (₹45,000) overdue by 5 days.</div>
+                    </div>
+                  </div>
+
+                  <div className="action-item orange-border">
+                    <i className="ph ph-truck" style={{ color: '#F59E0B', fontSize: '18px', marginTop: '2px' }}></i>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#92400E' }}>1 Delivery Delayed</div>
+                      <div style={{ fontSize: '12px', color: '#62636C' }}>Job #104 (Denim Jackets) delayed by 1 day due to fabric dye inspection.</div>
+                    </div>
+                  </div>
+
+                  <div className="action-item yellow-border">
+                    <i className="ph ph-file-search" style={{ color: '#D97706', fontSize: '18px', marginTop: '2px' }}></i>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#92400E' }}>4 Invoices Awaiting Approval</div>
+                      <div style={{ fontSize: '12px', color: '#62636C' }}>Audit sign-off required for GST tax breakdown splits.</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right: Recent Activity Timeline */}
+                <div className="table-card bg-surface border" style={{ padding: '20px', margin: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#1C1C21', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <i className="ph ph-clock-counter-clockwise" style={{ color: '#6E56CF' }}></i> Recent Activity
+                    </h3>
+                    <span className="badge badge-success" style={{ fontSize: '11px' }}>Live Operations</span>
+                  </div>
+
+                  <div className="activity-timeline">
+                    <div className="timeline-event">
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21' }}>Bill #VE-2026-024 Created</div>
+                        <div style={{ fontSize: '12px', color: '#62636C' }}>Generated invoice for Sounder Exports (₹1,50,000)</div>
+                      </div>
+                      <span style={{ fontSize: '11px', color: '#8C8D96', fontWeight: 500 }}>10:15 AM</span>
+                    </div>
+
+                    <div className="timeline-event">
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21' }}>Job #102 Completed</div>
+                        <div style={{ fontSize: '12px', color: '#62636C' }}>Stitching Unit completed 1,000 Denim Jackets</div>
+                      </div>
+                      <span style={{ fontSize: '11px', color: '#8C8D96', fontWeight: 500 }}>09:40 AM</span>
+                    </div>
+
+                    <div className="timeline-event">
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21' }}>Payment Received</div>
+                        <div style={{ fontSize: '12px', color: '#62636C' }}>Received ₹45,000 via HDFC Bank transfer</div>
+                      </div>
+                      <span style={{ fontSize: '11px', color: '#8C8D96', fontWeight: 500 }}>09:15 AM</span>
+                    </div>
+
+                    <div className="timeline-event">
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21' }}>Employee Checked In</div>
+                        <div style={{ fontSize: '12px', color: '#62636C' }}>Srimathi logged present for Morning Shift</div>
+                      </div>
+                      <span style={{ fontSize: '11px', color: '#8C8D96', fontWeight: 500 }}>08:05 AM</span>
+                    </div>
+
+                    <div className="timeline-event">
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21' }}>Fabric Stock Added</div>
+                        <div style={{ fontSize: '12px', color: '#62636C' }}>Added 500 Mtrs Denim Roll (Roll #D-402)</div>
+                      </div>
+                      <span style={{ fontSize: '11px', color: '#8C8D96', fontWeight: 500 }}>07:45 AM</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Active Production Jobs Operations Panel */}
+              <div className="table-card bg-surface border" style={{ padding: '20px', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#1C1C21', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <i className="ph ph-briefcase" style={{ color: '#6E56CF' }}></i> Active Production Jobs Overview
+                    </h3>
+                    <p className="small text-muted" style={{ margin: '2px 0 0 0', fontSize: '12px' }}>Track ongoing factory jobs, client orders, and delivery schedules.</p>
+                  </div>
+                  <button className="btn btn-primary btn-sm" style={{ borderRadius: '12px', padding: '6px 14px' }} onClick={() => setJobsSubTab('create')}>
+                    <i className="ph ph-plus"></i> Create New Job
+                  </button>
+                </div>
+
                 <div className="table-responsive desktop-table-container">
                   <table className="data-table">
                     <thead>
                       <tr>
-                        <th>Client</th>
-                        <th>Billing Volume</th>
-                        <th className="text-right">Share %</th>
+                        <th>Job Title / Order Description</th>
+                        <th>Client Name</th>
+                        <th>Delivery Target Date</th>
+                        <th>Estimated Budget (₹)</th>
+                        <th>Status</th>
+                        <th className="text-right">Action</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {(() => {
-                        const totalSales = bills.reduce((s, b) => s + b.totalAmount, 0);
-                        const clientTotals = bills.reduce((acc, b) => {
-                          acc[b.clientId] = (acc[b.clientId] || 0) + b.totalAmount;
-                          return acc;
-                        }, {});
-                        const sortedData = Object.entries(clientTotals).map(([id, sales]) => {
-                          const clObj = clients.find(c => c._id === id);
-                          return {
-                            name: clObj ? clObj.name : 'Unknown Client',
-                            sales,
-                            pct: totalSales > 0 ? (sales / totalSales) * 100 : 0
-                          };
-                        }).sort((a, b) => b.sales - a.sales);
-
-                        return sortedData.map((row, idx) => (
-                          <tr key={idx}>
-                            <td className="font-semibold">{row.name}</td>
-                            <td>{formatCurrency(row.sales)}</td>
-                            <td className="text-right font-medium text-primary">{row.pct.toFixed(1)}%</td>
-                          </tr>
-                        ));
-                      })()}
+                      {upcomingOrders.map((ord) => (
+                        <tr key={ord._id} style={{ cursor: 'pointer' }} onClick={() => { setSelectedJob(ord); setActiveTab('jobs'); setJobsSubTab('details'); }}>
+                          <td className="font-semibold">{ord.orderTitle}</td>
+                          <td>{ord.clientName}</td>
+                          <td className="font-medium">{formatDate(ord.deliveryDate)}</td>
+                          <td className="font-bold text-primary" style={{ fontFamily: 'var(--font-mono)' }}>{formatCurrency(ord.estimatedValue)}</td>
+                          <td>
+                            <span className={`badge ${ord.status === 'In Production' ? 'badge-warning' : ord.status === 'Delivered' ? 'badge-success' : 'badge-info'}`}>
+                              {ord.status}
+                            </span>
+                          </td>
+                          <td className="text-right" onClick={(e) => e.stopPropagation()}>
+                            <button className="btn-ghost" onClick={() => { setSelectedJob(ord); setActiveTab('jobs'); setJobsSubTab('details'); }}>
+                              View Details
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {upcomingOrders.length === 0 && (
+                        <tr>
+                          <td colSpan="6" className="text-center text-muted" style={{ padding: '32px' }}>
+                            No active production jobs found. Click <strong>"Create New Job"</strong> to add an order.
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
-
-                <div className="mobile-cards-container">
-                  {(() => {
-                    const totalSales = bills.reduce((s, b) => s + b.totalAmount, 0);
-                    const clientTotals = bills.reduce((acc, b) => {
-                      acc[b.clientId] = (acc[b.clientId] || 0) + b.totalAmount;
-                      return acc;
-                    }, {});
-                    const sortedData = Object.entries(clientTotals).map(([id, sales]) => {
-                      const clObj = clients.find(c => c._id === id);
-                      return {
-                        name: clObj ? clObj.name : 'Unknown Client',
-                        sales,
-                        pct: totalSales > 0 ? (sales / totalSales) * 100 : 0
-                      };
-                    }).sort((a, b) => b.sales - a.sales);
-
-                    return sortedData.map((row, idx) => (
-                      <div key={idx} style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '10px', marginBottom: '10px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
-                          <span style={{ fontWeight: 600 }}>{row.name}</span>
-                          <span className="text-primary" style={{ fontWeight: 700 }}>{row.pct.toFixed(1)}%</span>
-                        </div>
-                        <div className="progress-bar-container" style={{ height: '6px' }}>
-                          <div className="progress-bar" style={{ width: `${row.pct}%` }}></div>
-                        </div>
-                      </div>
-                    ));
-                  })()}
-                </div>
               </div>
-            </div>
-
-            {/* Upcoming Production Orders Panel */}
-            <div className="table-card bg-surface border" style={{ padding: '24px', marginBottom: '24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <div>
-                  <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <i className="ph ph-calendar-blank text-primary"></i> Upcoming Production Orders
-                  </h3>
-                  <p className="small text-muted" style={{ margin: '4px 0 0 0' }}>Track scheduled client orders, target delivery dates, and status</p>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span className="badge badge-purple">{upcomingOrders.length} Scheduled</span>
-                  <button className="btn btn-primary btn-sm" onClick={() => setIsOrderModalOpen(true)}>
-                    <i className="ph ph-plus-circle"></i> Log Order
-                  </button>
-                </div>
-              </div>
-
-              <div className="table-responsive desktop-table-container">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Order Title / Description</th>
-                      <th>Client Name</th>
-                      <th>Delivery Target Date</th>
-                      <th>Estimated Value (₹)</th>
-                      <th>Status</th>
-                      <th className="text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {upcomingOrders.map((ord) => (
-                      <tr key={ord._id}>
-                        <td>
-                          <div className="font-semibold">{ord.orderTitle}</div>
-                          {ord.notes && <span className="small text-muted">{ord.notes}</span>}
-                        </td>
-                        <td>{ord.clientName}</td>
-                        <td className="font-medium">{formatDate(ord.deliveryDate)}</td>
-                        <td className="font-bold text-primary">{formatCurrency(ord.estimatedValue)}</td>
-                        <td>
-                          <span className={`badge ${ord.status === 'In Production' ? 'badge-warning' : ord.status === 'Delivered' ? 'badge-success' : 'badge-gst'}`}>
-                            {ord.status}
-                          </span>
-                        </td>
-                        <td className="text-right">
-                          <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                            {ord.status !== 'Delivered' && (
-                              <button
-                                className="btn btn-secondary btn-sm"
-                                onClick={async () => {
-                                  await updateUpcomingOrderMutation({
-                                    id: ord._id,
-                                    clientName: ord.clientName,
-                                    orderTitle: ord.orderTitle,
-                                    deliveryDate: ord.deliveryDate,
-                                    estimatedValue: ord.estimatedValue,
-                                    status: 'Delivered',
-                                    notes: ord.notes || '',
-                                    createdAt: ord.createdAt || new Date().toISOString()
-                                  });
-                                }}
-                                title="Mark Order as Delivered"
-                              >
-                                <i className="ph ph-check"></i> Delivered
-                              </button>
-                            )}
-                            <button
-                              className="btn-icon text-red"
-                              onClick={async () => {
-                                if (window.confirm("Delete this upcoming order?")) {
-                                  await deleteUpcomingOrderMutation({ id: ord._id });
-                                }
-                              }}
-                              title="Delete Order"
-                            >
-                              <i className="ph ph-trash"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                    {upcomingOrders.length === 0 && (
-                      <tr>
-                        <td colSpan="6" className="text-center text-muted" style={{ padding: '24px' }}>
-                          No upcoming production orders scheduled. Click <strong>"Log Order"</strong> above to schedule an order.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile Cards for Upcoming Orders */}
-              <div className="mobile-cards-container">
-                {upcomingOrders.map((ord) => (
-                  <div key={ord._id} className="mobile-card">
-                    <div className="mobile-card-header">
-                      <div className="mobile-card-title">{ord.orderTitle}</div>
-                      <span className={`badge ${ord.status === 'In Production' ? 'badge-warning' : ord.status === 'Delivered' ? 'badge-success' : 'badge-gst'}`} style={{ fontSize: '10px' }}>
-                        {ord.status}
-                      </span>
-                    </div>
-                    <div className="mobile-card-body">
-                      <div className="mobile-card-detail">
-                        <span className="mobile-card-detail-label">Client</span>
-                        <span className="mobile-card-detail-value">{ord.clientName}</span>
-                      </div>
-                      <div className="mobile-card-detail">
-                        <span className="mobile-card-detail-label">Delivery Date</span>
-                        <span className="mobile-card-detail-value">{formatDate(ord.deliveryDate)}</span>
-                      </div>
-                      <div className="mobile-card-detail">
-                        <span className="mobile-card-detail-label">Est. Value</span>
-                        <span className="mobile-card-detail-value font-bold text-primary">{formatCurrency(ord.estimatedValue)}</span>
-                      </div>
-                    </div>
-                    <div className="mobile-card-footer">
-                      {ord.status !== 'Delivered' && (
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          onClick={async () => {
-                            await updateUpcomingOrderMutation({
-                              id: ord._id,
-                              clientName: ord.clientName,
-                              orderTitle: ord.orderTitle,
-                              deliveryDate: ord.deliveryDate,
-                              estimatedValue: ord.estimatedValue,
-                              status: 'Delivered',
-                              notes: ord.notes || '',
-                              createdAt: ord.createdAt || new Date().toISOString()
-                            });
-                          }}
-                        >
-                          Mark Delivered
-                        </button>
-                      )}
-                      <button
-                        className="btn btn-secondary text-red btn-sm"
-                        onClick={async () => {
-                          if (window.confirm("Delete order?")) {
-                            await deleteUpcomingOrderMutation({ id: ord._id });
-                          }
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {upcomingOrders.length === 0 && (
-                  <div className="text-center text-muted" style={{ padding: '20px', fontSize: '13px' }}>
-                    No upcoming production orders scheduled. Click "Log Order" above to schedule an order.
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* System activity logs feed */}
-            <div className="table-card bg-surface border" style={{ padding: '24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ margin: 0 }}>System Operations Activity Feed</h3>
-                <span className="badge badge-success">Live Syncing</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-                {getRecentActivities().map((act) => (
-                  <div key={act.id} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                    <div style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '8px',
-                      backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: act.color || 'var(--color-primary)',
-                      flexShrink: 0
-                    }}>
-                      <i className={`ph ${act.icon}`} style={{ fontSize: '18px' }}></i>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#ffffff' }}>{act.title}</span>
-                      <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: '1.4' }}>{act.desc}</span>
-                    </div>
-                  </div>
-                ))}
-                {getRecentActivities().length === 0 && (
-                  <div className="text-center text-muted" style={{ padding: '16px', fontSize: '12px' }}>No recent operations logged. Seed demo data to see audits.</div>
-                )}
-              </div>
-            </div>
-          </section>
+            </section>
 
           {/* Floating Chatbot Widget on Home Screen */}
           <div className="floating-chatbot-container no-print">
