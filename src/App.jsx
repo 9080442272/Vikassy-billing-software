@@ -528,24 +528,41 @@ export default function App() {
     let dataPoints = [];
 
     if (billingTrendRange === 'this-month') {
-      labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-      const totalBilled = bills.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
-      if (totalBilled > 0) {
-        dataPoints = [
-          Math.round(totalBilled * 0.18),
-          Math.round(totalBilled * 0.28),
-          Math.round(totalBilled * 0.22),
-          Math.round(totalBilled * 0.32)
-        ];
-      } else {
-        dataPoints = [124500, 182000, 245000, 294346];
+      const dateMap = {};
+      const defaultDays = ['Jul 24', 'Jul 25', 'Jul 26', 'Jul 27', 'Jul 28', 'Jul 29'];
+      defaultDays.forEach(d => { dateMap[d] = 0; });
+
+      if (bills && bills.length > 0) {
+        bills.forEach(bill => {
+          let dayLabel = 'Jul 29';
+          if (bill.date) {
+            try {
+              const d = new Date(bill.date);
+              if (!isNaN(d.getTime())) {
+                const monthStr = d.toLocaleString('en-US', { month: 'short' });
+                const dayNum = d.getDate();
+                dayLabel = `${monthStr} ${dayNum}`;
+              }
+            } catch (e) {}
+          }
+          dateMap[dayLabel] = (dateMap[dayLabel] || 0) + (bill.totalAmount || 0);
+        });
+      }
+
+      labels = Object.keys(dateMap);
+      dataPoints = Object.values(dateMap);
+
+      if (dataPoints.every(v => v === 0)) {
+        labels = ['Jul 24', 'Jul 25', 'Jul 26', 'Jul 27', 'Jul 28', 'Jul 29 (Today)'];
+        dataPoints = [45000, 68000, 92000, 115000, 142000, 185000];
       }
     } else if (billingTrendRange === 'last-month') {
       labels = ['Jun W1', 'Jun W2', 'Jun W3', 'Jun W4'];
       dataPoints = [98000, 145000, 210000, 265000];
     } else if (billingTrendRange === 'q3') {
       labels = ['May 2026', 'June 2026', 'July 2026'];
-      dataPoints = [520000, 718000, 845846];
+      const realTotal = bills.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+      dataPoints = [520000, 718000, realTotal > 0 ? realTotal : 845846];
     }
 
     chartInstanceRef.current = new Chart(ctx, {
