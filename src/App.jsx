@@ -87,18 +87,69 @@ function decodeJwt(token) {
   }
 }
 
+// Curated Operational Sample Datasets (Varahi Export Textile ERP)
+const DEFAULT_CLIENTS = [
+  { _id: 'client_1', name: 'Sounder Exports', companyName: 'Sounder Garment Exports Ltd', phone: '+91 98422 10450', email: 'orders@sounderexports.com', city: 'Tirupur', gstNo: '33AAAAA0000A1Z5', state: 'Tamil Nadu', totalBilled: 485000 },
+  { _id: 'client_2', name: 'Raj Textiles', companyName: 'Raj Tex International', phone: '+91 94430 88210', email: 'billing@rajtextiles.in', city: 'Coimbatore', gstNo: '33BBBBB1111B2Z6', state: 'Tamil Nadu', totalBilled: 145000 },
+  { _id: 'client_3', name: 'Anand Mills', companyName: 'Anand Spinning & Weaving Mills', phone: '+91 98941 55320', email: 'sales@anandmills.com', city: 'Erode', gstNo: '33CCCCC2222C3Z7', state: 'Tamil Nadu', totalBilled: 95000 },
+  { _id: 'client_4', name: 'Varahi Domestic', companyName: 'Varahi Retail Apparel', phone: '+91 97890 12345', email: 'info@varahidomestic.in', city: 'Chennai', gstNo: '33DDDDD3333D4Z8', state: 'Tamil Nadu', totalBilled: 65000 }
+];
+
+const DEFAULT_BILLS = [
+  { _id: 'bill_1', clientId: 'client_1', clientName: 'Sounder Exports', billNumber: 'VE-2026-001', date: '2026-07-28', billType: 'with-gst', subtotal: 142857, totalGst: 7143, discount: 0, totalAmount: 150000, status: 'Paid' },
+  { _id: 'bill_2', clientId: 'client_2', clientName: 'Raj Textiles', billNumber: 'VE-2026-002', date: '2026-07-27', billType: 'with-gst', subtotal: 75892, totalGst: 9108, discount: 0, totalAmount: 85000, status: 'Paid' },
+  { _id: 'bill_3', clientId: 'client_1', clientName: 'Sounder Exports', billNumber: 'VE-2026-003', date: new Date().toISOString().split('T')[0], billType: 'with-gst', subtotal: 61346, totalGst: 3067, discount: 0, totalAmount: 64413, status: 'Pending' },
+  { _id: 'bill_4', clientId: 'client_3', clientName: 'Anand Mills', billNumber: 'VE-2026-004', date: '2026-07-20', billType: 'with-gst', subtotal: 61904, totalGst: 3096, discount: 0, totalAmount: 65000, status: 'Overdue' }
+];
+
+const DEFAULT_EMPLOYEES = [
+  { _id: 'emp_1', name: 'Kartick', phone: '+91 98420 11223', role: 'Stitcher', subCategory: 'Single Needle Specialist', baseSalary: 25000, unit: 'Unit 1 - Tirupur HQ' },
+  { _id: 'emp_2', name: 'Srimathi', phone: '+91 97890 44556', role: 'Tailor', subCategory: 'Quality Supervisor', baseSalary: 22000, unit: 'Unit 1 - Tirupur HQ' },
+  { _id: 'emp_3', name: 'Ramesh Kumar', phone: '+91 94431 66778', role: 'Master', subCategory: 'Pattern & Cutting Master', baseSalary: 35000, unit: 'Unit 1 - Tirupur HQ' },
+  { _id: 'emp_4', name: 'Anitha Devi', phone: '+91 98940 77889', role: 'Helper', subCategory: 'Packing & Finishing', baseSalary: 18000, unit: 'Unit 2 - Coimbatore' }
+];
+
+const DEFAULT_FABRICS = [
+  { _id: 'fab_1', fabricType: 'Single Jersey Cotton Knit (180 GSM)', color: 'Navy Blue', quantityReceived: 2500, quantityRemaining: 2100, receivedDate: '2026-07-15', supplier: 'Lakshmi Cotton Mills', status: 'In Stock' },
+  { _id: 'fab_2', fabricType: 'Heavyweight Denim Slub 12oz', color: 'Indigo Blue', quantityReceived: 1500, quantityRemaining: 1250, receivedDate: '2026-07-18', supplier: 'Premier Weaving Ltd', status: 'In Stock' },
+  { _id: 'fab_3', fabricType: 'Polyester Cotton Rib 1x1', color: 'Charcoal Grey', quantityReceived: 900, quantityRemaining: 900, receivedDate: '2026-07-22', supplier: 'KPR Mill Limited', status: 'In Stock' }
+];
+
+const DEFAULT_STITCHING = [
+  { _id: 'stitch_1', jobNo: 'JOB-2026-101', clientId: 'client_1', clientName: 'Sounder Exports', itemType: 'Round Neck Export T-Shirts', quantity: 2000, completedQuantity: 1500, status: 'Stitching', stage: 'Stitching & Overlock', targetDate: '2026-08-02' },
+  { _id: 'stitch_2', jobNo: 'JOB-2026-102', clientId: 'client_2', clientName: 'Raj Textiles', itemType: 'Heavy Denim Jackets', quantity: 1000, completedQuantity: 900, status: 'Cutting', stage: 'Pattern Cutting & Bundling', targetDate: '2026-08-05' },
+  { _id: 'stitch_3', jobNo: 'JOB-2026-103', clientId: 'client_3', clientName: 'Anand Mills', itemType: 'Kidswear Garment Sets', quantity: 3000, completedQuantity: 3000, status: 'Pending Dispatch', stage: 'Ironing & Polybag Packing', targetDate: '2026-07-31' },
+  { _id: 'stitch_4', jobNo: 'JOB-2026-104', clientId: 'client_4', clientName: 'Varahi Domestic', itemType: 'Woven Casual Shirts', quantity: 500, completedQuantity: 500, status: 'Completed', stage: 'Dispatched to Buyer', targetDate: '2026-07-25' }
+];
+
+const DEFAULT_EXPENSES = [
+  { _id: 'exp_1', category: 'Employee Salaries', description: 'Weekly Stitching Crew Wages', amount: 45000, date: '2026-07-26', status: 'Approved' },
+  { _id: 'exp_2', category: 'Materials & Accessories', description: 'YKK Zippers & Coats Sewing Thread', amount: 12500, date: '2026-07-24', status: 'Approved' },
+  { _id: 'exp_3', category: 'Transportation (Auto / Freight)', description: 'Export Container Logistics to Tuticorin Port', amount: 18500, date: '2026-07-22', status: 'Approved' }
+];
+
 export default function App() {
+  const [demoMode, setDemoMode] = useState(() => localStorage.getItem('demoMode') !== 'false');
+
   // --- Convex Real-time Cloud Queries ---
-  const clients = useQuery(api.clients.getAll) || [];
-  const bills = useQuery(api.bills.getAll) || [];
-  const employees = useQuery(api.employees.getAll) || [];
-  const fabrics = useQuery(api.fabrics.getAll) || [];
-  const stitching = useQuery(api.stitching.getAll) || [];
-  const ceoActivities = useQuery(api.ceoActivities.getAll) || [];
-  const expenses = useQuery(api.expenses.getAll) || [];
+  const rawClients = useQuery(api.clients.getAll) || [];
+  const rawBills = useQuery(api.bills.getAll) || [];
+  const rawEmployees = useQuery(api.employees.getAll) || [];
+  const rawFabrics = useQuery(api.fabrics.getAll) || [];
+  const rawStitching = useQuery(api.stitching.getAll) || [];
+  const rawCeoActivities = useQuery(api.ceoActivities.getAll) || [];
+  const rawExpenses = useQuery(api.expenses.getAll) || [];
   const upcomingOrders = useQuery(api.upcomingOrders.getAll) || [];
   const rawUsers = useQuery(api.users.getAll);
   const users = rawUsers || [];
+
+  const clients = (rawClients.length > 0) ? rawClients : (demoMode ? DEFAULT_CLIENTS : []);
+  const bills = (rawBills.length > 0) ? rawBills : (demoMode ? DEFAULT_BILLS : []);
+  const employees = (rawEmployees.length > 0) ? rawEmployees : (demoMode ? DEFAULT_EMPLOYEES : []);
+  const fabrics = (rawFabrics.length > 0) ? rawFabrics : (demoMode ? DEFAULT_FABRICS : []);
+  const stitching = (rawStitching.length > 0) ? rawStitching : (demoMode ? DEFAULT_STITCHING : []);
+  const ceoActivities = rawCeoActivities;
+  const expenses = (rawExpenses.length > 0) ? rawExpenses : (demoMode ? DEFAULT_EXPENSES : []);
 
   // --- Convex Cloud Mutations ---
   const registerUser = useMutation(api.users.register);
@@ -2900,7 +2951,30 @@ export default function App() {
 
                 {/* Quick Actions Bar */}
                 <div className="header-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-                  <button className="btn btn-primary" onClick={() => setIsBillModalOpen(true)} style={{ backgroundColor: '#6E56CF', color: '#fff', border: 'none', borderRadius: '12px', padding: '10px 18px', fontWeight: 600, fontSize: '13px', boxShadow: '0 4px 14px rgba(110,86,207,0.25)' }}>
+                  <button 
+                    className="btn-ghost" 
+                    onClick={() => {
+                      const nextMode = !demoMode;
+                      setDemoMode(nextMode);
+                      localStorage.setItem('demoMode', String(nextMode));
+                    }} 
+                    style={{ 
+                      padding: '9px 14px', 
+                      fontSize: '13px',
+                      backgroundColor: demoMode ? 'rgba(124, 58, 237, 0.08)' : '#F1F5F9',
+                      borderColor: demoMode ? 'var(--color-primary)' : '#CBD5E1',
+                      color: demoMode ? 'var(--color-primary)' : '#475569',
+                      fontWeight: 600
+                    }}
+                    title={demoMode ? "Sample data loaded. Click to switch to blank clean mode." : "Blank mode active. Click to load sample operational data."}
+                  >
+                    {demoMode ? (
+                      <><i className="ph ph-database" style={{ color: 'var(--color-primary)' }}></i> Sample Data Mode</>
+                    ) : (
+                      <><i className="ph ph-plus-circle"></i> Load Sample Data</>
+                    )}
+                  </button>
+                  <button className="btn btn-primary" onClick={() => setIsBillModalOpen(true)} style={{ backgroundColor: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: '12px', padding: '10px 18px', fontWeight: 600, fontSize: '13px' }}>
                     <i className="ph ph-plus" style={{ fontSize: '15px' }}></i> New Bill
                   </button>
                   <button className="btn-ghost" onClick={() => setIsScanModalOpen(true)} style={{ padding: '9px 14px', fontSize: '13px' }}>
