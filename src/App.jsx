@@ -256,20 +256,9 @@ export default function App() {
   const [isAdvanceModalOpen, setIsAdvanceModalOpen] = useState(false);
   const [isDisbursePayrollModalOpen, setIsDisbursePayrollModalOpen] = useState(false);
 
-  const [attendanceRecords, setAttendanceRecords] = useState([
-    { id: 1, empName: "Kartick", role: "Stitcher", shift: "Morning Shift (08:00 - 17:00)", checkIn: "08:00 AM", status: "Present", date: new Date().toISOString().split('T')[0] },
-    { id: 2, empName: "Srimathi", role: "Tailor", shift: "Morning Shift (08:00 - 17:00)", checkIn: "08:05 AM", status: "Overtime (+2 hrs)", date: new Date().toISOString().split('T')[0] },
-    { id: 3, empName: "Ramesh Kumar", role: "Master", shift: "Morning Shift (08:00 - 17:00)", checkIn: "08:15 AM", status: "Half-Day", date: new Date().toISOString().split('T')[0] }
-  ]);
-
-  const [advanceRecords, setAdvanceRecords] = useState([
-    { id: 1, empName: "Kartick", date: "2026-07-20", type: "Festival Advance", amount: 2000, mode: "UPI / GPay", notes: "Aadi festival advance" },
-    { id: 2, empName: "Srimathi", date: "2026-07-15", type: "Salary Advance", amount: 1500, mode: "Cash", notes: "Emergency advance" }
-  ]);
-
-  const [payrollRecords, setPayrollRecords] = useState([
-    { id: 1, empName: "Kartick", month: "July 2026", baseSalary: 25000, bonus: 3500, deductions: 2000, netPayable: 26500, status: "Disbursed & Paid", date: new Date().toISOString().split('T')[0] }
-  ]);
+  const [attendanceRecords, setAttendanceRecords] = useState([]);
+  const [advanceRecords, setAdvanceRecords] = useState([]);
+  const [payrollRecords, setPayrollRecords] = useState([]);
 
   const [attendanceSubTab, setAttendanceSubTab] = useState('daily'); // 'daily' | 'shifts' | 'approvals' | 'reports'
   const [payrollSubTab, setPayrollSubTab] = useState('monthly'); // 'monthly' | 'calculation' | 'incentives' | 'advances' | 'payslips' | 'history'
@@ -2926,268 +2915,315 @@ export default function App() {
                 </div>
               </header>
 
-              {/* 6 Priority Operational KPI Cards (Interlinked) */}
-              <div className="metrics-grid-6">
-                {/* 1. Today's Billing */}
-                <div className="metric-card" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Invoices & Bills">
-                  <div className="metric-card-header">
-                    <span className="metric-label">Today's Billing</span>
-                    <div className="metric-icon purple"><i className="ph ph-receipt"></i></div>
-                  </div>
-                  <div className="metric-value font-mono">₹61,346</div>
-                  <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
-                    <span style={{ color: '#10B981', fontWeight: 700 }}>↑ 18%</span>
-                    <span style={{ color: '#8C8D96', marginLeft: '4px' }}>vs Yesterday</span>
-                  </div>
-                </div>
+              {/* Dynamic Real-Time Calculations */}
+              {(() => {
+                const todayStr = new Date().toISOString().split('T')[0];
+                const todaysBills = bills.filter(b => b.date === todayStr);
+                const todaysBillingSum = todaysBills.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
+                
+                const pendingBills = bills.filter(b => b.status === 'Pending' || b.status === 'Overdue');
+                const pendingPaymentsSum = pendingBills.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
+                const overdueCount = bills.filter(b => b.status === 'Overdue').length;
+                
+                const activeJobs = stitching.filter(s => s.status !== 'Completed');
+                const activeJobsCount = activeJobs.length;
+                const stitchingCount = stitching.filter(s => s.status === 'Stitching' || s.status === 'In Progress').length;
+                const cuttingCount = stitching.filter(s => s.status === 'Cutting').length;
+                
+                const staffPresentCount = attendanceRecords.filter(a => a.status === 'Present' || (a.status && a.status.includes('Overtime'))).length;
+                const totalStaffCount = employees.length;
+                const attendanceRateVal = totalStaffCount > 0 ? ((staffPresentCount / totalStaffCount) * 100).toFixed(1) : '0';
+                
+                const pendingDeliveriesCount = stitching.filter(s => s.status === 'Pending Dispatch' || s.status === 'In Progress').length;
+                const fabricMtrsCount = fabrics.reduce((acc, f) => acc + (f.quantityRemaining !== undefined ? f.quantityRemaining : (f.quantityReceived || 0)), 0);
 
-                {/* 2. Pending Payments */}
-                <div className="metric-card" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Pending & Overdue Invoices">
-                  <div className="metric-card-header">
-                    <span className="metric-label">Pending Payments</span>
-                    <div className="metric-icon gold"><i className="ph ph-clock-countdown"></i></div>
-                  </div>
-                  <div className="metric-value font-mono">₹1,45,200</div>
-                  <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
-                    <span style={{ color: '#F59E0B', fontWeight: 700 }}>4 Overdue</span>
-                    <span style={{ color: '#8C8D96', marginLeft: '4px' }}>Invoices</span>
-                  </div>
-                </div>
+                const jobsRunningCount = stitching.filter(s => s.status === 'In Progress' || s.status === 'Cutting' || s.status === 'Stitching').length;
+                const jobsCompletedCount = stitching.filter(s => s.status === 'Completed').length;
+                const waitingDispatchCount = stitching.filter(s => s.status === 'Pending Dispatch').length;
+                const billsPendingCount = bills.filter(b => b.status === 'Pending').length;
 
-                {/* 3. Active Production Jobs */}
-                <div className="metric-card" onClick={() => { setActiveTab('jobs'); setJobsSubTab('active'); }} style={{ cursor: 'pointer' }} title="Click to view Active Production Jobs">
-                  <div className="metric-card-header">
-                    <span className="metric-label">Active Jobs</span>
-                    <div className="metric-icon purple"><i className="ph ph-gear-six"></i></div>
-                  </div>
-                  <div className="metric-value font-mono">18 Jobs</div>
-                  <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
-                    <span style={{ color: '#6E56CF', fontWeight: 600 }}>8 Stitching, 6 Cutting</span>
-                  </div>
-                </div>
+                // Dynamic Client Revenue Breakdown
+                const clientRevenueMap = {};
+                bills.forEach(b => {
+                  const clientObj = clients.find(c => c._id === b.clientId);
+                  const clientName = clientObj ? clientObj.name : (b.clientName || 'General Client');
+                  clientRevenueMap[clientName] = (clientRevenueMap[clientName] || 0) + (b.totalAmount || 0);
+                });
+                const totalAppRevenue = Object.values(clientRevenueMap).reduce((a, b) => a + b, 0);
+                const topClientsList = Object.entries(clientRevenueMap)
+                  .map(([name, total]) => ({
+                    name,
+                    total,
+                    percentage: totalAppRevenue > 0 ? Math.round((total / totalAppRevenue) * 100) : 0
+                  }))
+                  .sort((a, b) => b.total - a.total)
+                  .slice(0, 4);
 
-                {/* 4. Employees Present */}
-                <div className="metric-card" onClick={() => { setActiveTab('employees'); setEmployeesSubTab('attendance'); }} style={{ cursor: 'pointer' }} title="Click to view Staff Attendance">
-                  <div className="metric-card-header">
-                    <span className="metric-label">Staff Attendance</span>
-                    <div className="metric-icon" style={{ color: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)' }}><i className="ph ph-users-three"></i></div>
-                  </div>
-                  <div className="metric-value font-mono">14 / 16</div>
-                  <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
-                    <span style={{ color: '#10B981', fontWeight: 700 }}>87.5%</span>
-                    <span style={{ color: '#8C8D96', marginLeft: '4px' }}>Attendance Rate</span>
-                  </div>
-                </div>
+                return (
+                  <>
+                    {/* 6 Priority Operational KPI Cards (Interlinked & Dynamic) */}
+                    <div className="metrics-grid-6">
+                      {/* 1. Today's Billing */}
+                      <div className="metric-card" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Invoices & Bills">
+                        <div className="metric-card-header">
+                          <span className="metric-label">Today's Billing</span>
+                          <div className="metric-icon purple"><i className="ph ph-receipt"></i></div>
+                        </div>
+                        <div className="metric-value font-mono">{formatCurrency(todaysBillingSum)}</div>
+                        <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
+                          <span style={{ color: todaysBillingSum > 0 ? '#10B981' : '#64748B', fontWeight: 700 }}>
+                            {todaysBills.length} Invoices
+                          </span>
+                          <span style={{ color: '#8C8D96', marginLeft: '4px' }}>created today</span>
+                        </div>
+                      </div>
 
-                {/* 5. Pending Deliveries */}
-                <div className="metric-card" onClick={() => { setActiveTab('jobs'); setJobsSubTab('active'); }} style={{ cursor: 'pointer' }} title="Click to view Pending Deliveries">
-                  <div className="metric-card-header">
-                    <span className="metric-label">Pending Deliveries</span>
-                    <div className="metric-icon gold"><i className="ph ph-truck"></i></div>
-                  </div>
-                  <div className="metric-value font-mono">3 Orders</div>
-                  <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
-                    <span style={{ color: '#F59E0B', fontWeight: 600 }}>Target Delivery Today</span>
-                  </div>
-                </div>
+                      {/* 2. Pending Payments */}
+                      <div className="metric-card" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Pending & Overdue Invoices">
+                        <div className="metric-card-header">
+                          <span className="metric-label">Pending Payments</span>
+                          <div className="metric-icon gold"><i className="ph ph-clock-countdown"></i></div>
+                        </div>
+                        <div className="metric-value font-mono">{formatCurrency(pendingPaymentsSum)}</div>
+                        <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
+                          <span style={{ color: overdueCount > 0 ? '#EF4444' : '#F59E0B', fontWeight: 700 }}>{overdueCount} Overdue</span>
+                          <span style={{ color: '#8C8D96', marginLeft: '4px' }}>Invoices</span>
+                        </div>
+                      </div>
 
-                {/* 6. Available Fabric Stock */}
-                <div className="metric-card" onClick={() => setActiveTab('fabrics')} style={{ cursor: 'pointer' }} title="Click to view Fabric Stock Inventory">
-                  <div className="metric-card-header">
-                    <span className="metric-label">Fabric Inventory</span>
-                    <div className="metric-icon"><i className="ph ph-package"></i></div>
-                  </div>
-                  <div className="metric-value font-mono">4,250 Mtrs</div>
-                  <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
-                    <span style={{ color: '#64748B', fontWeight: 500 }}>Cotton & Denim Rolls</span>
-                  </div>
-                </div>
-              </div>
+                      {/* 3. Active Production Jobs */}
+                      <div className="metric-card" onClick={() => { setActiveTab('jobs'); setJobsSubTab('active'); }} style={{ cursor: 'pointer' }} title="Click to view Active Production Jobs">
+                        <div className="metric-card-header">
+                          <span className="metric-label">Active Jobs</span>
+                          <div className="metric-icon purple"><i className="ph ph-gear-six"></i></div>
+                        </div>
+                        <div className="metric-value font-mono">{activeJobsCount} Jobs</div>
+                        <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
+                          <span style={{ color: 'var(--color-primary)', fontWeight: 600 }}>{stitchingCount} Stitching, {cuttingCount} Cutting</span>
+                        </div>
+                      </div>
 
-              {/* Today's Factory Snapshot (Interlinked Summary Pills) */}
-              <div className="factory-snapshot-card">
-                <div className="snapshot-header">
-                  <div className="snapshot-title">
-                    <i className="ph ph-lightning" style={{ color: '#6E56CF', fontSize: '18px' }}></i>
-                    <span>Today's Factory Snapshot</span>
-                  </div>
-                  <span style={{ fontSize: '11px', fontWeight: 600, color: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)', padding: '2px 8px', borderRadius: '10px' }}>
-                    Live Production Operations
-                  </span>
-                </div>
-                <div className="snapshot-pills-row">
-                  <div className="snapshot-pill" onClick={() => { setActiveTab('jobs'); setJobsSubTab('active'); }} style={{ cursor: 'pointer' }} title="Click to view Running Jobs">
-                    <span className="status-dot green"></span>
-                    <span><strong>18</strong> Jobs Running</span>
-                  </div>
-                  <div className="snapshot-pill" onClick={() => { setActiveTab('jobs'); setJobsSubTab('active'); }} style={{ cursor: 'pointer' }} title="Click to view Completed Jobs">
-                    <span className="status-dot blue"></span>
-                    <span><strong>7</strong> Jobs Completed</span>
-                  </div>
-                  <div className="snapshot-pill" onClick={() => { setActiveTab('jobs'); setJobsSubTab('active'); }} style={{ cursor: 'pointer' }} title="Click to view Pending Dispatches">
-                    <span className="status-dot amber"></span>
-                    <span><strong>3</strong> Waiting for Dispatch</span>
-                  </div>
-                  <div className="snapshot-pill" onClick={() => { setActiveTab('employees'); setEmployeesSubTab('attendance'); }} style={{ cursor: 'pointer' }} title="Click to view Staff Attendance">
-                    <span className="status-dot green"></span>
-                    <span><strong>14</strong> Employees Present</span>
-                  </div>
-                  <div className="snapshot-pill" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Pending Invoices">
-                    <span className="status-dot amber"></span>
-                    <span><strong>2</strong> Bills Pending</span>
-                  </div>
-                  <div className="snapshot-pill" onClick={() => setActiveTab('bills')} style={{ borderColor: 'rgba(239,68,68,0.3)', backgroundColor: '#FEF2F2', cursor: 'pointer' }} title="Click to view Overdue Payments">
-                    <span className="status-dot red"></span>
-                    <span style={{ color: '#991B1B' }}><strong>1</strong> Payment Overdue</span>
-                  </div>
-                </div>
-              </div>
+                      {/* 4. Staff Attendance */}
+                      <div className="metric-card" onClick={() => { setActiveTab('employees'); setEmployeesSubTab('attendance'); }} style={{ cursor: 'pointer' }} title="Click to view Staff Attendance">
+                        <div className="metric-card-header">
+                          <span className="metric-label">Staff Attendance</span>
+                          <div className="metric-icon" style={{ color: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)' }}><i className="ph ph-users-three"></i></div>
+                        </div>
+                        <div className="metric-value font-mono">{staffPresentCount} / {totalStaffCount}</div>
+                        <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
+                          <span style={{ color: '#10B981', fontWeight: 700 }}>{attendanceRateVal}%</span>
+                          <span style={{ color: '#8C8D96', marginLeft: '4px' }}>Attendance Rate</span>
+                        </div>
+                      </div>
 
-              {/* Revenue Analytics & Top Clients Breakdown (2-Column Grid) */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '20px', marginBottom: '24px' }}>
-                {/* Left: Monthly Billing Trend Area Chart */}
-                <div className="table-card bg-surface border" style={{ padding: '20px', margin: 0 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                      {/* 5. Pending Deliveries */}
+                      <div className="metric-card" onClick={() => { setActiveTab('jobs'); setJobsSubTab('active'); }} style={{ cursor: 'pointer' }} title="Click to view Pending Deliveries">
+                        <div className="metric-card-header">
+                          <span className="metric-label">Pending Deliveries</span>
+                          <div className="metric-icon gold"><i className="ph ph-truck"></i></div>
+                        </div>
+                        <div className="metric-value font-mono">{pendingDeliveriesCount} Orders</div>
+                        <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
+                          <span style={{ color: '#F59E0B', fontWeight: 600 }}>Target Delivery Today</span>
+                        </div>
+                      </div>
+
+                      {/* 6. Available Fabric Stock */}
+                      <div className="metric-card" onClick={() => setActiveTab('fabrics')} style={{ cursor: 'pointer' }} title="Click to view Fabric Stock Inventory">
+                        <div className="metric-card-header">
+                          <span className="metric-label">Fabric Inventory</span>
+                          <div className="metric-icon"><i className="ph ph-package"></i></div>
+                        </div>
+                        <div className="metric-value font-mono">{fabricMtrsCount.toLocaleString()} Mtrs</div>
+                        <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
+                          <span style={{ color: '#64748B', fontWeight: 500 }}>{fabrics.length} Stock Rolls</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Today's Factory Snapshot (Interlinked Summary Pills) */}
+                    <div className="factory-snapshot-card">
+                      <div className="snapshot-header">
+                        <div className="snapshot-title">
+                          <i className="ph ph-lightning" style={{ color: 'var(--color-primary)', fontSize: '18px' }}></i>
+                          <span>Today's Factory Snapshot</span>
+                        </div>
+                        <span style={{ fontSize: '11px', fontWeight: 600, color: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)', padding: '2px 8px', borderRadius: '10px' }}>
+                          Live Production Operations
+                        </span>
+                      </div>
+                      <div className="snapshot-pills-row">
+                        <div className="snapshot-pill" onClick={() => { setActiveTab('jobs'); setJobsSubTab('active'); }} style={{ cursor: 'pointer' }} title="Click to view Running Jobs">
+                          <span className="status-dot green"></span>
+                          <span><strong>{jobsRunningCount}</strong> Jobs Running</span>
+                        </div>
+                        <div className="snapshot-pill" onClick={() => { setActiveTab('jobs'); setJobsSubTab('active'); }} style={{ cursor: 'pointer' }} title="Click to view Completed Jobs">
+                          <span className="status-dot blue"></span>
+                          <span><strong>{jobsCompletedCount}</strong> Jobs Completed</span>
+                        </div>
+                        <div className="snapshot-pill" onClick={() => { setActiveTab('jobs'); setJobsSubTab('active'); }} style={{ cursor: 'pointer' }} title="Click to view Pending Dispatches">
+                          <span className="status-dot amber"></span>
+                          <span><strong>{waitingDispatchCount}</strong> Waiting for Dispatch</span>
+                        </div>
+                        <div className="snapshot-pill" onClick={() => { setActiveTab('employees'); setEmployeesSubTab('attendance'); }} style={{ cursor: 'pointer' }} title="Click to view Staff Attendance">
+                          <span className="status-dot green"></span>
+                          <span><strong>{staffPresentCount}</strong> Employees Present</span>
+                        </div>
+                        <div className="snapshot-pill" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Pending Invoices">
+                          <span className="status-dot amber"></span>
+                          <span><strong>{billsPendingCount}</strong> Bills Pending</span>
+                        </div>
+                        <div className="snapshot-pill" onClick={() => setActiveTab('bills')} style={{ borderColor: 'rgba(239,68,68,0.3)', backgroundColor: '#FEF2F2', cursor: 'pointer' }} title="Click to view Overdue Payments">
+                          <span className="status-dot red"></span>
+                          <span style={{ color: '#991B1B' }}><strong>{overdueCount}</strong> Payment Overdue</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Revenue Analytics & Top Clients Breakdown (2-Column Grid) */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '20px', marginBottom: '24px' }}>
+                      {/* Left: Monthly Billing Trend Area Chart */}
+                      <div className="table-card bg-surface border" style={{ padding: '20px', margin: 0 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                          <div>
+                            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#1C1C21' }}>Monthly Billing Trend</h3>
+                            <p className="small text-muted" style={{ margin: '2px 0 0 0', fontSize: '12px' }}>Track daily manufacturing billing volume and GST invoice trends.</p>
+                          </div>
+                          <select 
+                            value={billingTrendRange}
+                            onChange={(e) => setBillingTrendRange(e.target.value)}
+                            style={{ fontSize: '12px', padding: '6px 12px', borderRadius: '8px', border: '1px solid #E6E6EB', backgroundColor: '#FAFAFC', color: '#1C1C21', fontWeight: 600, cursor: 'pointer' }}
+                          >
+                            <option value="this-month">This Month (July 2026)</option>
+                            <option value="last-month">Last Month (June 2026)</option>
+                            <option value="q3">Q3 2026 Summary</option>
+                          </select>
+                        </div>
+
+                        {/* Dynamic Interactive Chart Canvas */}
+                        <div style={{ width: '100%', height: '220px', position: 'relative', marginTop: '10px' }}>
+                          <canvas ref={chartCanvasRef}></canvas>
+                        </div>
+                      </div>
+
+                      {/* Right: Top Clients Revenue Breakdown */}
+                      <div className="table-card bg-surface border" style={{ padding: '20px', margin: 0 }}>
+                        <div style={{ marginBottom: '14px' }}>
+                          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#1C1C21' }}>Top Clients Revenue</h3>
+                          <p className="small text-muted" style={{ margin: '2px 0 0 0', fontSize: '12px' }}>Client revenue share & billing volume.</p>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                          {topClientsList.map((clientItem, idx) => {
+                            const colors = ['var(--color-primary)', '#10B981', '#F59E0B', '#64748B'];
+                            const themeColor = colors[idx % colors.length];
+                            return (
+                              <div key={clientItem.name} onClick={() => setActiveTab('clients')} style={{ cursor: 'pointer' }} title="Click to view Client Directory">
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+                                  <span style={{ fontWeight: 600, color: '#1C1C21' }}>{clientItem.name}</span>
+                                  <span style={{ fontWeight: 700, color: themeColor, fontFamily: 'var(--font-mono)' }}>
+                                    {formatCurrency(clientItem.total)} ({clientItem.percentage}%)
+                                  </span>
+                                </div>
+                                <div style={{ height: '6px', width: '100%', backgroundColor: '#F0F0F4', borderRadius: '4px', overflow: 'hidden' }}>
+                                  <div style={{ width: `${clientItem.percentage}%`, height: '100%', backgroundColor: themeColor, borderRadius: '4px' }}></div>
+                                </div>
+                              </div>
+                            );
+                          })}
+
+                          {topClientsList.length === 0 && (
+                            <div style={{ padding: '24px 12px', textAlign: 'center', backgroundColor: '#F8FAFC', borderRadius: '12px', border: '1px solid #F1F5F9' }}>
+                              <i className="ph ph-receipt" style={{ fontSize: '28px', color: '#94A3B8', marginBottom: '6px' }}></i>
+                              <div style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>No client billing data recorded</div>
+                              <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>Create your first GST invoice to view live revenue statistics.</div>
+                              <button className="btn btn-primary btn-sm" onClick={() => setIsBillModalOpen(true)} style={{ marginTop: '12px' }}>
+                                + Create First Invoice
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
+
+              {/* Actionable Insights: Client Concentration Risk (Dynamic Interlinked) */}
+              {topClientsList.length > 0 && topClientsList[0].percentage >= 40 ? (
+                <div className="table-card bg-surface border" onClick={() => setActiveTab('clients')} style={{ padding: '20px', marginBottom: '24px', backgroundColor: '#FFFAED', borderColor: '#FDE68A', cursor: 'pointer' }} title="Click to open Clients directory to manage accounts">
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+                    <div style={{ width: '38px', height: '38px', borderRadius: '10px', backgroundColor: '#FEF3C7', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>
+                      <i className="ph ph-warning"></i>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#92400E' }}>Client Concentration Risk Warning</h4>
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#D97706', fontFamily: 'var(--font-mono)' }}>{topClientsList[0].percentage}% Revenue Dependency</span>
+                      </div>
+                      <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#78350F', lineHeight: 1.4 }}>
+                        <strong>⚠ {topClientsList[0].percentage}% of total company revenue</strong> originates from a single buyer ({topClientsList[0].name}).
+                      </p>
+                      <div style={{ height: '8px', width: '100%', backgroundColor: '#FDE68A', borderRadius: '4px', overflow: 'hidden', marginBottom: '10px' }}>
+                        <div style={{ width: `${topClientsList[0].percentage}%`, height: '100%', backgroundColor: '#D97706', borderRadius: '4px' }}></div>
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#92400E', backgroundColor: '#FEF3C7', padding: '6px 12px', borderRadius: '6px', display: 'inline-block' }}>
+                        <strong>Actionable Recommendation:</strong> Diversify customer portfolio by onboarding new buyers to protect factory cash flow.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="table-card bg-surface border" onClick={() => setActiveTab('clients')} style={{ padding: '16px 20px', marginBottom: '24px', backgroundColor: '#F0FDF4', borderColor: '#BBF7D0', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} title="Click to view Clients directory">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <i className="ph ph-check-circle-fill" style={{ color: '#16A34A', fontSize: '22px' }}></i>
                     <div>
-                      <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#1C1C21' }}>Monthly Billing Trend</h3>
-                      <p className="small text-muted" style={{ margin: '2px 0 0 0', fontSize: '12px' }}>Track daily manufacturing billing volume and GST invoice trends.</p>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#14532D' }}>Healthy Customer Portfolio Balance</div>
+                      <div style={{ fontSize: '12px', color: '#166534' }}>Revenue is evenly distributed across client buyers. No high concentration risk detected.</div>
                     </div>
-                    <select 
-                      value={billingTrendRange}
-                      onChange={(e) => setBillingTrendRange(e.target.value)}
-                      style={{ fontSize: '12px', padding: '6px 12px', borderRadius: '8px', border: '1px solid #E6E6EB', backgroundColor: '#FAFAFC', color: '#1C1C21', fontWeight: 600, cursor: 'pointer' }}
-                    >
-                      <option value="this-month">This Month (July 2026)</option>
-                      <option value="last-month">Last Month (June 2026)</option>
-                      <option value="q3">Q3 2026 Summary</option>
-                    </select>
                   </div>
-
-                  {/* Dynamic Interactive Chart Canvas */}
-                  <div style={{ width: '100%', height: '220px', position: 'relative', marginTop: '10px' }}>
-                    <canvas ref={chartCanvasRef}></canvas>
-                  </div>
+                  <button className="btn btn-secondary btn-sm" style={{ backgroundColor: '#FFFFFF', color: '#15803D', borderColor: '#86EFAC' }}>
+                    View Buyer Directory
+                  </button>
                 </div>
+              )}
 
-                {/* Right: Top Clients Revenue Breakdown */}
-                <div className="table-card bg-surface border" style={{ padding: '20px', margin: 0 }}>
-                  <div style={{ marginBottom: '14px' }}>
-                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#1C1C21' }}>Top Clients Revenue</h3>
-                    <p className="small text-muted" style={{ margin: '2px 0 0 0', fontSize: '12px' }}>Client revenue share & billing volume.</p>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {/* Client 1 */}
-                    <div onClick={() => setActiveTab('clients')} style={{ cursor: 'pointer' }} title="Click to view Client Directory">
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
-                        <span style={{ fontWeight: 600, color: '#1C1C21' }}>Sounder Exports</span>
-                        <span style={{ fontWeight: 700, color: '#6E56CF', fontFamily: 'var(--font-mono)' }}>₹4,85,000 (62%)</span>
-                      </div>
-                      <div style={{ height: '6px', width: '100%', backgroundColor: '#F0F0F4', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ width: '62%', height: '100%', backgroundColor: '#6E56CF', borderRadius: '4px' }}></div>
-                      </div>
-                    </div>
-
-                    {/* Client 2 */}
-                    <div onClick={() => setActiveTab('clients')} style={{ cursor: 'pointer' }} title="Click to view Client Directory">
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
-                        <span style={{ fontWeight: 600, color: '#1C1C21' }}>Raj Textiles</span>
-                        <span style={{ fontWeight: 700, color: '#10B981', fontFamily: 'var(--font-mono)' }}>₹1,45,000 (18%)</span>
-                      </div>
-                      <div style={{ height: '6px', width: '100%', backgroundColor: '#F0F0F4', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ width: '18%', height: '100%', backgroundColor: '#10B981', borderRadius: '4px' }}></div>
-                      </div>
-                    </div>
-
-                    {/* Client 3 */}
-                    <div onClick={() => setActiveTab('clients')} style={{ cursor: 'pointer' }} title="Click to view Client Directory">
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
-                        <span style={{ fontWeight: 600, color: '#1C1C21' }}>Anand Mills</span>
-                        <span style={{ fontWeight: 700, color: '#F59E0B', fontFamily: 'var(--font-mono)' }}>₹95,000 (12%)</span>
-                      </div>
-                      <div style={{ height: '6px', width: '100%', backgroundColor: '#F0F0F4', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ width: '12%', height: '100%', backgroundColor: '#F59E0B', borderRadius: '4px' }}></div>
-                      </div>
-                    </div>
-
-                    {/* Client 4 */}
-                    <div onClick={() => setActiveTab('clients')} style={{ cursor: 'pointer' }} title="Click to view Client Directory">
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
-                        <span style={{ fontWeight: 600, color: '#1C1C21' }}>Varahi Domestic</span>
-                        <span style={{ fontWeight: 700, color: '#64748B', fontFamily: 'var(--font-mono)' }}>₹65,000 (8%)</span>
-                      </div>
-                      <div style={{ height: '6px', width: '100%', backgroundColor: '#F0F0F4', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ width: '8%', height: '100%', backgroundColor: '#64748B', borderRadius: '4px' }}></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Actionable Insights: Client Concentration Risk (Interlinked) */}
-              <div className="table-card bg-surface border" onClick={() => setActiveTab('clients')} style={{ padding: '20px', marginBottom: '24px', backgroundColor: '#FFFAED', borderColor: '#FDE68A', cursor: 'pointer' }} title="Click to open Clients directory to manage accounts">
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', backgroundColor: '#FEF3C7', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>
-                    <i className="ph ph-warning"></i>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#92400E' }}>Client Concentration Risk Warning</h4>
-                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#D97706', fontFamily: 'var(--font-mono)' }}>92% High Risk Dependency</span>
-                    </div>
-                    <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#78350F', lineHeight: 1.4 }}>
-                      <strong>⚠ 92% of total company revenue</strong> originates from a single buyer (Sounder Exports).
-                    </p>
-                    <div style={{ height: '8px', width: '100%', backgroundColor: '#FDE68A', borderRadius: '4px', overflow: 'hidden', marginBottom: '10px' }}>
-                      <div style={{ width: '92%', height: '100%', backgroundColor: '#D97706', borderRadius: '4px' }}></div>
-                    </div>
-                    <div style={{ fontSize: '12px', color: '#92400E', backgroundColor: '#FEF3C7', padding: '6px 12px', borderRadius: '6px', display: 'inline-block' }}>
-                      <strong>Actionable Recommendation:</strong> Diversify customer portfolio by onboarding new garment export buyers to protect factory cash flow.
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Required (Pending Tasks) & Recent Activity Timeline (Interlinked) */}
+              {/* Action Required (Pending Tasks) & Recent Activity Timeline (Dynamic Interlinked) */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
                 {/* Left: Action Required (Pending Tasks) */}
                 <div className="action-required-card">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                     <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#1C1C21', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <i className="ph ph-check-square" style={{ color: '#EF4444' }}></i> Action Required
+                      <i className="ph ph-check-square" style={{ color: overdueCount > 0 ? '#EF4444' : '#10B981' }}></i> Action Required
                     </h3>
-                    <span className="badge badge-warning" style={{ fontSize: '11px' }}>4 Urgent Items</span>
+                    <span className={`badge ${overdueCount > 0 ? 'badge-warning' : 'badge-success'}`} style={{ fontSize: '11px' }}>
+                      {overdueCount > 0 ? `${overdueCount} Urgent Items` : 'All Caught Up'}
+                    </span>
                   </div>
 
-                  <div className="action-item red-border" onClick={() => setActiveTab('reports')} style={{ cursor: 'pointer' }} title="Click to view Reports & Tax Compliance">
-                    <i className="ph ph-calendar-blank" style={{ color: '#EF4444', fontSize: '18px', marginTop: '2px' }}></i>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#991B1B' }}>GST Filing Due in 3 Days</div>
-                      <div style={{ fontSize: '12px', color: '#62636C' }}>GSTR-1 tax compliance filing for July 2026 due by Aug 1.</div>
+                  {overdueCount > 0 ? (
+                    <div className="action-item red-border" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Overdue Invoices">
+                      <i className="ph ph-clock-countdown" style={{ color: '#EF4444', fontSize: '18px', marginTop: '2px' }}></i>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#991B1B' }}>{overdueCount} Payment Overdue</div>
+                        <div style={{ fontSize: '12px', color: '#62636C' }}>Invoice payment follow-up required for pending client bills.</div>
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="action-item red-border" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Overdue Invoices">
-                    <i className="ph ph-clock-countdown" style={{ color: '#EF4444', fontSize: '18px', marginTop: '2px' }}></i>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#991B1B' }}>2 Payments Overdue</div>
-                      <div style={{ fontSize: '12px', color: '#62636C' }}>Sounder Exports invoice #VE-2026-018 (₹45,000) overdue by 5 days.</div>
+                  ) : (
+                    <div className="action-item" style={{ borderLeft: '3px solid #10B981', backgroundColor: '#F0FDF4' }}>
+                      <i className="ph ph-check-circle-fill" style={{ color: '#16A34A', fontSize: '18px', marginTop: '2px' }}></i>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#14532D' }}>No Overdue Invoices</div>
+                        <div style={{ fontSize: '12px', color: '#166534' }}>All customer billing payments up to date.</div>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  <div className="action-item orange-border" onClick={() => { setActiveTab('jobs'); setJobsSubTab('active'); }} style={{ cursor: 'pointer' }} title="Click to view Production Jobs">
-                    <i className="ph ph-truck" style={{ color: '#F59E0B', fontSize: '18px', marginTop: '2px' }}></i>
+                  <div className="action-item orange-border" onClick={() => setActiveTab('reports')} style={{ cursor: 'pointer' }} title="Click to view Reports & Tax Compliance">
+                    <i className="ph ph-calendar-blank" style={{ color: '#F59E0B', fontSize: '18px', marginTop: '2px' }}></i>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#92400E' }}>1 Delivery Delayed</div>
-                      <div style={{ fontSize: '12px', color: '#62636C' }}>Job #104 (Denim Jackets) delayed by 1 day due to fabric dye inspection.</div>
-                    </div>
-                  </div>
-
-                  <div className="action-item yellow-border" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Invoices & Bills">
-                    <i className="ph ph-file-search" style={{ color: '#D97706', fontSize: '18px', marginTop: '2px' }}></i>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#92400E' }}>4 Invoices Awaiting Approval</div>
-                      <div style={{ fontSize: '12px', color: '#62636C' }}>Audit sign-off required for GST tax breakdown splits.</div>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#92400E' }}>Monthly GST Filing Check</div>
+                      <div style={{ fontSize: '12px', color: '#62636C' }}>Review GSTR-1 tax compliance filing summaries.</div>
                     </div>
                   </div>
                 </div>
@@ -3196,51 +3232,28 @@ export default function App() {
                 <div className="table-card bg-surface border" style={{ padding: '20px', margin: 0 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#1C1C21', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <i className="ph ph-clock-counter-clockwise" style={{ color: '#6E56CF' }}></i> Recent Activity
+                      <i className="ph ph-clock-counter-clockwise" style={{ color: 'var(--color-primary)' }}></i> Recent Activity
                     </h3>
                     <span className="badge badge-success" style={{ fontSize: '11px' }}>Live Operations</span>
                   </div>
 
                   <div className="activity-timeline">
-                    <div className="timeline-event" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Bills">
-                      <div>
-                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21' }}>Bill #VE-2026-024 Created</div>
-                        <div style={{ fontSize: '12px', color: '#62636C' }}>Generated invoice for Sounder Exports (₹1,50,000)</div>
+                    {bills.slice(0, 3).map((b, idx) => (
+                      <div key={b._id || idx} className="timeline-event" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Bill">
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21' }}>Bill #{b.billNumber} Logged</div>
+                          <div style={{ fontSize: '12px', color: '#62636C' }}>Invoice created for {formatCurrency(b.totalAmount)}</div>
+                        </div>
+                        <span style={{ fontSize: '11px', color: '#8C8D96' }}>{formatDate(b.date)}</span>
                       </div>
-                      <span style={{ fontSize: '11px', color: '#8C8D96', fontWeight: 500 }}>10:15 AM</span>
-                    </div>
+                    ))}
 
-                    <div className="timeline-event" onClick={() => { setActiveTab('jobs'); setJobsSubTab('active'); }} style={{ cursor: 'pointer' }} title="Click to view Jobs">
-                      <div>
-                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21' }}>Job #102 Completed</div>
-                        <div style={{ fontSize: '12px', color: '#62636C' }}>Stitching Unit completed 1,000 Denim Jackets</div>
+                    {bills.length === 0 && (
+                      <div style={{ padding: '16px 0', textAlign: 'center', color: '#64748B', fontSize: '12px' }}>
+                        <i className="ph ph-clock" style={{ fontSize: '24px', color: '#94A3B8', marginBottom: '4px', display: 'block' }}></i>
+                        No recent activity logged yet. Activity logs stream live as you perform actions.
                       </div>
-                      <span style={{ fontSize: '11px', color: '#8C8D96', fontWeight: 500 }}>09:40 AM</span>
-                    </div>
-
-                    <div className="timeline-event" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Payments">
-                      <div>
-                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21' }}>Payment Received</div>
-                        <div style={{ fontSize: '12px', color: '#62636C' }}>Received ₹45,000 via HDFC Bank transfer</div>
-                      </div>
-                      <span style={{ fontSize: '11px', color: '#8C8D96', fontWeight: 500 }}>09:15 AM</span>
-                    </div>
-
-                    <div className="timeline-event" onClick={() => { setActiveTab('employees'); setEmployeesSubTab('attendance'); }} style={{ cursor: 'pointer' }} title="Click to view Staff Attendance">
-                      <div>
-                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21' }}>Employee Checked In</div>
-                        <div style={{ fontSize: '12px', color: '#62636C' }}>Srimathi logged present for Morning Shift</div>
-                      </div>
-                      <span style={{ fontSize: '11px', color: '#8C8D96', fontWeight: 500 }}>08:05 AM</span>
-                    </div>
-
-                    <div className="timeline-event" onClick={() => setActiveTab('fabrics')} style={{ cursor: 'pointer' }} title="Click to view Inventory Stock">
-                      <div>
-                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21' }}>Fabric Stock Added</div>
-                        <div style={{ fontSize: '12px', color: '#62636C' }}>Added 500 Mtrs Denim Roll (Roll #D-402)</div>
-                      </div>
-                      <span style={{ fontSize: '11px', color: '#8C8D96', fontWeight: 500 }}>07:45 AM</span>
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>
