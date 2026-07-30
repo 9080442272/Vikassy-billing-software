@@ -178,7 +178,6 @@ export default function App() {
   const addUpcomingOrderMutation = useMutation(api.upcomingOrders.add);
   const updateUpcomingOrderMutation = useMutation(api.upcomingOrders.update);
   const deleteUpcomingOrderMutation = useMutation(api.upcomingOrders.remove);
-  const clearAllDataMutation = useMutation(api.system.clearAllData);
 
   // Set to true to temporarily bypass authentication for dev / client reviews
   const BYPASS_AUTH = true;
@@ -2344,13 +2343,13 @@ export default function App() {
 
   // Clear all sample seed data from database
   const handleClearDatabase = async () => {
-    if (window.confirm("⚠️ Are you sure you want to clear all data and reset the database? This action cannot be undone.")) {
-      try {
-        await clearAllDataMutation();
-        alert("🧹 All database records cleared successfully! The database is now clean.");
-      } catch (err) {
-        alert("Error clearing database: " + err.message);
-      }
+    if (window.confirm("⚠️ Are you sure you want to clear all data and reset to blank mode?")) {
+      setDemoMode(false);
+      localStorage.setItem('demoMode', 'false');
+      setAttendanceRecords([]);
+      setAdvanceRecords([]);
+      setPayrollRecords([]);
+      alert("🧹 Application state reset to Blank Mode cleanly!");
     }
   };
 
