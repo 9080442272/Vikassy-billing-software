@@ -3475,11 +3475,6 @@ export default function App() {
         {/* Linear Top Bar Header */}
         <header className="linear-top-header">
           <div className="linear-header-left">
-            <div className="linear-workspace-pill" onClick={() => setIsCompanyDropdownOpen(!isCompanyDropdownOpen)}>
-              <i className="ph ph-buildings" style={{ color: 'var(--color-primary)' }}></i>
-              <span>{activeCompany.name} ({activeCompany.branch})</span>
-              <i className="ph ph-caret-down" style={{ fontSize: '11px', opacity: 0.6 }}></i>
-            </div>
             <button className="linear-cmd-launcher" onClick={() => setIsCmdPaletteOpen(true)}>
               <i className="ph ph-magnifying-glass"></i>
               <span>Search commands or jump to...</span>
