@@ -8108,9 +8108,14 @@ export default function App() {
                     }}
                     style={{ fontSize: '14px', padding: '12px 14px', width: '100%', borderRadius: '10px' }}
                   >
-                    {employees.map(e => (
-                      <option key={e._id} value={e.name}>{e.name} ({e.role} - Base ₹{e.salary})</option>
-                    ))}
+                    {employees.map(e => {
+                      const rateInfo = e.salary > 0 ? ` - Base ₹${e.salary}` : (e.stitchRate > 0 ? ` - ₹${e.stitchRate}/Pcs` : '');
+                      return (
+                        <option key={e._id} value={e.name}>
+                          {e.name} ({e.role}{rateInfo})
+                        </option>
+                      );
+                    })}
                     {employees.length === 0 && <option value="Balasubramainan">Balasubramainan (CEO)</option>}
                   </select>
                 </div>
