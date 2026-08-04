@@ -87,6 +87,281 @@ function decodeJwt(token) {
   }
 }
 
+// Linear UI Design System Custom Calendar Date Picker Component
+function LinearDatePickerInput({ id, name, label, defaultValue, value, onChange, required = false }) {
+  const initialDateStr = value || defaultValue || new Date().toISOString().split('T')[0];
+  const parseInit = (str) => {
+    if (!str) return new Date();
+    const d = new Date(str);
+    return isNaN(d.getTime()) ? new Date() : d;
+  };
+
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(() => parseInit(initialDateStr));
+  const [currentViewDate, setCurrentViewDate] = useState(() => parseInit(initialDateStr));
+  const [viewMode, setViewMode] = useState('Day');
+  const [quickInput, setQuickInput] = useState('');
+  const popoverRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (popoverRef.current && !popoverRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    }
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  const year = currentViewDate.getFullYear();
+  const month = currentViewDate.getMonth();
+
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June', 
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7;
+  const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+  const prevMonthTotalDays = new Date(year, month, 0).getDate();
+
+  const daysGrid = [];
+  for (let i = firstDayIndex - 1; i >= 0; i--) {
+    daysGrid.push({
+      day: prevMonthTotalDays - i,
+      monthOffset: -1,
+      date: new Date(year, month - 1, prevMonthTotalDays - i)
+    });
+  }
+  for (let d = 1; d <= totalDaysInMonth; d++) {
+    daysGrid.push({
+      day: d,
+      monthOffset: 0,
+      date: new Date(year, month, d)
+    });
+  }
+  const remaining = 35 - daysGrid.length > 0 ? 35 - daysGrid.length : 42 - daysGrid.length;
+  for (let n = 1; n <= remaining; n++) {
+    daysGrid.push({
+      day: n,
+      monthOffset: 1,
+      date: new Date(year, month + 1, n)
+    });
+  }
+
+  const formatDisplay = (d) => {
+    if (!d || isNaN(d.getTime())) return '';
+    const day = String(d.getDate()).padStart(2, '0');
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const y = d.getFullYear();
+    return `${day}/${m}/${y}`;
+  };
+
+  const formatIso = (d) => {
+    if (!d || isNaN(d.getTime())) return '';
+    const day = String(d.getDate()).padStart(2, '0');
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const y = d.getFullYear();
+    return `${y}-${m}-${day}`;
+  };
+
+  const handleSelectDate = (d) => {
+    setSelectedDate(d);
+    setCurrentViewDate(d);
+    const iso = formatIso(d);
+    if (onChange) onChange(iso);
+    setIsOpen(false);
+  };
+
+  const prevMonth = (e) => {
+    e.stopPropagation();
+    setCurrentViewDate(new Date(year, month - 1, 1));
+  };
+
+  const nextMonth = (e) => {
+    e.stopPropagation();
+    setCurrentViewDate(new Date(year, month + 1, 1));
+  };
+
+  return (
+    <div className="form-group" style={{ position: 'relative' }} ref={popoverRef}>
+      {label && <label htmlFor={id} style={{ fontWeight: 600, display: 'block', marginBottom: '6px' }}>{label}</label>}
+      <div style={{ position: 'relative' }}>
+        <input
+          type="text"
+          id={id}
+          readOnly
+          required={required}
+          value={formatDisplay(selectedDate)}
+          onClick={() => setIsOpen(!isOpen)}
+          style={{
+            fontSize: '14px',
+            padding: '11px 14px',
+            borderRadius: '12px',
+            width: '100%',
+            backgroundColor: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            cursor: 'pointer',
+            fontWeight: 500,
+            color: 'var(--color-text-primary)',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+          }}
+        />
+        <input type="hidden" name={name} value={formatIso(selectedDate)} />
+        <i 
+          className="ph ph-calendar-blank"
+          onClick={() => setIsOpen(!isOpen)}
+          style={{
+            position: 'absolute',
+            right: '14px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            fontSize: '18px',
+            color: 'var(--color-text-secondary)',
+            cursor: 'pointer',
+            pointerEvents: 'none'
+          }}
+        ></i>
+      </div>
+
+      {isOpen && (
+        <div style={{
+          position: 'absolute',
+          top: 'calc(100% + 6px)',
+          left: 0,
+          zIndex: 9999,
+          width: '320px',
+          backgroundColor: '#FFFFFF',
+          borderRadius: '16px',
+          boxShadow: '0 12px 36px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.08)',
+          padding: '16px',
+          fontFamily: 'Inter, system-ui, sans-serif'
+        }}>
+          {/* Quick Search Input */}
+          <div style={{ marginBottom: '12px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', marginBottom: '4px' }}>Start date</div>
+            <input
+              type="text"
+              placeholder="Try: May 2027, Q4, 20/05/2027"
+              value={quickInput}
+              onChange={(e) => setQuickInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  const parts = quickInput.split('/');
+                  if (parts.length === 3) {
+                    const parsed = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                    if (!isNaN(parsed.getTime())) handleSelectDate(parsed);
+                  }
+                }
+              }}
+              style={{
+                width: '100%',
+                padding: '9px 12px',
+                fontSize: '13px',
+                borderRadius: '8px',
+                border: '1.5px solid #5E6AD2',
+                outline: 'none',
+                color: '#1E1E24'
+              }}
+            />
+          </div>
+
+          {/* Granularity Pills */}
+          <div style={{ display: 'flex', gap: '4px', marginBottom: '14px', flexWrap: 'wrap' }}>
+            {['Day', 'Month', 'Quarter', 'Half-year', 'Year'].map(mode => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setViewMode(mode)}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '16px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  border: '1px solid ' + (viewMode === mode ? '#E0E0E6' : 'transparent'),
+                  backgroundColor: viewMode === mode ? '#F2F2F7' : 'transparent',
+                  color: '#2C2D35',
+                  cursor: 'pointer'
+                }}
+              >
+                {mode}
+              </button>
+            ))}
+          </div>
+
+          {/* Month Header & Navigation */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', padding: '0 4px' }}>
+            <span style={{ fontSize: '14px', fontWeight: 600, color: '#1E1E24' }}>
+              {monthNames[month]} {year}
+            </span>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={prevMonth}
+                style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '14px', color: '#62636C', padding: '4px' }}
+              >
+                <i className="ph ph-caret-left"></i>
+              </button>
+              <button
+                type="button"
+                onClick={nextMonth}
+                style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '14px', color: '#62636C', padding: '4px' }}
+              >
+                <i className="ph ph-caret-right"></i>
+              </button>
+            </div>
+          </div>
+
+          {/* Days of Week Header */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', marginBottom: '8px' }}>
+            {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map(d => (
+              <span key={d} style={{ fontSize: '12px', fontWeight: 600, color: '#8C8D96' }}>{d}</span>
+            ))}
+          </div>
+
+          {/* Days Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', textAlign: 'center' }}>
+            {daysGrid.map((item, index) => {
+              const isSelected = selectedDate && item.date.toDateString() === selectedDate.toDateString();
+              const isToday = item.date.toDateString() === new Date().toDateString();
+              const isCurrentMonth = item.monthOffset === 0;
+
+              return (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => handleSelectDate(item.date)}
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    margin: '0 auto',
+                    borderRadius: '50%',
+                    border: isToday && !isSelected ? '1px solid #1E1E24' : 'none',
+                    backgroundColor: isSelected ? '#1E1E24' : 'transparent',
+                    color: isSelected ? '#FFFFFF' : (isCurrentMonth ? '#1E1E24' : '#D1D1D6'),
+                    fontWeight: isSelected || isToday ? 700 : 500,
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justify: 'center',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  {item.day}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
   // Custom Local Jobs State (Production Manager Kanban Suite)
   const [customLocalJobs, setCustomLocalJobs] = useState([
@@ -8121,28 +8396,20 @@ export default function App() {
                 </div>
 
                 <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div className="form-group">
-                    <label htmlFor="payout-start-date">Payout Week Start *</label>
-                    <input 
-                      type="date" 
-                      id="payout-start-date"
-                      name="startDate" 
-                      required 
-                      defaultValue={new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]} 
-                      style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="payout-end-date">Payout Week End *</label>
-                    <input 
-                      type="date" 
-                      id="payout-end-date"
-                      name="endDate" 
-                      required 
-                      defaultValue={new Date().toISOString().split('T')[0]} 
-                      style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}
-                    />
-                  </div>
+                  <LinearDatePickerInput 
+                    id="payout-start-date"
+                    name="startDate"
+                    label="Payout Week Start *"
+                    defaultValue={new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+                    required
+                  />
+                  <LinearDatePickerInput 
+                    id="payout-end-date"
+                    name="endDate"
+                    label="Payout Week End *"
+                    defaultValue={new Date().toISOString().split('T')[0]}
+                    required
+                  />
                 </div>
 
                 <div className="form-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
