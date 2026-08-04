@@ -5920,8 +5920,7 @@ export default function App() {
                         <tr>
                           <th>Employee</th>
                           <th>Payout Week</th>
-                          <th>Base / Piece Rate (₹)</th>
-                          <th>Bonus (₹)</th>
+                          <th>Salary Amount (₹)</th>
                           <th>Advances Deducted (₹)</th>
                           <th>Net Weekly Paid (₹)</th>
                           <th>Status</th>
@@ -5934,7 +5933,6 @@ export default function App() {
                             <td className="font-semibold">{pr.empName}</td>
                             <td>{pr.month}</td>
                             <td>{formatCurrency(pr.baseSalary)}</td>
-                            <td className="text-success font-semibold">+{formatCurrency(pr.bonus)}</td>
                             <td className="text-red">-{formatCurrency(pr.deductions)}</td>
                             <td className="font-bold text-primary">{formatCurrency(pr.netPayable)}</td>
                             <td>
@@ -8359,26 +8357,15 @@ export default function App() {
                   />
                 </div>
 
-                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div className="form-group">
-                    <label htmlFor="payout-base">Base Salary (₹)</label>
+                    <label htmlFor="payout-base">Salary (₹) *</label>
                     <input 
                       type="number" 
                       id="payout-base"
                       name="baseSalary" 
                       required 
                       defaultValue="25000" 
-                      step="100" 
-                      style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="payout-bonus">Piece Bonus (₹)</label>
-                    <input 
-                      type="number" 
-                      id="payout-bonus"
-                      name="bonus" 
-                      defaultValue="3500" 
                       step="100" 
                       style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}
                     />
