@@ -3647,8 +3647,7 @@ export default function App() {
                   <button className="chip" style={{ fontSize: '10px', padding: '4px 8px', borderRadius: '12px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-secondary)', cursor: 'pointer' }} onClick={() => sendQuickMessage('Who is my top client by sales?')}>Top Client</button>
                   <button className="chip" style={{ fontSize: '10px', padding: '4px 8px', borderRadius: '12px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-secondary)', cursor: 'pointer' }} onClick={() => sendQuickMessage('Do I have client concentration risk?')}>Risk Audit</button>
                 </div>
-
-                <form className="chat-input-form" onSubmit={sendChatMessage} style={{ display: 'flex', gap: '8px', padding: '8px 12px', borderTop: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)' }}>
+<form className="chat-input-form" onSubmit={sendChatMessage} style={{ display: 'flex', gap: '8px', padding: '8px 12px', borderTop: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)' }}>
                   <input type="text" placeholder="Ask finances..." value={chatInput} onChange={(e) => setChatInput(e.target.value)} required style={{ flex: 1, fontSize: '12px', padding: '8px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-muted)', color: 'var(--color-text-primary)' }} />
                   <button type="submit" className="btn btn-accent btn-icon-square" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><i className="ph-fill ph-paper-plane-right"></i></button>
                 </form>
@@ -3665,14 +3664,20 @@ export default function App() {
         {/* ==================== JOBS VIEW ==================== */}
         {activeTab === 'jobs' && (
           <section id="jobs-view" className="tab-view active">
-            <header className="view-header">
+            <header className="view-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
               <div>
-                <h1>Jobs & Production Orders</h1>
-                <p className="subtitle">Track export manufacturing jobs, daily progress, staff assignments, and delays.</p>
+                <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 800 }}>Jobs & Production Orders</h1>
+                <p className="subtitle" style={{ margin: '4px 0 0 0', color: 'var(--color-text-secondary)' }}>Track export manufacturing jobs, daily progress, staff assignments, and delays.</p>
               </div>
-              <button className="btn btn-primary" onClick={() => setJobsSubTab('create')}>
-                <i className="ph ph-plus-circle"></i> Create New Job
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <button 
+                  className="btn btn-primary" 
+                  onClick={() => setJobsSubTab('create')}
+                  style={{ padding: '10px 20px', fontSize: '13.5px', fontWeight: 800, borderRadius: '12px', boxShadow: '0 4px 14px rgba(94, 106, 210, 0.35)', display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+                >
+                  <i className="ph ph-plus-circle" style={{ fontSize: '18px' }}></i> + Create New Job Order
+                </button>
+              </div>
             </header>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px', borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
@@ -3868,15 +3873,14 @@ export default function App() {
                 <div className="card bg-surface border" style={{ padding: '24px', borderRadius: '16px' }}>
                   {jobDetailsTab === 'overview' && (
                     <div>
-                      <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: 700 }}>Job Overview: VE-JOB-2026-001</h4>
-                      <p style={{ color: 'var(--color-text-secondary)', fontSize: '13px' }}>1000 Pcs Premium Denim Jackets manufacturing order for Sri Varahi Exports.</p>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginTop: '20px' }}>
+                      <h4 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: 700 }}>Order Overview</h4>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
                         <div style={{ padding: '16px', backgroundColor: 'var(--color-muted)', borderRadius: '12px' }}>
-                          <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Status</span>
-                          <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-primary)' }}>In Production</div>
+                          <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Target Buyer</span>
+                          <div style={{ fontSize: '16px', fontWeight: 700 }}>{selectedJobModal?.clientName || 'Apex Denim Exports'}</div>
                         </div>
                         <div style={{ padding: '16px', backgroundColor: 'var(--color-muted)', borderRadius: '12px' }}>
-                          <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Target Budget</span>
+                          <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Order Valuation</span>
                           <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-text-primary)' }}>₹1,20,000</div>
                         </div>
                         <div style={{ padding: '16px', backgroundColor: 'var(--color-muted)', borderRadius: '12px' }}>
@@ -3998,29 +4002,39 @@ export default function App() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 
                 {/* Search & Priority Filter Pills Bar */}
-                <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px', width: '100%' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 260px', maxWidth: '380px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '20px', padding: '6px 14px' }}>
-                    <i className="ph ph-magnifying-glass" style={{ color: 'var(--color-text-secondary)', fontSize: '15px' }}></i>
-                    <input 
-                      type="text" 
-                      placeholder="Search product, customer, or title..." 
-                      value={kanbanSearchQuery} 
-                      onChange={(e) => setKanbanSearchQuery(e.target.value)} 
-                      style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '13px', width: '100%', color: 'var(--color-text-primary)' }}
-                    />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 260px', maxWidth: '380px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '20px', padding: '6px 14px' }}>
+                      <i className="ph ph-magnifying-glass" style={{ color: 'var(--color-text-secondary)', fontSize: '15px' }}></i>
+                      <input 
+                        type="text" 
+                        placeholder="Search product, customer, or title..." 
+                        value={kanbanSearchQuery} 
+                        onChange={(e) => setKanbanSearchQuery(e.target.value)} 
+                        style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '13px', width: '100%', color: 'var(--color-text-primary)' }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      {['All', 'Urgent', 'High', 'Medium', 'Low'].map(p => (
+                        <button 
+                          key={p} 
+                          className={`filter-pill ${kanbanPriorityFilter === p ? 'active' : ''}`}
+                          onClick={() => setKanbanPriorityFilter(p)}
+                        >
+                          {p === 'Urgent' ? '🔴 Urgent' : p === 'High' ? '🟠 High' : p === 'Medium' ? '🟡 Medium' : p === 'Low' ? '🔵 Low' : 'All Priorities'}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    {['All', 'Urgent', 'High', 'Medium', 'Low'].map(p => (
-                      <button 
-                        key={p} 
-                        className={`filter-pill ${kanbanPriorityFilter === p ? 'active' : ''}`}
-                        onClick={() => setKanbanPriorityFilter(p)}
-                      >
-                        {p === 'Urgent' ? '🔴 Urgent' : p === 'High' ? '🟠 High' : p === 'Medium' ? '🟡 Medium' : p === 'Low' ? '🔵 Low' : 'All Priorities'}
-                      </button>
-                    ))}
-                  </div>
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={() => setJobsSubTab('create')}
+                    style={{ padding: '8px 18px', fontSize: '12.5px', fontWeight: 800, borderRadius: '20px', boxShadow: '0 3px 10px rgba(94, 106, 210, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', cursor: 'pointer' }}
+                  >
+                    <i className="ph ph-plus-circle" style={{ fontSize: '16px' }}></i> + Add New Job
+                  </button>
                 </div>
 
                 {/* Weekly Production Cycle Sprint Card */}
@@ -4095,14 +4109,24 @@ export default function App() {
                         <i className="ph ph-scissors" style={{ color: '#F59E0B', fontSize: '16px' }}></i>
                         <span>Backlog & Cutting</span>
                       </div>
-                      <span className="kanban-column-count">
-                        {upcomingOrders.filter(o => {
-                          const matchesStage = (!o.stage && (!o.status || o.status === 'Pending' || o.status === 'Cutting' || o.status === 'Planned')) || o.stage === 'Backlog & Cutting';
-                          const matchesSearch = !kanbanSearchQuery || (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) || (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
-                          const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
-                          return matchesStage && matchesSearch && matchesPriority;
-                        }).length}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button 
+                          type="button" 
+                          onClick={() => setJobsSubTab('create')} 
+                          style={{ border: '1px solid rgba(245, 158, 11, 0.3)', background: 'rgba(245, 158, 11, 0.1)', color: '#D97706', fontSize: '11px', fontWeight: 800, padding: '3px 9px', borderRadius: '8px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                          title="Add new job order to Backlog"
+                        >
+                          <i className="ph ph-plus" style={{ fontSize: '12px' }}></i> + Add Job
+                        </button>
+                        <span className="kanban-column-count">
+                          {upcomingOrders.filter(o => {
+                            const matchesStage = (!o.stage && (!o.status || o.status === 'Pending' || o.status === 'Cutting' || o.status === 'Planned')) || o.stage === 'Backlog & Cutting';
+                            const matchesSearch = !kanbanSearchQuery || (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) || (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
+                            const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
+                            return matchesStage && matchesSearch && matchesPriority;
+                          }).length}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="kanban-cards-container">
