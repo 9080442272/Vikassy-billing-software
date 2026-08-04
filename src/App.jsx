@@ -703,6 +703,7 @@ export default function App() {
   const [selectedFabricId, setSelectedFabricId] = useState('');
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
+  const [isCustomExpenseCat, setIsCustomExpenseCat] = useState(false);
   const [expenseSearch, setExpenseSearch] = useState('');
   const [selectedOrderFilter, setSelectedOrderFilter] = useState('all');
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -2182,8 +2183,24 @@ export default function App() {
   // Expenses CRUD
   const handleExpenseSubmit = async (e) => {
     e.preventDefault();
-    const date = document.getElementById('expense-date').value;
-    const category = document.getElementById('expense-category').value;
+    const dateInput = document.getElementById('expense-date');
+    const date = dateInput ? dateInput.value : new Date().toISOString().split('T')[0];
+    const catSelect = document.getElementById('expense-category');
+    let category = catSelect ? catSelect.value : 'Others';
+
+    if (category === 'CUSTOM' || isCustomExpenseCat) {
+      const customInput = document.getElementById('custom-expense-category-input');
+      if (customInput && customInput.value.trim()) {
+        category = customInput.value.trim();
+        setExpenseCategoriesList(prev => {
+          if (!prev.some(c => c.name.toLowerCase() === category.toLowerCase())) {
+            return [...prev, { id: Date.now(), name: category, budget: "Unbudgeted", deductible: "Yes" }];
+          }
+          return prev;
+        });
+      }
+    }
+
     const amount = parseFloat(document.getElementById('expense-amount').value) || 0;
     const description = document.getElementById('expense-desc').value.trim();
     const billIdVal = document.getElementById('expense-bill-id').value;
@@ -2242,6 +2259,7 @@ export default function App() {
   const closeExpenseModal = () => {
     setIsExpenseModalOpen(false);
     setEditingExpense(null);
+    setIsCustomExpenseCat(false);
   };
 
   // Upcoming Orders CRUD
@@ -7673,21 +7691,58 @@ export default function App() {
             </div>
             <form id="expense-form" onSubmit={handleExpenseSubmit}>
               <div className="modal-body" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="expense-date">Expense Date *</label>
-                    <input type="date" id="expense-date" required defaultValue={new Date().toISOString().split('T')[0]} />
-                  </div>
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <LinearDatePickerInput 
+                    id="expense-date"
+                    name="expenseDate"
+                    label="Expense Date *"
+                    defaultValue={editingExpense ? editingExpense.date : new Date().toISOString().split('T')[0]}
+                    required
+                  />
                   <div className="form-group">
                     <label htmlFor="expense-category">Category *</label>
-                    <select id="expense-category" required style={{ fontSize: '15px', padding: '12px 14px' }}>
+                    <select 
+                      id="expense-category" 
+                      required 
+                      defaultValue={editingExpense ? editingExpense.category : "Transportation"}
+                      onChange={(e) => {
+                        if (e.target.value === 'CUSTOM') {
+                          setIsCustomExpenseCat(true);
+                        } else {
+                          setIsCustomExpenseCat(false);
+                        }
+                      }}
+                      style={{ fontSize: '14px', padding: '11px 14px', borderRadius: '12px', width: '100%', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+                    >
                       <option value="Transportation">Transportation (Auto)</option>
                       <option value="Petrol">Petrol / Fuel</option>
                       <option value="Employee Salaries">Employee Salaries</option>
                       <option value="Materials">Materials & Fabrics</option>
                       <option value="Operations">Operations / Power</option>
                       <option value="Others">Others / Overheads</option>
+                      {/* Dynamic user added custom categories */}
+                      {expenseCategoriesList.map(c => (
+                        !['Transportation', 'Petrol', 'Employee Salaries', 'Materials', 'Operations', 'Others'].includes(c.name) && (
+                          <option key={c.id} value={c.name}>{c.name}</option>
+                        )
+                      ))}
+                      <option value="CUSTOM" style={{ fontWeight: 700, color: '#6E56CF' }}>➕ Add Custom Category...</option>
                     </select>
+
+                    {isCustomExpenseCat && (
+                      <div style={{ marginTop: '8px' }}>
+                        <label htmlFor="custom-expense-category-input" style={{ fontSize: '11px', fontWeight: 700, color: '#6E56CF', display: 'block', marginBottom: '4px', textTransform: 'uppercase' }}>
+                          Custom Category Name *
+                        </label>
+                        <input 
+                          type="text" 
+                          id="custom-expense-category-input" 
+                          required 
+                          placeholder="e.g. Machine Servicing, Tea & Snacks" 
+                          style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px', border: '1.5px solid #6E56CF', width: '100%' }}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
 
