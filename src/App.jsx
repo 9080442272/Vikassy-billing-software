@@ -396,18 +396,15 @@ export default function App() {
   const [isDisbursePayrollModalOpen, setIsDisbursePayrollModalOpen] = useState(false);
 
   const [attendanceRecords, setAttendanceRecords] = useState([
-    { id: 1, empName: "Kartick", role: "Stitcher", shift: "Morning Shift (08:00 - 17:00)", checkIn: "08:00 AM", status: "Present", date: new Date().toISOString().split('T')[0] },
-    { id: 2, empName: "Srimathi", role: "Tailor", shift: "Morning Shift (08:00 - 17:00)", checkIn: "08:05 AM", status: "Overtime (+2 hrs)", date: new Date().toISOString().split('T')[0] },
-    { id: 3, empName: "Ramesh Kumar", role: "Master", shift: "Morning Shift (08:00 - 17:00)", checkIn: "08:15 AM", status: "Half-Day", date: new Date().toISOString().split('T')[0] }
+    { id: 1, empName: "Balasubramainan", role: "CEO", shift: "Morning Shift (08:00 - 17:00)", checkIn: "08:00 AM", status: "Present", date: new Date().toISOString().split('T')[0] }
   ]);
 
   const [advanceRecords, setAdvanceRecords] = useState([
-    { id: 1, empName: "Kartick", date: "2026-07-20", type: "Festival Advance", amount: 2000, mode: "UPI / GPay", notes: "Aadi festival advance" },
-    { id: 2, empName: "Srimathi", date: "2026-07-15", type: "Salary Advance", amount: 1500, mode: "Cash", notes: "Emergency advance" }
+    { id: 1, empName: "Balasubramainan", date: new Date().toISOString().split('T')[0], type: "Executive Advance", amount: 5000, mode: "Bank Transfer", notes: "Executive travel allowance" }
   ]);
 
   const [payrollRecords, setPayrollRecords] = useState([
-    { id: 1, empName: "Kartick", month: "July 2026", baseSalary: 25000, bonus: 3500, deductions: 2000, netPayable: 26500, status: "Disbursed & Paid", date: new Date().toISOString().split('T')[0] }
+    { id: 1, empName: "Balasubramainan", month: "July 2026", baseSalary: 75000, bonus: 10000, deductions: 0, netPayable: 85000, status: "Disbursed & Paid", date: new Date().toISOString().split('T')[0] }
   ]);
 
   const [attendanceSubTab, setAttendanceSubTab] = useState('daily'); // 'daily' | 'shifts' | 'approvals' | 'reports'
@@ -8041,7 +8038,7 @@ export default function App() {
                     {employees.map(e => (
                       <option key={e._id} value={e.name}>{e.name} ({e.role})</option>
                     ))}
-                    {employees.length === 0 && <option value="Kartick">Kartick (Stitcher)</option>}
+                    {employees.length === 0 && <option value="Balasubramainan">Balasubramainan (CEO)</option>}
                   </select>
                 </div>
                 <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -8131,7 +8128,7 @@ export default function App() {
                     {employees.map(e => (
                       <option key={e._id} value={e.name}>{e.name} ({e.role})</option>
                     ))}
-                    {employees.length === 0 && <option value="Kartick">Kartick (Stitcher)</option>}
+                    {employees.length === 0 && <option value="Balasubramainan">Balasubramainan (CEO)</option>}
                   </select>
                 </div>
                 <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -8238,7 +8235,7 @@ export default function App() {
                     {employees.map(e => (
                       <option key={e._id} value={e.name}>{e.name} ({e.role} - Base ₹{e.salary})</option>
                     ))}
-                    {employees.length === 0 && <option value="Kartick">Kartick (Stitcher)</option>}
+                    {employees.length === 0 && <option value="Balasubramainan">Balasubramainan (CEO)</option>}
                   </select>
                 </div>
                 <div className="form-group">
