@@ -5819,18 +5819,9 @@ export default function App() {
                 <h1>Stitching Crew Management</h1>
                 <p className="subtitle">Register stitching staff, log daily attendance, manage advances & disburse weekly payouts.</p>
               </div>
-              <div className="header-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <div className="header-actions">
                 <button className="btn btn-primary" onClick={() => setIsEmployeeModalOpen(true)}>
                   <i className="ph ph-user-plus"></i> Register Employee
-                </button>
-                <button className="btn btn-accent" onClick={() => setIsAttendanceModalOpen(true)}>
-                  <i className="ph ph-clock"></i> Log Attendance
-                </button>
-                <button className="btn btn-secondary text-primary" onClick={() => setIsAdvanceModalOpen(true)} style={{ fontWeight: 600 }}>
-                  <i className="ph ph-hand-coins"></i> Give Advance
-                </button>
-                <button className="btn btn-secondary text-success" onClick={() => setIsDisbursePayrollModalOpen(true)} style={{ fontWeight: 600 }}>
-                  <i className="ph ph-money"></i> Disburse Weekly Payout
                 </button>
               </div>
             </header>
