@@ -5894,7 +5894,9 @@ export default function App() {
                       ))}
                       {attendanceRecords.length === 0 && (
                         <tr>
-                          <td colSpan="7" className="text-center text-muted">No attendance entries logged today. Click "+ Log Today's Attendance".</td>
+                          <td colSpan="7" className="text-center text-muted" style={{ padding: '24px' }}>
+                            No attendance entries logged today. Click "+ Log Today's Attendance".
+                          </td>
                         </tr>
                       )}
                     </tbody>
@@ -5902,36 +5904,45 @@ export default function App() {
                 </div>
               </div>
             ) : (employeesSubTab === 'salary' || employeesSubTab === 'payroll') ? (
-              <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                {/* 1. Weekly Payout Disbursements Log */}
+              <div style={{ marginTop: '20px' }}>
+                {/* Unified Single Weekly Payouts & Advances Log */}
                 <div className="table-card bg-surface border">
-                  <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                  <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                     <div>
-                      <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Weekly Payout Disbursements Log</h3>
-                      <p className="small text-muted" style={{ margin: '2px 0 0 0' }}>Weekly piece-rate payouts, stitching wages, and net disbursements.</p>
+                      <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Weekly Payouts & Advance Deductions Log</h3>
+                      <p className="small text-muted" style={{ margin: '2px 0 0 0' }}>Unified record of weekly payouts, piece-rate wages, and salary advance deductions.</p>
                     </div>
-                    <button className="btn btn-primary btn-sm" onClick={() => setIsDisbursePayrollModalOpen(true)}>
-                      <i className="ph ph-money"></i> + Disburse Weekly Payout
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <button className="btn btn-secondary btn-sm text-primary" onClick={() => setIsAdvanceModalOpen(true)} style={{ fontWeight: 700 }}>
+                        <i className="ph ph-hand-coins"></i> + Give Advance
+                      </button>
+                      <button className="btn btn-primary btn-sm" onClick={() => setIsDisbursePayrollModalOpen(true)}>
+                        <i className="ph ph-money"></i> + Disburse Weekly Payout
+                      </button>
+                    </div>
                   </div>
+
                   <div className="table-responsive">
                     <table className="data-table">
                       <thead>
                         <tr>
+                          <th>Date / Period</th>
                           <th>Employee</th>
-                          <th>Payout Week</th>
+                          <th>Transaction Type</th>
                           <th>Salary Amount (₹)</th>
-                          <th>Advances Deducted (₹)</th>
-                          <th>Net Weekly Paid (₹)</th>
+                          <th>Advances / Deductions (₹)</th>
+                          <th>Net Paid (₹)</th>
                           <th>Status</th>
                           <th className="text-right">Action</th>
                         </tr>
                       </thead>
                       <tbody>
+                        {/* Weekly Payout Records */}
                         {payrollRecords.map(pr => (
-                          <tr key={pr.id}>
+                          <tr key={`pr-${pr.id}`}>
+                            <td className="text-muted">{pr.month}</td>
                             <td className="font-semibold">{pr.empName}</td>
-                            <td>{pr.month}</td>
+                            <td><span className="badge badge-success">Weekly Payout</span></td>
                             <td>{formatCurrency(pr.baseSalary)}</td>
                             <td className="text-red">-{formatCurrency(pr.deductions)}</td>
                             <td className="font-bold text-primary">{formatCurrency(pr.netPayable)}</td>
@@ -5945,54 +5956,30 @@ export default function App() {
                             </td>
                           </tr>
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
 
-                {/* 2. Salary Advances & Loans Log */}
-                <div className="table-card bg-surface border">
-                  <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-                    <div>
-                      <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Salary Advances & Festival Loans</h3>
-                      <p className="small text-muted" style={{ margin: '2px 0 0 0' }}>Track mid-week advances and emergency loans to be deducted from weekly payouts.</p>
-                    </div>
-                    <button className="btn btn-secondary btn-sm text-primary" onClick={() => setIsAdvanceModalOpen(true)} style={{ fontWeight: 700 }}>
-                      <i className="ph ph-plus-circle"></i> + Give Salary Advance
-                    </button>
-                  </div>
-                  <div className="table-responsive">
-                    <table className="data-table">
-                      <thead>
-                        <tr>
-                          <th>Date</th>
-                          <th>Employee</th>
-                          <th>Advance Type</th>
-                          <th>Amount Disbursed (₹)</th>
-                          <th>Payment Method</th>
-                          <th>Notes / Reason</th>
-                          <th className="text-right">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
+                        {/* Advance Records */}
                         {advanceRecords.map(adv => (
-                          <tr key={adv.id}>
+                          <tr key={`adv-${adv.id}`}>
                             <td className="text-muted">{adv.date}</td>
                             <td className="font-semibold">{adv.empName}</td>
-                            <td><span className="badge badge-gst">{adv.type}</span></td>
-                            <td className="font-bold text-red">{formatCurrency(adv.amount)}</td>
-                            <td>{adv.mode}</td>
-                            <td>{adv.notes || '-'}</td>
+                            <td><span className="badge badge-purple">{adv.type || 'Salary Advance'}</span></td>
+                            <td className="text-muted">-</td>
+                            <td className="font-bold text-red">₹{Number(adv.amount).toLocaleString('en-IN')}</td>
+                            <td className="font-bold text-primary">₹{Number(adv.amount).toLocaleString('en-IN')}</td>
+                            <td><span className="badge badge-warning">Advance Issued</span></td>
                             <td className="text-right">
-                              <button className="btn btn-secondary btn-sm" onClick={() => alert(`Advance receipt downloaded for ${adv.empName}`)}>
-                                Receipt
+                              <button className="btn btn-secondary btn-sm" onClick={() => alert(`Advance receipt generated for ${adv.empName}`)}>
+                                <i className="ph ph-receipt"></i> Receipt
                               </button>
                             </td>
                           </tr>
                         ))}
-                        {advanceRecords.length === 0 && (
+
+                        {payrollRecords.length === 0 && advanceRecords.length === 0 && (
                           <tr>
-                            <td colSpan="7" className="text-center text-muted">No salary advances recorded. Click "+ Give Salary Advance".</td>
+                            <td colSpan="8" className="text-center text-muted" style={{ padding: '24px' }}>
+                              No payout or advance transactions found. Click "+ Disburse Weekly Payout" or "+ Give Advance".
+                            </td>
                           </tr>
                         )}
                       </tbody>
