@@ -8044,10 +8044,10 @@ export default function App() {
         </div>
       )}
 
-      {/* Disburse Monthly Payroll Modal */}
+      {/* Disburse Weekly Payout Modal */}
       {isDisbursePayrollModalOpen && (
         <div className="modal-overlay active" onClick={() => setIsDisbursePayrollModalOpen(false)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px' }}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '560px', width: '92%' }}>
             <div className="modal-header">
               <h3>Disburse Weekly Payout / Salary</h3>
               <button className="btn-close" onClick={() => setIsDisbursePayrollModalOpen(false)}><i className="ph ph-x"></i></button>
@@ -8056,7 +8056,9 @@ export default function App() {
               e.preventDefault();
               const form = e.target;
               const empName = form.empName.value;
-              const month = form.month.value;
+              const startDate = form.startDate.value;
+              const endDate = form.endDate.value;
+              const month = (startDate && endDate) ? `${startDate} to ${endDate}` : 'Week 31';
               const baseSalary = parseFloat(form.baseSalary.value) || 0;
               const bonus = parseFloat(form.bonus.value) || 0;
               const deductions = parseFloat(form.deductions.value) || 0;
@@ -8090,10 +8092,11 @@ export default function App() {
               alert(`🎉 Weekly payout of ${formatCurrency(netPayable)} completed for ${empName}!`);
               setIsDisbursePayrollModalOpen(false);
             }}>
-              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div className="form-group">
-                  <label>Select Employee *</label>
+                  <label htmlFor="payout-emp-name">Select Employee *</label>
                   <select 
+                    id="payout-emp-name"
                     name="empName" 
                     required 
                     onChange={(e) => {
@@ -8103,6 +8106,7 @@ export default function App() {
                         if (baseInput) baseInput.value = selected.salary || 25000;
                       }
                     }}
+                    style={{ fontSize: '14px', padding: '12px 14px', width: '100%', borderRadius: '10px' }}
                   >
                     {employees.map(e => (
                       <option key={e._id} value={e.name}>{e.name} ({e.role} - Base ₹{e.salary})</option>
@@ -8110,28 +8114,75 @@ export default function App() {
                     {employees.length === 0 && <option value="Balasubramainan">Balasubramainan (CEO)</option>}
                   </select>
                 </div>
-                <div className="form-group">
-                  <label>Payout Period / Week *</label>
-                  <input type="text" name="month" required defaultValue="Week 31 (Jul 28 - Aug 03, 2026)" placeholder="e.g. Week 31 (Jul 28 - Aug 03, 2026)" />
+
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-group">
+                    <label htmlFor="payout-start-date">Payout Week Start *</label>
+                    <input 
+                      type="date" 
+                      id="payout-start-date"
+                      name="startDate" 
+                      required 
+                      defaultValue={new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]} 
+                      style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="payout-end-date">Payout Week End *</label>
+                    <input 
+                      type="date" 
+                      id="payout-end-date"
+                      name="endDate" 
+                      required 
+                      defaultValue={new Date().toISOString().split('T')[0]} 
+                      style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}
+                    />
+                  </div>
                 </div>
-                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
                   <div className="form-group">
-                    <label>Base Salary (₹)</label>
-                    <input type="number" name="baseSalary" required defaultValue="25000" step="100" />
+                    <label htmlFor="payout-base">Base Salary (₹)</label>
+                    <input 
+                      type="number" 
+                      id="payout-base"
+                      name="baseSalary" 
+                      required 
+                      defaultValue="25000" 
+                      step="100" 
+                      style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}
+                    />
                   </div>
                   <div className="form-group">
-                    <label>Piece Bonus (₹)</label>
-                    <input type="number" name="bonus" defaultValue="3500" step="100" />
+                    <label htmlFor="payout-bonus">Piece Bonus (₹)</label>
+                    <input 
+                      type="number" 
+                      id="payout-bonus"
+                      name="bonus" 
+                      defaultValue="3500" 
+                      step="100" 
+                      style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}
+                    />
                   </div>
                   <div className="form-group">
-                    <label>Deductions (₹)</label>
-                    <input type="number" name="deductions" defaultValue="1500" step="100" />
+                    <label htmlFor="payout-deductions">Deductions (₹)</label>
+                    <input 
+                      type="number" 
+                      id="payout-deductions"
+                      name="deductions" 
+                      defaultValue="1500" 
+                      step="100" 
+                      style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}
+                    />
                   </div>
                 </div>
               </div>
-              <div className="modal-footer">
+
+              <div className="modal-footer" style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                 <button type="button" className="btn btn-secondary" onClick={() => setIsDisbursePayrollModalOpen(false)}>Cancel</button>
-                <button type="submit" className="btn btn-success text-white"><i className="ph ph-check"></i> Complete & Disburse</button>
+                <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 700, borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                  <i className="ph ph-check" style={{ fontSize: '16px' }}></i> Complete & Disburse
+                </button>
               </div>
             </form>
           </div>
