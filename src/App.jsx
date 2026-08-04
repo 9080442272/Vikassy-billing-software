@@ -667,6 +667,9 @@ export default function App() {
     { id: 6, name: "Power & Electricity Overhead", budget: "₹45,000 / Mo", deductible: "Yes" }
   ]);
 
+  // Disburse Payroll Selected Employee State
+  const [selectedDisburseEmp, setSelectedDisburseEmp] = useState('');
+
   // Edit / Details target selections
   const [editingClient, setEditingClient] = useState(null);
   const [editingBill, setEditingBill] = useState(null);
@@ -8246,7 +8249,14 @@ export default function App() {
       )}
 
       {/* Disburse Weekly Payout Modal */}
-      {isDisbursePayrollModalOpen && (
+      {isDisbursePayrollModalOpen && (() => {
+        const targetEmpName = selectedDisburseEmp || (employees[0]?.name || "Balasubramainan");
+        const empAdvanceList = advanceRecords.filter(a => a.empName === targetEmpName);
+        const totalAdvanceTaken = empAdvanceList.reduce((sum, a) => sum + (parseFloat(a.amount) || 0), 0);
+        const totalAdvanceDeducted = payrollRecords.filter(p => p.empName === targetEmpName).reduce((sum, p) => sum + (parseFloat(p.deductions) || 0), 0);
+        const outstandingAdvance = Math.max(0, totalAdvanceTaken - totalAdvanceDeducted);
+
+        return (
         <div className="modal-overlay active" onClick={() => setIsDisbursePayrollModalOpen(false)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '560px', width: '92%' }}>
             <div className="modal-header">
@@ -8301,7 +8311,9 @@ export default function App() {
                     name="empName" 
                     required 
                     onChange={(e) => {
-                      const selected = employees.find(emp => emp.name === e.target.value);
+                      const empVal = e.target.value;
+                      setSelectedDisburseEmp(empVal);
+                      const selected = employees.find(emp => emp.name === empVal);
                       if (selected) {
                         const baseInput = document.querySelector('input[name="baseSalary"]');
                         if (baseInput) baseInput.value = selected.salary || 25000;
@@ -8319,6 +8331,60 @@ export default function App() {
                     })}
                     {employees.length === 0 && <option value="Balasubramainan">Balasubramainan (CEO)</option>}
                   </select>
+                </div>
+
+                {/* Outstanding Advance Summary & Auto-Deduct Banner */}
+                <div style={{
+                  padding: '14px 16px',
+                  borderRadius: '12px',
+                  backgroundColor: outstandingAdvance > 0 ? '#FFFBEB' : '#F8FAFC',
+                  border: '1px solid ' + (outstandingAdvance > 0 ? '#FDE68A' : '#E2E8F0'),
+                  display: 'flex',
+                  justify: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '12px'
+                }}>
+                  <div>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: outstandingAdvance > 0 ? '#B45309' : '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      💳 Outstanding Salary Advance Taken
+                    </div>
+                    <div style={{ fontSize: '18px', fontWeight: 800, color: outstandingAdvance > 0 ? '#92400E' : '#1E293B', marginTop: '2px' }}>
+                      {formatCurrency(outstandingAdvance)}
+                    </div>
+                  </div>
+
+                  {outstandingAdvance > 0 ? (
+                    <button 
+                      type="button" 
+                      onClick={() => {
+                        const deductInput = document.querySelector('input[name="deductions"]');
+                        if (deductInput) {
+                          deductInput.value = outstandingAdvance;
+                        }
+                      }}
+                      style={{ 
+                        backgroundColor: '#F59E0B', 
+                        color: '#FFFFFF', 
+                        fontWeight: 700, 
+                        fontSize: '12px', 
+                        padding: '8px 14px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        boxShadow: '0 2px 6px rgba(245, 158, 11, 0.3)'
+                      }}
+                    >
+                      <i className="ph ph-minus-circle-bold" style={{ fontSize: '15px' }}></i> Auto-Deduct Advance ({formatCurrency(outstandingAdvance)})
+                    </button>
+                  ) : (
+                    <span style={{ fontSize: '12px', color: '#10B981', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <i className="ph ph-check-circle-fill"></i> No Advances Pending
+                    </span>
+                  )}
                 </div>
 
                 <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -8374,7 +8440,8 @@ export default function App() {
             </form>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* View System User Privileges Modal */}
       {viewingUser && (
