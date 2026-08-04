@@ -5347,7 +5347,7 @@ export default function App() {
                 </div>
               </div>
             ) : settingsSubTab === 'payroll-settings' ? (
-              <div className="card bg-surface border" style={{ padding: '24px', borderRadius: '16px', maxWidth: '800px' }}>
+              <div className="card bg-surface border" style={{ padding: '24px', borderRadius: '16px', width: '100%', maxWidth: '100%' }}>
                 <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 700 }}>Payroll Rules & Overtime Calculations</h3>
                 <form onSubmit={(e) => { e.preventDefault(); alert("Payroll rules saved successfully!"); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
@@ -5384,7 +5384,7 @@ export default function App() {
                 </form>
               </div>
             ) : settingsSubTab === 'preferences' ? (
-              <div className="card bg-surface border" style={{ padding: '24px', borderRadius: '16px', maxWidth: '800px' }}>
+              <div className="card bg-surface border" style={{ padding: '24px', borderRadius: '16px', width: '100%', maxWidth: '100%' }}>
                 <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 700 }}>System Preferences & Display</h3>
                 <form onSubmit={(e) => { e.preventDefault(); alert("System preferences saved!"); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
@@ -5419,7 +5419,7 @@ export default function App() {
                 </form>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '960px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%', maxWidth: '100%' }}>
                 
                 {/* Linear Developer Header Banner */}
                 <div className="linear-card" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'linear-gradient(135deg, var(--color-surface), var(--color-muted))' }}>

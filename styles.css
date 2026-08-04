@@ -343,10 +343,15 @@ button, input, select, textarea {
 
 .tab-view {
   display: none;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
 }
 
 .tab-view.active {
   display: block;
+  width: 100% !important;
+  max-width: 100% !important;
   animation: fadeIn var(--transition-normal);
 }
 
@@ -951,15 +956,21 @@ kbd, .linear-kbd {
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   margin-bottom: 24px;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
 }
 
-.table-container {
+.table-container, .table-responsive {
   overflow-x: auto;
-  width: 100%;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
 }
 
 .data-table {
-  width: 100%;
+  width: 100% !important;
+  min-width: 100% !important;
   border-collapse: collapse;
   text-align: left;
   font-size: 13px;
