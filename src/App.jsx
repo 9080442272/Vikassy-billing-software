@@ -390,18 +390,32 @@ export default function App() {
   // --- Universal Delete Confirmation Modal State ---
   const [deleteConfirmState, setDeleteConfirmState] = useState({
     isOpen: false,
-    title: '',
-    message: '',
+    heading: '',
+    subheading: '',
     itemName: '',
+    impactType: '', // 'bill' | 'client' | 'employee' | 'fabric' | 'job' | 'expense' | 'database'
+    impactAmount: '', // e.g. "- ₹45,000" or "- 1 Invoice"
+    impactList: [],
     onConfirm: null
   });
 
-  const requestDeleteConfirmation = ({ title = 'Confirm Deletion', message, itemName = '', onConfirm }) => {
+  const requestDeleteConfirmation = ({
+    heading = 'Are you sure you want to delete this?',
+    subheading = 'This item will be permanently removed from your accounting software.',
+    itemName = '',
+    impactType = 'item',
+    impactAmount = '',
+    impactList = [],
+    onConfirm
+  }) => {
     setDeleteConfirmState({
       isOpen: true,
-      title,
-      message,
+      heading,
+      subheading,
       itemName,
+      impactType,
+      impactAmount,
+      impactList,
       onConfirm
     });
   };
@@ -409,9 +423,12 @@ export default function App() {
   const closeDeleteConfirmModal = () => {
     setDeleteConfirmState({
       isOpen: false,
-      title: '',
-      message: '',
+      heading: '',
+      subheading: '',
       itemName: '',
+      impactType: '',
+      impactAmount: '',
+      impactList: [],
       onConfirm: null
     });
   };
@@ -753,11 +770,19 @@ export default function App() {
     }
   };
 
-  const deleteClient = (id, clientName = '') => {
+  const deleteClient = (id, clientObj) => {
+    const clientName = typeof clientObj === 'object' ? clientObj.name : clientObj || '';
+    
     requestDeleteConfirmation({
-      title: 'Delete Client Account',
-      message: 'Are you sure you want to delete this client profile from your business directory? Associated GST invoice records will remain saved in ledger entries.',
+      heading: 'Are you sure you want to delete this client?',
+      subheading: 'Deleting this buyer profile will remove them from your active client directory.',
       itemName: clientName || 'Client Account',
+      impactType: 'client',
+      impactAmount: '- 1 Client Profile',
+      impactList: [
+        '📁 Client profile removed from quick billing directory.',
+        '📊 Existing historical invoices will remain saved for GST auditing.'
+      ],
       onConfirm: async () => {
         await deleteClientMutation({ id });
       }
@@ -1510,11 +1535,21 @@ export default function App() {
     }
   };
 
-  const deleteBill = (id, billNum = '') => {
+  const deleteBill = (id, billObj) => {
+    const billNum = typeof billObj === 'object' ? billObj.billNumber : billObj || '';
+    const amount = typeof billObj === 'object' ? formatCurrency(billObj.totalAmount) : '';
+    
     requestDeleteConfirmation({
-      title: 'Delete Invoice Record',
-      message: 'Are you sure you want to permanently delete this GST invoice record from accounting ledgers?',
+      heading: 'Are you sure you want to delete this invoice?',
+      subheading: 'Deleting this invoice will permanently remove it from your accounting ledger and update your financial reports.',
       itemName: billNum ? `Invoice #${billNum}` : 'Invoice Record',
+      impactType: 'bill',
+      impactAmount: amount ? `- ${amount}` : '- 1 Invoice',
+      impactList: [
+        '📉 Dashboard Total Billing will decrease automatically.',
+        '🧾 Invoice record will be removed from GSTR-1 Tax reports.',
+        '👤 Client outstanding balance ledger will be updated.'
+      ],
       onConfirm: async () => {
         await deleteBillMutation({ id });
       }
@@ -1591,11 +1626,20 @@ export default function App() {
     }
   };
 
-  const deleteEmployee = (id, empName = '') => {
+  const deleteEmployee = (id, empObj) => {
+    const empName = typeof empObj === 'object' ? empObj.name : empObj || '';
+    
     requestDeleteConfirmation({
-      title: 'Delete Staff Profile',
-      message: 'Are you sure you want to remove this employee profile from factory directory and rosters?',
+      heading: 'Are you sure you want to remove this staff member?',
+      subheading: 'Removing this staff profile will delete them from active factory attendance rosters and payroll calculations.',
       itemName: empName || 'Employee Profile',
+      impactType: 'employee',
+      impactAmount: '- 1 Staff Profile',
+      impactList: [
+        '📉 Active Staff Attendance count will update on Dashboard.',
+        '🧵 Piece-rate stitching rate assignments will be cleared.',
+        '💵 Monthly payroll disburse list will automatically minus this staff.'
+      ],
       onConfirm: async () => {
         await deleteEmployeeMutation({ id });
       }
@@ -1646,11 +1690,20 @@ export default function App() {
     }
   };
 
-  const deleteFabric = (id, rollNumber = '') => {
+  const deleteFabric = (id, fabricObj) => {
+    const rollNum = typeof fabricObj === 'object' ? `${fabricObj.fabricType} (${fabricObj.quantityReceived} Mtrs)` : fabricObj || '';
+    const meters = typeof fabricObj === 'object' ? `${fabricObj.quantityReceived} Mtrs` : '';
+    
     requestDeleteConfirmation({
-      title: 'Delete Fabric Stock Roll',
-      message: 'Are you sure you want to delete this fabric roll stock record from warehouse inventory?',
-      itemName: rollNumber ? `Fabric Roll #${rollNumber}` : 'Fabric Roll',
+      heading: 'Are you sure you want to delete this fabric roll?',
+      subheading: 'Deleting this roll will remove it from warehouse stock and fabric consumption tracking.',
+      itemName: rollNum || 'Fabric Stock Roll',
+      impactType: 'fabric',
+      impactAmount: meters ? `- ${meters}` : '- 1 Stock Roll',
+      impactList: [
+        '📉 Available Fabric Stock on Dashboard will minus this quantity.',
+        '📦 Warehouse roll inventory ledger will be updated.'
+      ],
       onConfirm: async () => {
         await deleteFabricMutation({ id });
       }
@@ -1703,11 +1756,18 @@ export default function App() {
     }
   };
 
-  const deleteCeoActivity = (id, logTitle = '') => {
+  const deleteCeoActivity = (id, logObj) => {
+    const title = typeof logObj === 'object' ? logObj.focusArea : logObj || '';
+    
     requestDeleteConfirmation({
-      title: 'Delete Accomplishment Log',
-      message: 'Are you sure you want to delete this operational accomplishment log entry?',
-      itemName: logTitle || 'Log Entry',
+      heading: 'Are you sure you want to delete this log entry?',
+      subheading: 'Deleting this accomplishment log will remove it from your management history.',
+      itemName: title || 'Accomplishment Log',
+      impactType: 'item',
+      impactAmount: '- 1 Log Entry',
+      impactList: [
+        '📊 Operational summary log hours will be updated.'
+      ],
       onConfirm: async () => {
         await deleteCeoActivityMutation({ id });
       }
@@ -1760,11 +1820,20 @@ export default function App() {
     }
   };
 
-  const deleteExpense = (id, category = '') => {
+  const deleteExpense = (id, expObj) => {
+    const cat = typeof expObj === 'object' ? expObj.category : expObj || '';
+    const amount = typeof expObj === 'object' ? formatCurrency(expObj.amount) : '';
+    
     requestDeleteConfirmation({
-      title: 'Delete Operational Expense',
-      message: 'Are you sure you want to delete this operational expense record from accounting books?',
-      itemName: category ? `${category} Expense` : 'Expense Entry',
+      heading: 'Are you sure you want to delete this expense record?',
+      subheading: 'Deleting this cost entry will recalculate your operational expenses and profit margin analysis.',
+      itemName: cat ? `${cat} Expense` : 'Expense Entry',
+      impactType: 'expense',
+      impactAmount: amount ? `- ${amount}` : '- 1 Expense Log',
+      impactList: [
+        '📈 Dashboard Total Overhead Expenses will minus this amount.',
+        '📊 Net Profit Margin calculation will automatically recalculate.'
+      ],
       onConfirm: async () => {
         await deleteExpenseMutation({ id });
       }
@@ -1822,11 +1891,18 @@ export default function App() {
     }
   };
 
-  const deleteUpcomingOrder = (id, orderTitle = '') => {
+  const deleteUpcomingOrder = (id, orderObj) => {
+    const title = typeof orderObj === 'object' ? orderObj.orderTitle : orderObj || '';
+    
     requestDeleteConfirmation({
-      title: 'Cancel & Delete Order',
-      message: 'Are you sure you want to cancel and delete this upcoming production order?',
-      itemName: orderTitle || 'Upcoming Order',
+      heading: 'Are you sure you want to cancel and delete this order?',
+      subheading: 'Deleting this scheduled order will remove it from target delivery calendars.',
+      itemName: title || 'Upcoming Order',
+      impactType: 'job',
+      impactAmount: '- 1 Target Order',
+      impactList: [
+        '📉 Target Deliveries count on Dashboard will minus 1 Order.'
+      ],
       onConfirm: async () => {
         await deleteUpcomingOrderMutation({ id });
       }
@@ -1929,11 +2005,19 @@ export default function App() {
     }, 50);
   };
 
-  const deleteStitching = (id, jobTitle = '') => {
+  const deleteStitching = (id, jobObj) => {
+    const jobTitle = typeof jobObj === 'object' ? `${jobObj.piecesStitched} Pcs Assembly` : jobObj || '';
+    
     requestDeleteConfirmation({
-      title: 'Delete Production Job',
-      message: 'Are you sure you want to delete this stitching assignment and piece-rate job record?',
+      heading: 'Are you sure you want to delete this production job?',
+      subheading: 'Deleting this stitching assignment will remove it from active floor work orders.',
       itemName: jobTitle || 'Production Job',
+      impactType: 'job',
+      impactAmount: '- 1 Active Job',
+      impactList: [
+        '📉 Active Production Jobs on Dashboard will minus 1 Job.',
+        '🧵 Fabric roll allocation and piece-rate payout will be updated.'
+      ],
       onConfirm: async () => {
         await deleteStitchingMutation({ id });
       }
@@ -7844,7 +7928,7 @@ export default function App() {
             style={{
               backgroundColor: '#FFFFFF',
               borderRadius: '20px',
-              maxWidth: '460px',
+              maxWidth: '480px',
               width: '100%',
               padding: '24px',
               border: '1px solid rgba(0, 0, 0, 0.08)',
@@ -7852,7 +7936,8 @@ export default function App() {
               animation: 'modalSlideIn 180ms cubic-bezier(0.16, 1, 0.3, 1)'
             }}
           >
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', marginBottom: '20px' }}>
+            {/* Friendly Header & Subheading */}
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', marginBottom: '18px' }}>
               {/* Warning Icon Avatar Badge */}
               <div style={{
                 width: '48px',
@@ -7871,11 +7956,11 @@ export default function App() {
               </div>
 
               <div style={{ flex: 1 }}>
-                <h3 style={{ margin: '0 0 6px 0', fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>
-                  {deleteConfirmState.title || 'Confirm Deletion'}
+                <h3 style={{ margin: '0 0 6px 0', fontSize: '17.5px', fontWeight: 800, color: '#0F172A', lineHeight: '1.3' }}>
+                  {deleteConfirmState.heading || 'Are you sure you want to delete this?'}
                 </h3>
-                <p style={{ margin: 0, fontSize: '13.5px', color: '#64748B', lineHeight: '1.5' }}>
-                  {deleteConfirmState.message || 'Are you sure you want to permanently delete this item? This action cannot be undone.'}
+                <p style={{ margin: 0, fontSize: '13px', color: '#64748B', lineHeight: '1.5' }}>
+                  {deleteConfirmState.subheading || 'This item will be permanently removed from your accounting records.'}
                 </p>
               </div>
             </div>
@@ -7887,15 +7972,97 @@ export default function App() {
                 border: '1px solid #E2E8F0',
                 borderRadius: '10px',
                 padding: '10px 14px',
-                marginBottom: '20px',
+                marginBottom: '16px',
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'space-between',
                 gap: '8px'
               }}>
-                <i className="ph ph-trash" style={{ color: '#F43F5E', fontSize: '16px' }}></i>
-                <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#0F172A', fontFamily: 'var(--font-mono)' }}>
-                  {deleteConfirmState.itemName}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <i className="ph ph-trash" style={{ color: '#F43F5E', fontSize: '16px' }}></i>
+                  <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#0F172A', fontFamily: 'var(--font-mono)' }}>
+                    {deleteConfirmState.itemName}
+                  </span>
+                </div>
+                <span className="badge badge-purple" style={{ fontSize: '10px', textTransform: 'uppercase' }}>
+                  Selected Record
                 </span>
+              </div>
+            )}
+
+            {/* VISUAL DASHBOARD MINUS IMPACT GRAPHIC */}
+            <div style={{
+              backgroundColor: '#FEF2F2',
+              border: '1px solid rgba(244, 63, 94, 0.25)',
+              borderRadius: '14px',
+              padding: '14px 16px',
+              marginBottom: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              boxShadow: 'inset 0 1px 2px rgba(244, 63, 94, 0.05)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '10px',
+                  backgroundColor: '#F43F5E',
+                  color: '#FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '18px',
+                  fontWeight: 800,
+                  boxShadow: '0 2px 6px rgba(244, 63, 94, 0.3)'
+                }}>
+                  <i className="ph ph-trend-down"></i>
+                </div>
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: 800, color: '#9F1239', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Dashboard & Ledger Impact
+                  </div>
+                  <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#881337' }}>
+                    Data in Dashboard will minus
+                  </div>
+                </div>
+              </div>
+
+              {deleteConfirmState.impactAmount && (
+                <div style={{
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid rgba(244, 63, 94, 0.3)',
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  color: '#F43F5E',
+                  fontFamily: 'var(--font-mono)'
+                }}>
+                  {deleteConfirmState.impactAmount}
+                </div>
+              )}
+            </div>
+
+            {/* IMPACT CONSEQUENCES LIST */}
+            {deleteConfirmState.impactList && deleteConfirmState.impactList.length > 0 && (
+              <div style={{
+                backgroundColor: '#F8FAFC',
+                border: '1px solid #E2E8F0',
+                borderRadius: '12px',
+                padding: '12px 14px',
+                marginBottom: '20px'
+              }}>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+                  What happens after deletion:
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {deleteConfirmState.impactList.map((item, idx) => (
+                    <div key={idx} style={{ fontSize: '12px', color: '#0F172A', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -7933,7 +8100,7 @@ export default function App() {
                   transition: 'all 120ms ease'
                 }}
               >
-                <i className="ph ph-trash" style={{ fontSize: '15px' }}></i> Delete Permanently
+                <i className="ph ph-trash" style={{ fontSize: '15px' }}></i> Yes, Delete Permanently
               </button>
             </div>
           </div>
