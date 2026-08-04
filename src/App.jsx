@@ -631,6 +631,13 @@ export default function App() {
     { id: 1, empName: "Balasubramainan", month: "July 2026", baseSalary: 75000, bonus: 10000, deductions: 0, netPayable: 85000, status: "Disbursed & Paid", date: new Date().toISOString().split('T')[0] }
   ]);
 
+  // Owner Investments & Order Capital Allocation States
+  const [investmentRecords, setInvestmentRecords] = useState([
+    { id: 1, investorName: "Balasubramainan (Owner)", date: new Date().toISOString().split('T')[0], type: "Capital Injection", amount: 150000, linkedOrder: "General Fund", notes: "Owner brought capital for today's operational expenses", mode: "Bank Transfer" }
+  ]);
+  const [isInvestmentModalOpen, setIsInvestmentModalOpen] = useState(false);
+  const [isAllocateOrderModalOpen, setIsAllocateOrderModalOpen] = useState(false);
+
   const [attendanceSubTab, setAttendanceSubTab] = useState('daily'); // 'daily' | 'shifts' | 'approvals' | 'reports'
   const [payrollSubTab, setPayrollSubTab] = useState('monthly'); // 'monthly' | 'calculation' | 'incentives' | 'advances' | 'payslips' | 'history'
   const [expensesSubTab, setExpensesSubTab] = useState('all'); // 'all' | 'add' | 'categories' | 'pending' | 'approved' | 'summary'
@@ -6873,6 +6880,9 @@ export default function App() {
                 <button className={`sub-tab-btn ${expensesSubTab === 'all' ? 'active' : ''}`} onClick={() => setExpensesSubTab('all')}>
                   <i className="ph ph-coins"></i> All Expenses
                 </button>
+                <button className={`sub-tab-btn ${expensesSubTab === 'investments' || expensesSubTab === 'funding' ? 'active' : ''}`} onClick={() => setExpensesSubTab('investments')}>
+                  <i className="ph ph-piggy-bank"></i> Owner Investments & Funding
+                </button>
                 <button className={`sub-tab-btn ${expensesSubTab === 'add' ? 'active' : ''}`} onClick={() => setIsExpenseModalOpen(true)}>
                   <i className="ph ph-plus-circle"></i> Add Expense
                 </button>
@@ -6889,6 +6899,136 @@ export default function App() {
                   <i className="ph ph-chart-pie"></i> Monthly Summary
                 </button>
               </div>
+
+              {expensesSubTab === 'investments' ? (() => {
+                const totalCapitalInjected = investmentRecords.filter(r => r.amount > 0).reduce((sum, r) => sum + r.amount, 0);
+                const totalCapitalAllocated = Math.abs(investmentRecords.filter(r => r.amount < 0).reduce((sum, r) => sum + r.amount, 0));
+                const availableInvestmentBalance = Math.max(0, totalCapitalInjected - totalCapitalAllocated);
+
+                return (
+                  <div style={{ marginTop: '20px' }}>
+                    {/* Top KPI Grid with Top-Right Available Balance KPI Card */}
+                    <div className="metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
+                      <div className="metric-card" style={{ borderLeft: '4px solid #10B981', backgroundColor: '#F0FDF4' }}>
+                        <div className="metric-card-header">
+                          <span className="metric-label" style={{ color: '#047857', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            💳 Available Investment Balance
+                          </span>
+                          <div className="metric-icon" style={{ color: '#10B981', backgroundColor: '#D1FAE5' }}>
+                            <i className="ph ph-wallet"></i>
+                          </div>
+                        </div>
+                        <div className="metric-value" style={{ color: '#065F46', fontWeight: 800 }}>{formatCurrency(availableInvestmentBalance)}</div>
+                        <div className="metric-footer">
+                          <span style={{ color: '#047857', fontWeight: 600 }}>Active capital ready for daily expenses & orders</span>
+                        </div>
+                      </div>
+
+                      <div className="metric-card">
+                        <div className="metric-card-header">
+                          <span className="metric-label">Total Capital Injected / Borrowed</span>
+                          <div className="metric-icon" style={{ color: 'var(--color-primary)', backgroundColor: 'rgba(94,106,210,0.1)' }}>
+                            <i className="ph ph-piggy-bank"></i>
+                          </div>
+                        </div>
+                        <div className="metric-value">{formatCurrency(totalCapitalInjected)}</div>
+                        <div className="metric-footer">
+                          <span>Owner & external funding brought in</span>
+                        </div>
+                      </div>
+
+                      <div className="metric-card">
+                        <div className="metric-card-header">
+                          <span className="metric-label">Spent / Allocated to Orders</span>
+                          <div className="metric-icon" style={{ color: '#6E56CF', backgroundColor: 'rgba(110,86,207,0.1)' }}>
+                            <i className="ph ph-shopping-bag"></i>
+                          </div>
+                        </div>
+                        <div className="metric-value">{formatCurrency(totalCapitalAllocated)}</div>
+                        <div className="metric-footer">
+                          <span>Directly allocated order expenses</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Main Investment Ledger Table Card */}
+                    <div className="table-card bg-surface border" style={{ padding: '20px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
+                        <div>
+                          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Owner Investments & Order Funding Ledger</h3>
+                          <p className="small text-muted" style={{ margin: '4px 0 0 0' }}>
+                            Record capital brought in by owner for daily expenses and allocate funds directly to specific client production orders.
+                          </p>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                          <button className="btn btn-primary" onClick={() => setIsInvestmentModalOpen(true)} style={{ fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                            <i className="ph ph-piggy-bank" style={{ fontSize: '16px' }}></i> + Record Investment / Borrowed Capital
+                          </button>
+                          <button className="btn btn-secondary text-primary" onClick={() => setIsAllocateOrderModalOpen(true)} style={{ fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                            <i className="ph ph-shopping-bag-open" style={{ fontSize: '16px' }}></i> + Allocate Capital for Specific Order
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="table-responsive">
+                        <table className="data-table">
+                          <thead>
+                            <tr>
+                              <th>Date</th>
+                              <th>Funder / Investor Source</th>
+                              <th>Transaction Type</th>
+                              <th>Linked Order / Purpose</th>
+                              <th className="text-right">Capital Injected (₹)</th>
+                              <th className="text-right">Allocated / Spent (₹)</th>
+                              <th className="text-right">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {investmentRecords.map((rec) => (
+                              <tr key={rec.id}>
+                                <td className="text-muted">{rec.date}</td>
+                                <td className="font-semibold">{rec.investorName}</td>
+                                <td>
+                                  <span className={`badge ${rec.amount > 0 ? 'badge-success' : 'badge-primary'}`}>
+                                    {rec.type}
+                                  </span>
+                                </td>
+                                <td>
+                                  <span className="font-semibold text-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                    <i className="ph ph-tag" style={{ fontSize: '12px' }}></i> {rec.linkedOrder}
+                                  </span>
+                                </td>
+                                <td className="text-right font-semibold" style={{ color: '#10B981' }}>
+                                  {rec.amount > 0 ? `+ ${formatCurrency(rec.amount)}` : '-'}
+                                </td>
+                                <td className="text-right font-semibold" style={{ color: '#6E56CF' }}>
+                                  {rec.amount < 0 ? `- ${formatCurrency(Math.abs(rec.amount))}` : '-'}
+                                </td>
+                                <td className="text-right">
+                                  <button className="btn-icon text-red" onClick={() => {
+                                    setInvestmentRecords(prev => prev.filter(r => r.id !== rec.id));
+                                  }}>
+                                    <i className="ph ph-trash"></i>
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                            {investmentRecords.length === 0 && (
+                              <tr>
+                                <td colSpan="7" className="text-center text-muted" style={{ padding: '24px' }}>
+                                  No investment capital records logged yet. Click "+ Record Investment" to add capital brought by owner.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })() : (
+              <>
 
               {/* Expenses Metrics Summary */}
               <div className="metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
@@ -7154,12 +7294,198 @@ export default function App() {
                   <div className="text-center text-muted" style={{ padding: '16px' }}>No expenses recorded.</div>
                 )}
               </div>
+              </>
+            )}
             </section>
           );
         })()}
 
 
       </main>
+
+      {/* ==================== OWNER INVESTMENT / BORROWED CAPITAL MODAL ==================== */}
+      {isInvestmentModalOpen && (
+        <div className="modal-overlay active" onClick={() => setIsInvestmentModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px' }}>
+            <div className="modal-header">
+              <h3>🏦 Record Investment / Borrowed Capital</h3>
+              <button className="btn-close" onClick={() => setIsInvestmentModalOpen(false)}><i className="ph ph-x"></i></button>
+            </div>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const form = e.target;
+              const investorName = form.investorName.value.trim();
+              const amount = parseFloat(form.amount.value) || 0;
+              const date = form.investmentDate.value;
+              const mode = form.mode.value;
+              const notes = form.notes.value.trim();
+
+              const newRec = {
+                id: Date.now(),
+                investorName: investorName || "Balasubramainan (Owner)",
+                date,
+                type: "Capital Injection",
+                amount,
+                linkedOrder: "General Fund",
+                notes: notes || "Owner capital for daily expenses",
+                mode
+              };
+
+              setInvestmentRecords(prev => [newRec, ...prev]);
+              alert(`🎉 Capital injection of ${formatCurrency(amount)} recorded!`);
+              setIsInvestmentModalOpen(false);
+            }}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px' }}>
+                <div className="form-group">
+                  <label htmlFor="inv-name">Funder / Investor Name *</label>
+                  <input type="text" id="inv-name" name="investorName" required defaultValue="Balasubramainan (Owner)" placeholder="e.g. Balasubramainan (Owner) or Private Lender" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }} />
+                </div>
+
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-group">
+                    <label htmlFor="inv-amount">Amount Injected (₹) *</label>
+                    <input type="number" id="inv-amount" name="amount" required step="any" placeholder="e.g. 150000" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%', fontWeight: 700 }} />
+                  </div>
+                  <LinearDatePickerInput 
+                    id="inv-date"
+                    name="investmentDate"
+                    label="Date Brought In *"
+                    defaultValue={new Date().toISOString().split('T')[0]}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="inv-mode">Payment Mode *</label>
+                  <select id="inv-mode" name="mode" required style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}>
+                    <option value="Bank Transfer">Bank Transfer / NEFT / RTGS</option>
+                    <option value="Cash">Cash</option>
+                    <option value="UPI">UPI / GPay / PhonePe</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="inv-notes">Purpose / Notes *</label>
+                  <input type="text" id="inv-notes" name="notes" required defaultValue="Owner brought capital for today's operational expenses" placeholder="e.g. Emergency funds for raw material fabric & wages" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }} />
+                </div>
+              </div>
+
+              <div className="modal-footer" style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setIsInvestmentModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 700, borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                  <i className="ph ph-check" style={{ fontSize: '16px' }}></i> Save Capital Record
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== ALLOCATE CAPITAL FOR SPECIFIC ORDER MODAL ==================== */}
+      {isAllocateOrderModalOpen && (
+        <div className="modal-overlay active" onClick={() => setIsAllocateOrderModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '540px' }}>
+            <div className="modal-header">
+              <h3>🛍️ Allocate Capital for Specific Order</h3>
+              <button className="btn-close" onClick={() => setIsAllocateOrderModalOpen(false)}><i className="ph ph-x"></i></button>
+            </div>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const form = e.target;
+              const billIdVal = form.billId.value;
+              const amount = parseFloat(form.amount.value) || 0;
+              const date = form.allocationDate.value;
+              const category = form.category.value;
+              const notes = form.notes.value.trim();
+
+              const selectedBill = bills.find(b => b._id === billIdVal);
+              const orderTitle = selectedBill ? `${selectedBill.billNumber} (${clients.find(c => c._id === selectedBill.clientId)?.name || 'Client'})` : "Specific Order";
+
+              // 1. Add debit record to investment ledger
+              const newRec = {
+                id: Date.now(),
+                investorName: "Owner Capital Allocation",
+                date,
+                type: "Order Expense Allocation",
+                amount: -amount,
+                linkedOrder: orderTitle,
+                notes: notes || `Owner bought materials/services for ${orderTitle}`,
+                mode: "Investment Allocation"
+              };
+              setInvestmentRecords(prev => [newRec, ...prev]);
+
+              // 2. Automatically log expense entry
+              try {
+                await addExpenseMutation({
+                  billId: billIdVal || undefined,
+                  category,
+                  amount,
+                  description: `[Investment Allocation] ${notes || 'Bought directly from owner investment pool'}`,
+                  date
+                });
+              } catch (err) {}
+
+              alert(`🎉 Capital allocation of ${formatCurrency(amount)} logged for ${orderTitle}!`);
+              setIsAllocateOrderModalOpen(false);
+            }}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px' }}>
+                <div className="form-group">
+                  <label htmlFor="alloc-order">Select Production Order / Invoice *</label>
+                  <select id="alloc-order" name="billId" required style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}>
+                    {bills.map(b => {
+                      const c = clients.find(cl => cl._id === b.clientId);
+                      return (
+                        <option key={b._id} value={b._id}>
+                          {b.billNumber} — {c ? c.name : 'Unknown Client'} ({formatCurrency(b.subtotal)})
+                        </option>
+                      );
+                    })}
+                    {bills.length === 0 && <option value="">INV-2026-001 (Sri Varahi Exports - ₹1,20,000)</option>}
+                  </select>
+                </div>
+
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-group">
+                    <label htmlFor="alloc-amount">Amount to Allocate (₹) *</label>
+                    <input type="number" id="alloc-amount" name="amount" required step="any" placeholder="e.g. 15000" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%', fontWeight: 700 }} />
+                  </div>
+                  <LinearDatePickerInput 
+                    id="alloc-date"
+                    name="allocationDate"
+                    label="Allocation Date *"
+                    defaultValue={new Date().toISOString().split('T')[0]}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="alloc-cat">Expense Category *</label>
+                  <select id="alloc-cat" name="category" required style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}>
+                    <option value="Materials">Materials & Fabrics</option>
+                    <option value="Transportation">Transportation (Auto/Freight)</option>
+                    <option value="Petrol">Petrol / Fuel</option>
+                    <option value="Employee Salaries">Stitching / Tailor Wages</option>
+                    <option value="Operations">Operations / Power</option>
+                    <option value="Others">Others / Machine Servicing</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="alloc-notes">Allocation Notes / Description *</label>
+                  <input type="text" id="alloc-notes" name="notes" required defaultValue="Owner bought raw materials directly for order" placeholder="e.g. Owner paid auto freight & zippers directly" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }} />
+                </div>
+              </div>
+
+              <div className="modal-footer" style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setIsAllocateOrderModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 700, borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                  <i className="ph ph-check" style={{ fontSize: '16px' }}></i> Confirm Order Allocation
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* ==================== CLIENT MODAL (Add / Edit Client) ==================== */}
       {isClientModalOpen && (
