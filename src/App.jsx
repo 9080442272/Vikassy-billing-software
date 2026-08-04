@@ -381,7 +381,9 @@ export default function App() {
   const fabrics = useQuery(api.fabrics.getAll) || [];
   const stitching = useQuery(api.stitching.getAll) || [];
   const ceoActivities = useQuery(api.ceoActivities.getAll) || [];
-  const expenses = useQuery(api.expenses.getAll) || [];
+  const rawExpenses = useQuery(api.expenses.getAll) || [];
+  const dummyExpenseKeywords = ['auto delivery charges', 'denim stitcher bonus', 'coimbatore client dispatch', 'monthly workshop power generator'];
+  const expenses = rawExpenses.filter(e => !dummyExpenseKeywords.some(kw => (e.description || '').toLowerCase().includes(kw)));
   const upcomingOrdersConvex = useQuery(api.upcomingOrders.getAll) || [];
   const upcomingOrders = [...(customLocalJobs || []), ...upcomingOrdersConvex];
   const rawUsers = useQuery(api.users.getAll);
