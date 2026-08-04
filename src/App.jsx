@@ -703,7 +703,17 @@ export default function App() {
   const [selectedFabricId, setSelectedFabricId] = useState('');
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
-  const [isCustomExpenseCat, setIsCustomExpenseCat] = useState(false);
+  const [customExpenseCategories, setCustomExpenseCategories] = useState([
+    "Transportation (Auto)",
+    "Petrol / Fuel",
+    "Employee Salaries",
+    "Materials & Fabrics",
+    "Operations / Power",
+    "Others / Overheads"
+  ]);
+  const [selectedExpenseCat, setSelectedExpenseCat] = useState("Transportation (Auto)");
+  const [isCustomExpenseCatActive, setIsCustomExpenseCatActive] = useState(false);
+  const [customExpenseCatInputVal, setCustomExpenseCatInputVal] = useState('');
   const [expenseSearch, setExpenseSearch] = useState('');
   const [selectedOrderFilter, setSelectedOrderFilter] = useState('all');
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -2185,19 +2195,15 @@ export default function App() {
     e.preventDefault();
     const dateInput = document.getElementById('expense-date');
     const date = dateInput ? dateInput.value : new Date().toISOString().split('T')[0];
-    const catSelect = document.getElementById('expense-category');
-    let category = catSelect ? catSelect.value : 'Others';
-
-    if (category === 'CUSTOM' || isCustomExpenseCat) {
-      const customInput = document.getElementById('custom-expense-category-input');
+    
+    let category = selectedExpenseCat;
+    if (isCustomExpenseCatActive || category === 'ADD_CUSTOM') {
+      const customInput = document.getElementById('expense-custom-category-input');
       if (customInput && customInput.value.trim()) {
         category = customInput.value.trim();
-        setExpenseCategoriesList(prev => {
-          if (!prev.some(c => c.name.toLowerCase() === category.toLowerCase())) {
-            return [...prev, { id: Date.now(), name: category, budget: "Unbudgeted", deductible: "Yes" }];
-          }
-          return prev;
-        });
+        if (!customExpenseCategories.includes(category)) {
+          setCustomExpenseCategories(prev => [...prev, category]);
+        }
       }
     }
 
@@ -2247,19 +2253,24 @@ export default function App() {
   const openEditExpense = (exp) => {
     setEditingExpense(exp);
     setIsExpenseModalOpen(true);
+    if (!customExpenseCategories.includes(exp.category)) {
+      setCustomExpenseCategories(prev => [...prev, exp.category]);
+    }
+    setSelectedExpenseCat(exp.category);
+    setIsCustomExpenseCatActive(false);
     setTimeout(() => {
-      document.getElementById('expense-date').value = exp.date;
-      document.getElementById('expense-category').value = exp.category;
-      document.getElementById('expense-amount').value = exp.amount;
-      document.getElementById('expense-desc').value = exp.description;
-      document.getElementById('expense-bill-id').value = exp.billId || "";
+      if (document.getElementById('expense-date')) document.getElementById('expense-date').value = exp.date;
+      if (document.getElementById('expense-amount')) document.getElementById('expense-amount').value = exp.amount;
+      if (document.getElementById('expense-desc')) document.getElementById('expense-desc').value = exp.description;
+      if (document.getElementById('expense-bill-id')) document.getElementById('expense-bill-id').value = exp.billId || "";
     }, 50);
   };
 
   const closeExpenseModal = () => {
     setIsExpenseModalOpen(false);
     setEditingExpense(null);
-    setIsCustomExpenseCat(false);
+    setIsCustomExpenseCatActive(false);
+    setCustomExpenseCatInputVal('');
   };
 
   // Upcoming Orders CRUD
@@ -7700,47 +7711,82 @@ export default function App() {
                     required
                   />
                   <div className="form-group">
-                    <label htmlFor="expense-category">Category *</label>
-                    <select 
-                      id="expense-category" 
-                      required 
-                      defaultValue={editingExpense ? editingExpense.category : "Transportation"}
-                      onChange={(e) => {
-                        if (e.target.value === 'CUSTOM') {
-                          setIsCustomExpenseCat(true);
-                        } else {
-                          setIsCustomExpenseCat(false);
-                        }
-                      }}
-                      style={{ fontSize: '14px', padding: '11px 14px', borderRadius: '12px', width: '100%', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
-                    >
-                      <option value="Transportation">Transportation (Auto)</option>
-                      <option value="Petrol">Petrol / Fuel</option>
-                      <option value="Employee Salaries">Employee Salaries</option>
-                      <option value="Materials">Materials & Fabrics</option>
-                      <option value="Operations">Operations / Power</option>
-                      <option value="Others">Others / Overheads</option>
-                      {/* Dynamic user added custom categories */}
-                      {expenseCategoriesList.map(c => (
-                        !['Transportation', 'Petrol', 'Employee Salaries', 'Materials', 'Operations', 'Others'].includes(c.name) && (
-                          <option key={c.id} value={c.name}>{c.name}</option>
-                        )
-                      ))}
-                      <option value="CUSTOM" style={{ fontWeight: 700, color: '#6E56CF' }}>➕ Add Custom Category...</option>
-                    </select>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <label htmlFor="expense-category" style={{ margin: 0 }}>Category *</label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsCustomExpenseCatActive(!isCustomExpenseCatActive);
+                          if (!isCustomExpenseCatActive) {
+                            setSelectedExpenseCat("ADD_CUSTOM");
+                          }
+                        }}
+                        style={{
+                          border: 'none',
+                          background: 'transparent',
+                          color: 'var(--color-primary)',
+                          fontSize: '11.5px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: 0
+                        }}
+                      >
+                        <i className={`ph ${isCustomExpenseCatActive ? 'ph-list' : 'ph-plus-circle'}`}></i>
+                        {isCustomExpenseCatActive ? 'Select Existing Category' : '+ Add Custom Category'}
+                      </button>
+                    </div>
 
-                    {isCustomExpenseCat && (
-                      <div style={{ marginTop: '8px' }}>
-                        <label htmlFor="custom-expense-category-input" style={{ fontSize: '11px', fontWeight: 700, color: '#6E56CF', display: 'block', marginBottom: '4px', textTransform: 'uppercase' }}>
-                          Custom Category Name *
-                        </label>
+                    {!isCustomExpenseCatActive ? (
+                      <select 
+                        id="expense-category" 
+                        required 
+                        value={selectedExpenseCat}
+                        onChange={(e) => {
+                          if (e.target.value === 'ADD_CUSTOM') {
+                            setIsCustomExpenseCatActive(true);
+                          } else {
+                            setSelectedExpenseCat(e.target.value);
+                          }
+                        }}
+                        style={{ fontSize: '14px', padding: '11px 14px', width: '100%', borderRadius: '10px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+                      >
+                        {customExpenseCategories.map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                        <option value="ADD_CUSTOM">✏️ + Add Custom Category...</option>
+                      </select>
+                    ) : (
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                         <input 
-                          type="text" 
-                          id="custom-expense-category-input" 
-                          required 
-                          placeholder="e.g. Machine Servicing, Tea & Snacks" 
-                          style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px', border: '1.5px solid #6E56CF', width: '100%' }}
+                          type="text"
+                          id="expense-custom-category-input"
+                          required
+                          placeholder="e.g. Machine Servicing, Factory Rent..."
+                          value={customExpenseCatInputVal}
+                          onChange={(e) => setCustomExpenseCatInputVal(e.target.value)}
+                          style={{ fontSize: '13.5px', padding: '9px 12px', flex: 1, borderRadius: '10px', border: '1.5px solid var(--color-primary)' }}
                         />
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          onClick={() => {
+                            if (customExpenseCatInputVal.trim()) {
+                              const newCat = customExpenseCatInputVal.trim();
+                              if (!customExpenseCategories.includes(newCat)) {
+                                setCustomExpenseCategories(prev => [...prev, newCat]);
+                              }
+                              setSelectedExpenseCat(newCat);
+                              setIsCustomExpenseCatActive(false);
+                              setCustomExpenseCatInputVal('');
+                            }
+                          }}
+                          style={{ padding: '8px 12px', fontSize: '12px', whiteSpace: 'nowrap' }}
+                        >
+                          <i className="ph ph-check"></i> Add
+                        </button>
                       </div>
                     )}
                   </div>
