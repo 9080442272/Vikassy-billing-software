@@ -379,6 +379,16 @@ export default function App() {
   const [empProfileTab, setEmpProfileTab] = useState('personal'); // 'personal' | 'attendance' | 'jobs' | 'salary' | 'documents'
   const [selectedEmployeeDetail, setSelectedEmployeeDetail] = useState(null);
   const [isAnalyzingAI, setIsAnalyzingAI] = useState(false);
+  const [customStaffRoles, setCustomStaffRoles] = useState([
+    "Stitcher",
+    "Checking staff",
+    "Packaging staff",
+    "Supervisor",
+    "Signer"
+  ]);
+  const [selectedStaffRole, setSelectedStaffRole] = useState("Stitcher");
+  const [isCustomRoleActive, setIsCustomRoleActive] = useState(false);
+  const [customRoleInputVal, setCustomRoleInputVal] = useState("");
 
   // Employee Action Modals & Records
   const [isAttendanceModalOpen, setIsAttendanceModalOpen] = useState(false);
@@ -1732,7 +1742,22 @@ export default function App() {
     e.preventDefault();
     const name = document.getElementById('employee-name').value.trim();
     const phone = document.getElementById('employee-phone').value.trim();
-    const role = document.getElementById('employee-role').value;
+    
+    let role = selectedStaffRole;
+    const roleElem = document.getElementById('employee-role');
+    const customRoleElem = document.getElementById('employee-custom-role-input');
+
+    if (isCustomRoleActive || (roleElem && roleElem.value === 'ADD_CUSTOM')) {
+      if (customRoleElem && customRoleElem.value.trim()) {
+        role = customRoleElem.value.trim();
+        if (!customStaffRoles.includes(role)) {
+          setCustomStaffRoles(prev => [...prev, role]);
+        }
+      }
+    } else if (roleElem && roleElem.value) {
+      role = roleElem.value;
+    }
+
     const subCategory = document.getElementById('employee-subcategory').value.trim();
     const stitchRate = parseFloat(document.getElementById('employee-stitch-rate')?.value) || 0;
     const salary = parseFloat(document.getElementById('employee-salary')?.value) || 0;
@@ -1778,17 +1803,24 @@ export default function App() {
   const openEditEmployee = (emp) => {
     setEditingEmployee(emp);
     setIsEmployeeModalOpen(true);
+    if (emp.role && !customStaffRoles.includes(emp.role)) {
+      setCustomStaffRoles(prev => [...prev, emp.role]);
+    }
+    setSelectedStaffRole(emp.role || 'Stitcher');
+    setIsCustomRoleActive(false);
     setTimeout(() => {
-      document.getElementById('employee-name').value = emp.name;
-      document.getElementById('employee-phone').value = emp.phone || '';
-      document.getElementById('employee-role').value = emp.role;
-      document.getElementById('employee-subcategory').value = emp.subCategory || '';
+      if (document.getElementById('employee-name')) document.getElementById('employee-name').value = emp.name;
+      if (document.getElementById('employee-phone')) document.getElementById('employee-phone').value = emp.phone || '';
+      if (document.getElementById('employee-role')) document.getElementById('employee-role').value = emp.role || 'Stitcher';
+      if (document.getElementById('employee-subcategory')) document.getElementById('employee-subcategory').value = emp.subCategory || '';
     }, 50);
   };
 
   const closeEmployeeModal = () => {
     setIsEmployeeModalOpen(false);
     setEditingEmployee(null);
+    setIsCustomRoleActive(false);
+    setCustomRoleInputVal("");
   };
 
   // Fabric Rolls CRUD
@@ -6942,20 +6974,91 @@ export default function App() {
                     <input type="tel" id="employee-phone" placeholder="e.g. +91 99999 88888" />
                   </div>
                 </div>
-                <div className="form-row">
+                <div className="form-row" style={{ alignItems: 'flex-start' }}>
                   <div className="form-group">
-                    <label htmlFor="employee-role">Staff Role *</label>
-                    <select id="employee-role" required style={{ fontSize: '15px', padding: '12px 14px', width: '100%' }}>
-                      <option value="Stitcher">Stitcher</option>
-                      <option value="Checking staff">Checking staff</option>
-                      <option value="Packaging staff">Packaging staff</option>
-                      <option value="Supervisor">Supervisor</option>
-                      <option value="Signer">Signer</option>
-                    </select>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <label htmlFor="employee-role" style={{ margin: 0 }}>Staff Role *</label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsCustomRoleActive(!isCustomRoleActive);
+                          if (!isCustomRoleActive) {
+                            setSelectedStaffRole("ADD_CUSTOM");
+                          }
+                        }}
+                        style={{
+                          border: 'none',
+                          background: 'transparent',
+                          color: 'var(--color-primary)',
+                          fontSize: '11.5px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: 0
+                        }}
+                      >
+                        <i className={`ph ${isCustomRoleActive ? 'ph-list' : 'ph-plus-circle'}`}></i>
+                        {isCustomRoleActive ? 'Select Existing Role' : '+ Add Custom Role'}
+                      </button>
+                    </div>
+
+                    {!isCustomRoleActive ? (
+                      <select 
+                        id="employee-role" 
+                        required 
+                        value={selectedStaffRole}
+                        onChange={(e) => {
+                          if (e.target.value === 'ADD_CUSTOM') {
+                            setIsCustomRoleActive(true);
+                          } else {
+                            setSelectedStaffRole(e.target.value);
+                          }
+                        }}
+                        style={{ fontSize: '14px', padding: '12px 14px', width: '100%', borderRadius: '10px' }}
+                      >
+                        {customStaffRoles.map(r => (
+                          <option key={r} value={r}>{r}</option>
+                        ))}
+                        <option value="ADD_CUSTOM">✏️ + Add Custom Role...</option>
+                      </select>
+                    ) : (
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <input 
+                          type="text"
+                          id="employee-custom-role-input"
+                          required
+                          placeholder="e.g. Quality Auditor, CAD Master..."
+                          value={customRoleInputVal}
+                          onChange={(e) => setCustomRoleInputVal(e.target.value)}
+                          style={{ fontSize: '13.5px', padding: '10px 12px', flex: 1, borderRadius: '10px', border: '1.5px solid var(--color-primary)' }}
+                        />
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          onClick={() => {
+                            if (customRoleInputVal.trim()) {
+                              const newRole = customRoleInputVal.trim();
+                              if (!customStaffRoles.includes(newRole)) {
+                                setCustomStaffRoles(prev => [...prev, newRole]);
+                              }
+                              setSelectedStaffRole(newRole);
+                              setIsCustomRoleActive(false);
+                              setCustomRoleInputVal("");
+                            }
+                          }}
+                          style={{ padding: '10px 14px', fontSize: '12px', fontWeight: 700, borderRadius: '10px', whiteSpace: 'nowrap' }}
+                        >
+                          Add
+                        </button>
+                      </div>
+                    )}
                   </div>
+
                   <div className="form-group">
                     <label htmlFor="employee-subcategory">Sub Category / Specialization</label>
-                    <input type="text" id="employee-subcategory" placeholder="e.g. Signer" />
+                    <input type="text" id="employee-subcategory" placeholder="e.g. Signer / Overlock / Flatlock" />
                   </div>
                 </div>
               </div>
