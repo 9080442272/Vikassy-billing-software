@@ -5623,9 +5623,6 @@ export default function App() {
               <button className={`sub-tab-btn ${employeesSubTab === 'salary' || employeesSubTab === 'payroll' ? 'active' : ''}`} onClick={() => setEmployeesSubTab('salary')}>
                 <i className="ph ph-hand-coins"></i> Weekly Payouts & Advances
               </button>
-              <button className={`sub-tab-btn ${employeesSubTab === 'profile' ? 'active' : ''}`} onClick={() => setEmployeesSubTab('profile')}>
-                <i className="ph ph-user-card"></i> Employee Profile
-              </button>
             </div>
 
             {employeesSubTab === 'attendance' ? (
@@ -5780,38 +5777,6 @@ export default function App() {
                         )}
                       </tbody>
                     </table>
-                  </div>
-                </div>
-              </div>
-            ) : employeesSubTab === 'profile' && selectedEmployeeDetail ? (
-              <div className="table-card bg-surface border" style={{ marginTop: '20px', padding: '24px' }}>
-                <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid var(--color-border)', paddingBottom: '16px' }}>
-                  <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'rgba(124,58,237,0.15)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', fontWeight: 700 }}>
-                    {selectedEmployeeDetail.name.charAt(0)}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 800 }}>{selectedEmployeeDetail.name}</h2>
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                      <span className="badge badge-gst">{selectedEmployeeDetail.role}</span>
-                      <span className="badge" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>{selectedEmployeeDetail.subCategory || 'Stitching Crew'}</span>
-                    </div>
-                  </div>
-                  <button className="btn btn-primary btn-sm" onClick={() => openEditEmployee(selectedEmployeeDetail)}>
-                    <i className="ph ph-pencil"></i> Edit Profile & Wages
-                  </button>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-                  <div style={{ backgroundColor: 'var(--color-muted)', padding: '16px', borderRadius: '12px' }}>
-                    <div className="text-muted small">Base Monthly Salary</div>
-                    <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-text-primary)' }}>{formatCurrency(selectedEmployeeDetail.salary)}</div>
-                  </div>
-                  <div style={{ backgroundColor: 'var(--color-muted)', padding: '16px', borderRadius: '12px' }}>
-                    <div className="text-muted small">Piece Rate Rate / Pcs</div>
-                    <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-primary)' }}>{formatCurrency(selectedEmployeeDetail.stitchRate)} / Pcs</div>
-                  </div>
-                  <div style={{ backgroundColor: 'var(--color-muted)', padding: '16px', borderRadius: '12px' }}>
-                    <div className="text-muted small">Phone Contact</div>
-                    <div style={{ fontSize: '16px', fontWeight: 700 }}>{selectedEmployeeDetail.phone || 'Not Logged'}</div>
                   </div>
                 </div>
               </div>
