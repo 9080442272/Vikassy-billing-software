@@ -1813,6 +1813,8 @@ export default function App() {
       if (document.getElementById('employee-phone')) document.getElementById('employee-phone').value = emp.phone || '';
       if (document.getElementById('employee-role')) document.getElementById('employee-role').value = emp.role || 'Stitcher';
       if (document.getElementById('employee-subcategory')) document.getElementById('employee-subcategory').value = emp.subCategory || '';
+      if (document.getElementById('employee-stitch-rate')) document.getElementById('employee-stitch-rate').value = emp.stitchRate || 0;
+      if (document.getElementById('employee-salary')) document.getElementById('employee-salary').value = emp.salary || 0;
     }, 50);
   };
 
@@ -5967,8 +5969,7 @@ export default function App() {
                           <th>Name</th>
                           <th>Phone</th>
                           <th>Role</th>
-                          <th className="text-right">Stitch Rate / Pcs (₹)</th>
-                          <th className="text-right">Basic Salary (₹)</th>
+                          <th>Sub Category</th>
                           <th className="text-right">Actions</th>
                         </tr>
                       </thead>
@@ -5978,20 +5979,18 @@ export default function App() {
                             <td 
                               onClick={() => openEditEmployee(emp)} 
                               style={{ cursor: 'pointer' }}
-                              title={`Click to edit ${emp.name}'s profile & rates`}
+                              title={`Click to edit ${emp.name}'s profile`}
                             >
                               <div style={{ fontWeight: 700, color: 'var(--color-primary)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                                 <span>{emp.name}</span>
                                 <i className="ph ph-pencil-simple" style={{ fontSize: '12px', opacity: 0.7 }}></i>
                               </div>
-                              {emp.subCategory && <div className="small text-muted">{emp.subCategory}</div>}
                             </td>
                             <td>{emp.phone || '-'}</td>
                             <td>
                               <span className="badge badge-gst">{emp.role}</span>
                             </td>
-                            <td className="text-right">{formatCurrency(emp.stitchRate)}</td>
-                            <td className="text-right">{formatCurrency(emp.salary)}</td>
+                            <td>{emp.subCategory || '-'}</td>
                             <td className="text-right">
                               <button className="btn-icon" onClick={() => openEditEmployee(emp)} title="Edit Employee"><i className="ph ph-pencil-simple"></i></button>
                               <button className="btn-icon text-red" onClick={() => deleteEmployee(emp._id)} title="Delete Employee"><i className="ph ph-trash"></i></button>
@@ -6000,7 +5999,7 @@ export default function App() {
                         ))}
                         {employees.filter(e => e.name.toLowerCase().includes(employeeSearch.toLowerCase())).length === 0 && (
                           <tr>
-                            <td colSpan="6" className="text-center text-muted" style={{ padding: '36px 16px' }}>
+                            <td colSpan="5" className="text-center text-muted" style={{ padding: '36px 16px' }}>
                               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
                                 <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'rgba(124,58,237,0.1)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
                                   <i className="ph ph-user-minus"></i>
@@ -6081,16 +6080,12 @@ export default function App() {
                       </div>
                       <div className="mobile-card-body">
                         <div className="mobile-card-detail">
-                          <span className="mobile-card-detail-label">Stitch Rate</span>
-                          <span className="mobile-card-detail-value">{formatCurrency(emp.stitchRate)} / Pcs</span>
-                        </div>
-                        <div className="mobile-card-detail">
-                          <span className="mobile-card-detail-label">Basic Salary</span>
-                          <span className="mobile-card-detail-value">{formatCurrency(emp.salary)}</span>
-                        </div>
-                        <div className="mobile-card-detail" style={{ gridColumn: 'span 2' }}>
                           <span className="mobile-card-detail-label">Phone</span>
                           <span className="mobile-card-detail-value">{emp.phone || '-'}</span>
+                        </div>
+                        <div className="mobile-card-detail">
+                          <span className="mobile-card-detail-label">Specialization</span>
+                          <span className="mobile-card-detail-value">{emp.subCategory || '-'}</span>
                         </div>
                       </div>
                       <div className="mobile-card-footer">
