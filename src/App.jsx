@@ -5959,7 +5959,40 @@ export default function App() {
                                     </button>
                                   </>
                                 ) : (
-                                  <div>No crew registered. Add employees to log stitching operations.</div>
+                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', padding: '24px 16px', maxWidth: '520px', margin: '0 auto', textAlign: 'center' }}>
+                                    <div style={{
+                                      width: '56px',
+                                      height: '56px',
+                                      borderRadius: '16px',
+                                      backgroundColor: 'var(--color-accent-light)',
+                                      color: 'var(--color-primary)',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justify: 'center',
+                                      fontSize: '28px',
+                                      border: '1px solid var(--color-border)',
+                                      boxShadow: '0 4px 14px rgba(94, 106, 210, 0.15)'
+                                    }}>
+                                      <i className="ph ph-user-plus"></i>
+                                    </div>
+                                    
+                                    <div>
+                                      <h3 style={{ margin: '0 0 6px 0', fontSize: '17px', fontWeight: 800, color: 'var(--color-text-primary)' }}>
+                                        No Employees Registered Yet
+                                      </h3>
+                                      <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: '1.5' }}>
+                                        Register tailors, cutting masters, piece-rate stitchers, and supervisors to start tracking daily attendance, piece-rate payouts, and monthly payroll.
+                                      </p>
+                                    </div>
+
+                                    <button 
+                                      className="btn btn-primary" 
+                                      onClick={() => setIsEmployeeModalOpen(true)}
+                                      style={{ padding: '10px 22px', fontSize: '13px', fontWeight: 700, borderRadius: '12px', boxShadow: '0 4px 14px rgba(94, 106, 210, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}
+                                    >
+                                      <i className="ph ph-user-plus" style={{ fontSize: '16px' }}></i> Add New Employee
+                                    </button>
+                                  </div>
                                 )}
                               </div>
                             </td>
@@ -6015,7 +6048,18 @@ export default function App() {
                     </div>
                   ))}
                   {employees.length === 0 && (
-                    <div className="text-center text-muted" style={{ padding: '24px' }}>No crew registered. Add employees to log stitching operations.</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', padding: '24px 16px', textAlign: 'center', backgroundColor: 'var(--color-surface)', borderRadius: '14px', border: '1px solid var(--color-border)', margin: '12px 0' }}>
+                      <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: 'var(--color-accent-light)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
+                        <i className="ph ph-user-plus"></i>
+                      </div>
+                      <div>
+                        <h4 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 800, color: 'var(--color-text-primary)' }}>No Employees Registered</h4>
+                        <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-text-secondary)' }}>Register stitching crew and staff to manage piece rates & attendance.</p>
+                      </div>
+                      <button className="btn btn-primary" onClick={() => setIsEmployeeModalOpen(true)} style={{ padding: '8px 18px', fontSize: '12px', fontWeight: 700, borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <i className="ph ph-user-plus"></i> Add New Employee
+                      </button>
+                    </div>
                   )}
                 </div>
               </>
