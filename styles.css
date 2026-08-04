@@ -27,49 +27,48 @@
   --ring: 238.9 59% 59.6%;
   --radius: 0.75rem;
 
-  /* Primary Rich Violet Design System Tokens */
-  --color-primary: #6E56CF;       /* Vibrant Electric Violet */
-  --color-primary-hover: #5746AF; /* Deep Violet Hover */
-  --color-secondary: #5E6AD2;     /* Linear Violet */
-  --color-accent: #6E56CF;        /* Violet Accent */
-  --color-accent-light: rgba(110, 86, 207, 0.12);
+  /* Linear.app Official Design System Tokens */
+  --color-primary: #5E6AD2;       /* Linear Electric Indigo */
+  --color-primary-hover: #4F56E5; /* Deep Linear Indigo */
+  --color-secondary: #6E56CF;     /* Linear Violet */
+  --color-accent: #5E6AD2;        /* Linear Accent */
+  --color-accent-light: rgba(94, 106, 210, 0.1);
   
-  /* Preferred Clean White Theme Color Palette */
-  --color-background: #F8FAFC;    /* Slate-50 Clean White Base Canvas */
-  --color-surface: #FFFFFF;       /* Pure White Component Cards */
-  --color-surface-hover: #F1F5F9; /* Subtle Card Hover */
-  --color-foreground: #0F172A;    /* Slate-900 High Contrast Text */
+  --color-background: #FAFAFA;    /* Linear Light Workspace Canvas */
+  --color-surface: #FFFFFF;       /* Pure White Cards */
+  --color-surface-hover: #F4F4F6; /* Subtle Card Hover */
+  --color-foreground: #0F172A;    /* Primary Linear Crisp Text */
   --color-text-primary: #0F172A;  /* Primary Text */
-  --color-text-secondary: #64748B;/* Slate-500 Secondary Text */
-  --color-muted: #F1F5F9;         /* Slate-100 Muted Container */
-  --color-border: #E2E8F0;        /* Slate-200 Crisp Border */
-  --color-border-hover: #CBD5E1;
-  --color-border-focus: #6E56CF;  /* Violet Focus Ring */
+  --color-text-secondary: #626670;/* Linear Muted Text */
+  --color-muted: #F1F3F5;         /* Muted Fill */
+  --color-border: rgba(0, 0, 0, 0.08); /* Linear 1px Fine Border */
+  --color-border-hover: rgba(94, 106, 210, 0.4);
+  --color-border-focus: #5E6AD2;  /* Linear Focus Ring */
   --color-on-primary: #FFFFFF;
   
-  --color-destructive: #E11D48;   /* Rose Red */
-  --color-success: #10B981;       /* Emerald Green */
-  --color-warning: #F59E0B;       /* Amber */
+  --color-destructive: #F43F5E;   /* Linear Coral Rose */
+  --color-success: #10B981;       /* Linear Emerald Green */
+  --color-warning: #F59E0B;       /* Linear Amber */
   
-  /* Fonts */
-  --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  /* Linear Typography System */
+  --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', SFMono-Regular, monospace;
   
-  /* Linear Component Effects & Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.06), 0 2px 4px -1px rgba(15, 23, 42, 0.03);
-  --shadow-lg: 0 16px 32px -4px rgba(15, 23, 42, 0.1), 0 0 20px rgba(94, 106, 210, 0.12);
-  --glass-bg: rgba(255, 255, 255, 0.9);
-  --glass-border: rgba(226, 232, 240, 0.8);
-  --glass-blur: blur(16px);
+  /* Linear Motion & Elevation */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 16px 32px -4px rgba(0, 0, 0, 0.08), 0 0 24px rgba(94, 106, 210, 0.15);
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-blur: blur(12px);
   
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
   
-  --transition-fast: 150ms cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-normal: 250ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-fast: 120ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-normal: 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ==========================================
@@ -468,6 +467,51 @@ button, input, select, textarea {
   .metrics-grid-6 {
     grid-template-columns: 1fr;
   }
+}
+
+/* ==========================================
+   LINEAR.APP DESIGN SYSTEM COMPONENTS
+   ========================================== */
+kbd, .linear-kbd {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: #626670;
+  background: #F1F3F5;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.linear-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+}
+
+.linear-card:hover {
+  border-color: var(--color-border-hover);
+  box-shadow: 0 0 0 1px rgba(94, 106, 210, 0.3), var(--shadow-md);
+}
+
+.linear-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  background: rgba(94, 106, 210, 0.08);
+  color: #5E6AD2;
+  border: 1px solid rgba(94, 106, 210, 0.2);
 }
 
 /* Today's Factory Snapshot Highlighted Summary Card */
