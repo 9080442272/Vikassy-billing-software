@@ -5988,7 +5988,7 @@ export default function App() {
                             </td>
                             <td>{emp.phone || '-'}</td>
                             <td>
-                              <span className="badge badge-gst">{emp.role}</span>
+                              <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{emp.role}</span>
                             </td>
                             <td>{emp.subCategory || '-'}</td>
                             <td className="text-right">
@@ -6071,8 +6071,8 @@ export default function App() {
                           <span>{emp.name}</span>
                           <i className="ph ph-pencil-simple" style={{ fontSize: '12px', opacity: 0.7 }}></i>
                         </div>
-                        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                          <span className="badge" style={{ backgroundColor: 'rgba(124,58,237,0.08)', color: 'var(--color-primary)', border: '1px solid rgba(124,58,237,0.15)', fontSize: '10px', padding: '2px 6px', borderRadius: '8px' }}>{emp.role}</span>
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                          <span style={{ fontWeight: 600, color: 'var(--color-text-primary)', fontSize: '12px' }}>{emp.role}</span>
                           {emp.subCategory && (
                             <span className="badge" style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'var(--color-text-secondary)', border: '1px solid rgba(255,255,255,0.08)', fontSize: '10px', padding: '2px 6px', borderRadius: '8px' }}>{emp.subCategory}</span>
                           )}
