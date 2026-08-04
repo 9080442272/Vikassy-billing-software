@@ -151,12 +151,29 @@ i.ph, i[class^="ph-"], i[class*=" ph-"], span.ph, span[class^="ph-"], span[class
   -moz-osx-font-smoothing: grayscale;
 }
 
+html, body {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100% !important;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 100%;
+}
+
 body {
   font-family: var(--font-body);
   background-color: var(--color-background);
   color: var(--color-text-primary);
   min-height: 100vh;
   display: flex;
+  width: 100%;
   overflow-x: hidden;
   transition: background-color var(--transition-normal), color var(--transition-normal);
 }
@@ -3184,7 +3201,7 @@ input:checked + .slider:before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 24px;
+  padding: 12px 32px;
   background-color: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   position: sticky;
@@ -3192,7 +3209,8 @@ input:checked + .slider:before {
   z-index: 9;
   backdrop-filter: var(--glass-blur);
   transition: background-color var(--transition-normal), border-color var(--transition-normal);
-  margin: -32px -40px 24px -40px;
+  margin: -24px -32px 24px -32px;
+  width: calc(100% + 64px);
 }
 
 .linear-header-left {
