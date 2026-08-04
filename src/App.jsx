@@ -387,6 +387,35 @@ export default function App() {
   const [editingUser, setEditingUser] = useState(null);
   const [userViewMode, setUserViewMode] = useState('tree'); // 'tree' (Employee Tree) or 'table'
 
+  // --- Universal Delete Confirmation Modal State ---
+  const [deleteConfirmState, setDeleteConfirmState] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    itemName: '',
+    onConfirm: null
+  });
+
+  const requestDeleteConfirmation = ({ title = 'Confirm Deletion', message, itemName = '', onConfirm }) => {
+    setDeleteConfirmState({
+      isOpen: true,
+      title,
+      message,
+      itemName,
+      onConfirm
+    });
+  };
+
+  const closeDeleteConfirmModal = () => {
+    setDeleteConfirmState({
+      isOpen: false,
+      title: '',
+      message: '',
+      itemName: '',
+      onConfirm: null
+    });
+  };
+
   // --- References ---
   const chartCanvasRef = useRef(null);
   const chartInstanceRef = useRef(null);
@@ -724,10 +753,15 @@ export default function App() {
     }
   };
 
-  const deleteClient = async (id) => {
-    if (confirm("Are you sure you want to delete this client? All bills associated won't be deleted but will read as unknown.")) {
-      await deleteClientMutation({ id });
-    }
+  const deleteClient = (id, clientName = '') => {
+    requestDeleteConfirmation({
+      title: 'Delete Client Account',
+      message: 'Are you sure you want to delete this client profile from your business directory? Associated GST invoice records will remain saved in ledger entries.',
+      itemName: clientName || 'Client Account',
+      onConfirm: async () => {
+        await deleteClientMutation({ id });
+      }
+    });
   };
 
   const openEditClient = (c) => {
@@ -1476,10 +1510,15 @@ export default function App() {
     }
   };
 
-  const deleteBill = async (id) => {
-    if (confirm("Are you sure you want to delete this invoice record?")) {
-      await deleteBillMutation({ id });
-    }
+  const deleteBill = (id, billNum = '') => {
+    requestDeleteConfirmation({
+      title: 'Delete Invoice Record',
+      message: 'Are you sure you want to permanently delete this GST invoice record from accounting ledgers?',
+      itemName: billNum ? `Invoice #${billNum}` : 'Invoice Record',
+      onConfirm: async () => {
+        await deleteBillMutation({ id });
+      }
+    });
   };
 
   const openEditBill = (b) => {
@@ -1531,8 +1570,8 @@ export default function App() {
     const phone = document.getElementById('employee-phone').value.trim();
     const role = document.getElementById('employee-role').value;
     const subCategory = document.getElementById('employee-subcategory').value.trim();
-    const stitchRate = 0;
-    const salary = 0;
+    const stitchRate = parseFloat(document.getElementById('employee-stitch-rate')?.value) || 0;
+    const salary = parseFloat(document.getElementById('employee-salary')?.value) || 0;
 
     try {
       if (editingEmployee) {
@@ -1541,7 +1580,7 @@ export default function App() {
           name, phone, role, subCategory, stitchRate, salary,
           createdAt: editingEmployee.createdAt
         });
-        alert("Employee details updated successfully!");
+        alert("Employee updated successfully!");
       } else {
         await addEmployeeMutation({ name, phone, role, subCategory, stitchRate, salary });
         alert("Employee registered successfully!");
@@ -1552,10 +1591,15 @@ export default function App() {
     }
   };
 
-  const deleteEmployee = async (id) => {
-    if (confirm("Are you sure you want to delete this employee?")) {
-      await deleteEmployeeMutation({ id });
-    }
+  const deleteEmployee = (id, empName = '') => {
+    requestDeleteConfirmation({
+      title: 'Delete Staff Profile',
+      message: 'Are you sure you want to remove this employee profile from factory directory and rosters?',
+      itemName: empName || 'Employee Profile',
+      onConfirm: async () => {
+        await deleteEmployeeMutation({ id });
+      }
+    });
   };
 
   const openEditEmployee = (emp) => {
@@ -1602,10 +1646,15 @@ export default function App() {
     }
   };
 
-  const deleteFabric = async (id) => {
-    if (confirm("Are you sure you want to delete this fabric roll from ledger?")) {
-      await deleteFabricMutation({ id });
-    }
+  const deleteFabric = (id, rollNumber = '') => {
+    requestDeleteConfirmation({
+      title: 'Delete Fabric Stock Roll',
+      message: 'Are you sure you want to delete this fabric roll stock record from warehouse inventory?',
+      itemName: rollNumber ? `Fabric Roll #${rollNumber}` : 'Fabric Roll',
+      onConfirm: async () => {
+        await deleteFabricMutation({ id });
+      }
+    });
   };
 
   const openEditFabric = (fab) => {
@@ -1654,10 +1703,15 @@ export default function App() {
     }
   };
 
-  const deleteCeoActivity = async (id) => {
-    if (confirm("Delete this CEO log?")) {
-      await deleteCeoActivityMutation({ id });
-    }
+  const deleteCeoActivity = (id, logTitle = '') => {
+    requestDeleteConfirmation({
+      title: 'Delete Accomplishment Log',
+      message: 'Are you sure you want to delete this operational accomplishment log entry?',
+      itemName: logTitle || 'Log Entry',
+      onConfirm: async () => {
+        await deleteCeoActivityMutation({ id });
+      }
+    });
   };
 
   const openEditCeo = (act) => {
@@ -1706,10 +1760,15 @@ export default function App() {
     }
   };
 
-  const deleteExpense = async (id) => {
-    if (confirm("Are you sure you want to delete this expense record?")) {
-      await deleteExpenseMutation({ id });
-    }
+  const deleteExpense = (id, category = '') => {
+    requestDeleteConfirmation({
+      title: 'Delete Operational Expense',
+      message: 'Are you sure you want to delete this operational expense record from accounting books?',
+      itemName: category ? `${category} Expense` : 'Expense Entry',
+      onConfirm: async () => {
+        await deleteExpenseMutation({ id });
+      }
+    });
   };
 
   const openEditExpense = (exp) => {
@@ -1763,10 +1822,15 @@ export default function App() {
     }
   };
 
-  const deleteUpcomingOrder = async (id) => {
-    if (confirm("Cancel and delete this upcoming order?")) {
-      await deleteUpcomingOrderMutation({ id });
-    }
+  const deleteUpcomingOrder = (id, orderTitle = '') => {
+    requestDeleteConfirmation({
+      title: 'Cancel & Delete Order',
+      message: 'Are you sure you want to cancel and delete this upcoming production order?',
+      itemName: orderTitle || 'Upcoming Order',
+      onConfirm: async () => {
+        await deleteUpcomingOrderMutation({ id });
+      }
+    });
   };
 
   const updateUpcomingOrderStatus = async (order, newStatus) => {
@@ -1865,10 +1929,15 @@ export default function App() {
     }, 50);
   };
 
-  const deleteStitching = async (id) => {
-    if (confirm("Delete this stitching assignment?")) {
-      await deleteStitchingMutation({ id });
-    }
+  const deleteStitching = (id, jobTitle = '') => {
+    requestDeleteConfirmation({
+      title: 'Delete Production Job',
+      message: 'Are you sure you want to delete this stitching assignment and piece-rate job record?',
+      itemName: jobTitle || 'Production Job',
+      onConfirm: async () => {
+        await deleteStitchingMutation({ id });
+      }
+    });
   };
 
   // --- User Profile Account update handlers ---
@@ -2303,15 +2372,20 @@ export default function App() {
   };
 
   // Clear all sample seed data from database
-  const handleClearDatabase = async () => {
-    if (window.confirm("⚠️ Are you sure you want to clear all data and reset the database? This action cannot be undone.")) {
-      try {
-        await clearAllDataMutation();
-        alert("🧹 All database records cleared successfully! The database is now clean.");
-      } catch (err) {
-        alert("Error clearing database: " + err.message);
+  const handleClearDatabase = () => {
+    requestDeleteConfirmation({
+      title: '⚠️ Reset Database Records',
+      message: 'CRITICAL ACTION: Are you sure you want to clear all data and reset the entire database? All invoices, clients, inventory, and payroll records will be permanently erased.',
+      itemName: 'ALL DATABASE RECORDS',
+      onConfirm: async () => {
+        try {
+          await clearAllDataMutation();
+          alert("🧹 All database records cleared successfully! The database is now clean.");
+        } catch (err) {
+          alert("Error clearing database: " + err.message);
+        }
       }
-    }
+    });
   };
 
   // If user is not logged in, render the Auth Overlay
@@ -7743,6 +7817,125 @@ export default function App() {
             >
               🎙️ "enter srimathi as a new employee"
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* UNIVERSAL LINEAR-STYLED DELETE CONFIRMATION MODAL */}
+      {deleteConfirmState.isOpen && (
+        <div 
+          className="modal-overlay active" 
+          onClick={closeDeleteConfirmModal}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+            padding: '16px'
+          }}
+        >
+          <div 
+            className="modal-card" 
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: '20px',
+              maxWidth: '460px',
+              width: '100%',
+              padding: '24px',
+              border: '1px solid rgba(0, 0, 0, 0.08)',
+              boxShadow: '0 20px 40px rgba(15, 23, 42, 0.2), 0 0 0 1px rgba(244, 63, 94, 0.1)',
+              animation: 'modalSlideIn 180ms cubic-bezier(0.16, 1, 0.3, 1)'
+            }}
+          >
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', marginBottom: '20px' }}>
+              {/* Warning Icon Avatar Badge */}
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '14px',
+                backgroundColor: '#FFE4E6',
+                color: '#F43F5E',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '24px',
+                flexShrink: 0,
+                border: '1px solid rgba(244, 63, 94, 0.2)'
+              }}>
+                <i className="ph ph-warning-octagon"></i>
+              </div>
+
+              <div style={{ flex: 1 }}>
+                <h3 style={{ margin: '0 0 6px 0', fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>
+                  {deleteConfirmState.title || 'Confirm Deletion'}
+                </h3>
+                <p style={{ margin: 0, fontSize: '13.5px', color: '#64748B', lineHeight: '1.5' }}>
+                  {deleteConfirmState.message || 'Are you sure you want to permanently delete this item? This action cannot be undone.'}
+                </p>
+              </div>
+            </div>
+
+            {/* Target Item Name Badge */}
+            {deleteConfirmState.itemName && (
+              <div style={{
+                backgroundColor: '#F8FAFC',
+                border: '1px solid #E2E8F0',
+                borderRadius: '10px',
+                padding: '10px 14px',
+                marginBottom: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <i className="ph ph-trash" style={{ color: '#F43F5E', fontSize: '16px' }}></i>
+                <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#0F172A', fontFamily: 'var(--font-mono)' }}>
+                  {deleteConfirmState.itemName}
+                </span>
+              </div>
+            )}
+
+            {/* Action Buttons Row */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', paddingTop: '16px', borderTop: '1px solid #F1F5F9' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={closeDeleteConfirmModal}
+                style={{ borderRadius: '10px', padding: '9px 18px', fontWeight: 600, fontSize: '13px' }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (deleteConfirmState.onConfirm) {
+                    await deleteConfirmState.onConfirm();
+                  }
+                  closeDeleteConfirmModal();
+                }}
+                style={{
+                  backgroundColor: '#F43F5E',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: '9px 20px',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(244, 63, 94, 0.25)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 120ms ease'
+                }}
+              >
+                <i className="ph ph-trash" style={{ fontSize: '15px' }}></i> Delete Permanently
+              </button>
+            </div>
           </div>
         </div>
       )}
