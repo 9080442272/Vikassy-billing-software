@@ -6883,21 +6883,6 @@ export default function App() {
                 <button className={`sub-tab-btn ${expensesSubTab === 'investments' || expensesSubTab === 'funding' ? 'active' : ''}`} onClick={() => setExpensesSubTab('investments')}>
                   <i className="ph ph-piggy-bank"></i> Owner Investments & Funding
                 </button>
-                <button className={`sub-tab-btn ${expensesSubTab === 'add' ? 'active' : ''}`} onClick={() => setIsExpenseModalOpen(true)}>
-                  <i className="ph ph-plus-circle"></i> Add Expense
-                </button>
-                <button className={`sub-tab-btn ${expensesSubTab === 'categories' ? 'active' : ''}`} onClick={() => setExpensesSubTab('categories')}>
-                  <i className="ph ph-folders"></i> Expense Categories
-                </button>
-                <button className={`sub-tab-btn ${expensesSubTab === 'pending' ? 'active' : ''}`} onClick={() => setExpensesSubTab('pending')}>
-                  <i className="ph ph-hourglass"></i> Pending Approval
-                </button>
-                <button className={`sub-tab-btn ${expensesSubTab === 'approved' ? 'active' : ''}`} onClick={() => setExpensesSubTab('approved')}>
-                  <i className="ph ph-check-square"></i> Approved Expenses
-                </button>
-                <button className={`sub-tab-btn ${expensesSubTab === 'summary' ? 'active' : ''}`} onClick={() => setExpensesSubTab('summary')}>
-                  <i className="ph ph-chart-pie"></i> Monthly Summary
-                </button>
               </div>
 
               {expensesSubTab === 'investments' ? (() => {
