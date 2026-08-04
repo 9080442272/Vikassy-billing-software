@@ -232,83 +232,30 @@ function LinearDatePickerInput({ id, name, label, defaultValue, value, onChange,
           top: 'calc(100% + 6px)',
           left: 0,
           zIndex: 9999,
-          width: '320px',
+          width: '280px',
           backgroundColor: '#FFFFFF',
           borderRadius: '16px',
           boxShadow: '0 12px 36px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.08)',
           padding: '16px',
           fontFamily: 'Inter, system-ui, sans-serif'
         }}>
-          {/* Quick Search Input */}
-          <div style={{ marginBottom: '12px' }}>
-            <div style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', marginBottom: '4px' }}>Start date</div>
-            <input
-              type="text"
-              placeholder="Try: May 2027, Q4, 20/05/2027"
-              value={quickInput}
-              onChange={(e) => setQuickInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  const parts = quickInput.split('/');
-                  if (parts.length === 3) {
-                    const parsed = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-                    if (!isNaN(parsed.getTime())) handleSelectDate(parsed);
-                  }
-                }
-              }}
-              style={{
-                width: '100%',
-                padding: '9px 12px',
-                fontSize: '13px',
-                borderRadius: '8px',
-                border: '1.5px solid #5E6AD2',
-                outline: 'none',
-                color: '#1E1E24'
-              }}
-            />
-          </div>
-
-          {/* Granularity Pills */}
-          <div style={{ display: 'flex', gap: '4px', marginBottom: '14px', flexWrap: 'wrap' }}>
-            {['Day', 'Month', 'Quarter', 'Half-year', 'Year'].map(mode => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => setViewMode(mode)}
-                style={{
-                  padding: '4px 10px',
-                  borderRadius: '16px',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  border: '1px solid ' + (viewMode === mode ? '#E0E0E6' : 'transparent'),
-                  backgroundColor: viewMode === mode ? '#F2F2F7' : 'transparent',
-                  color: '#2C2D35',
-                  cursor: 'pointer'
-                }}
-              >
-                {mode}
-              </button>
-            ))}
-          </div>
-
           {/* Month Header & Navigation */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', padding: '0 4px' }}>
-            <span style={{ fontSize: '14px', fontWeight: 600, color: '#1E1E24' }}>
+            <span style={{ fontSize: '14px', fontWeight: 700, color: '#1E1E24' }}>
               {monthNames[month]} {year}
             </span>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
                 type="button"
                 onClick={prevMonth}
-                style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '14px', color: '#62636C', padding: '4px' }}
+                style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '15px', color: '#62636C', padding: '4px' }}
               >
                 <i className="ph ph-caret-left"></i>
               </button>
               <button
                 type="button"
                 onClick={nextMonth}
-                style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '14px', color: '#62636C', padding: '4px' }}
+                style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '15px', color: '#62636C', padding: '4px' }}
               >
                 <i className="ph ph-caret-right"></i>
               </button>
