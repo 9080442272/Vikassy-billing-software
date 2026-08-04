@@ -186,7 +186,7 @@ function LinearDatePickerInput({ id, name, label, defaultValue, value, onChange,
   };
 
   return (
-    <div className="form-group" style={{ position: 'relative' }} ref={popoverRef}>
+    <div className="form-group" style={{ position: 'relative', marginBottom: isOpen ? '230px' : undefined, transition: 'margin-bottom 0.2s ease' }} ref={popoverRef}>
       {label && <label htmlFor={id} style={{ fontWeight: 600, display: 'block', marginBottom: '6px' }}>{label}</label>}
       <div style={{ position: 'relative' }}>
         <input
@@ -231,11 +231,11 @@ function LinearDatePickerInput({ id, name, label, defaultValue, value, onChange,
           position: 'absolute',
           top: 'calc(100% + 6px)',
           left: 0,
-          zIndex: 9999,
+          zIndex: 100000,
           width: '280px',
           backgroundColor: '#FFFFFF',
           borderRadius: '16px',
-          boxShadow: '0 12px 36px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.08)',
+          boxShadow: '0 12px 36px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.1)',
           padding: '16px',
           fontFamily: 'Inter, system-ui, sans-serif'
         }}>
