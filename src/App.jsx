@@ -5839,9 +5839,279 @@ export default function App() {
               <button className={`sub-tab-btn ${employeesSubTab === 'salary' || employeesSubTab === 'payroll' ? 'active' : ''}`} onClick={() => setEmployeesSubTab('salary')}>
                 <i className="ph ph-hand-coins"></i> Weekly Payouts & Advances
               </button>
+              <button className={`sub-tab-btn ${employeesSubTab === 'tree' || employeesSubTab === 'org' ? 'active' : ''}`} onClick={() => setEmployeesSubTab('tree')}>
+                <i className="ph ph-tree-structure"></i> Organization Chart Tree
+              </button>
             </div>
 
-            {employeesSubTab === 'attendance' ? (
+            {employeesSubTab === 'tree' ? (
+              <div style={{ marginTop: '20px', position: 'relative', overflowX: 'auto', padding: '10px 0' }}>
+                {/* Interactive Holi/Linear Dotted Canvas Container */}
+                <div style={{
+                  minWidth: '880px',
+                  minHeight: '620px',
+                  backgroundColor: '#FAFAFC',
+                  backgroundImage: 'radial-gradient(#CBD5E1 1.2px, transparent 1.2px)',
+                  backgroundSize: '18px 18px',
+                  borderRadius: '20px',
+                  border: '1px solid #E2E8F0',
+                  padding: '36px 20px 90px 20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  position: 'relative'
+                }}>
+                  {/* Top Total Badge */}
+                  <div style={{ 
+                    fontSize: '13px', 
+                    fontWeight: 600, 
+                    color: '#64748B', 
+                    marginBottom: '24px',
+                    backgroundColor: '#FFFFFF',
+                    padding: '6px 16px',
+                    borderRadius: '20px',
+                    border: '1px solid #E2E8F0',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+                  }}>
+                    Total: <strong style={{ color: '#1E293B' }}>{employees.length > 0 ? employees.length : 4} collaborators</strong>
+                  </div>
+
+                  {/* Level 1: CEO / Executive Node */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+                    <div className="org-node-card" style={{
+                      width: '260px',
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: '16px',
+                      border: '1px solid #E2E8F0',
+                      boxShadow: '0 8px 24px -4px rgba(0,0,0,0.08)',
+                      padding: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '8px',
+                      position: 'relative',
+                      zIndex: 2
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
+                        <div style={{
+                          width: '42px', height: '42px', borderRadius: '50%',
+                          backgroundColor: '#6E56CF', color: '#FFF',
+                          fontWeight: 800, fontSize: '18px', display: 'flex',
+                          alignItems: 'center', justifyContent: 'center'
+                        }}>
+                          B
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '15px', fontWeight: 700, color: '#1E1E24' }}>Balasubramainan</div>
+                          <div style={{ fontSize: '12px', color: '#62636C', fontWeight: 500 }}>CEO & Managing Director</div>
+                        </div>
+                      </div>
+                      <button 
+                        type="button" 
+                        onClick={() => setViewingUser({ name: "Balasubramainan", email: "bala@varahiexport.com", role: "CEO / Administrator", status: "Active" })}
+                        style={{ marginTop: '6px', border: 'none', background: 'none', color: '#6E56CF', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        Détails
+                      </button>
+                    </div>
+
+                    {/* Vertical connector down from Level 1 */}
+                    <div style={{ width: '2px', height: '36px', backgroundColor: '#6E56CF' }}></div>
+
+                    {/* Count Pill */}
+                    <div style={{
+                      width: '26px', height: '26px', borderRadius: '50%',
+                      backgroundColor: '#6E56CF', color: '#FFF',
+                      fontSize: '12px', fontWeight: 800,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: '0 2px 8px rgba(110, 86, 207, 0.4)',
+                      zIndex: 3, marginTop: '-13px'
+                    }}>
+                      3
+                    </div>
+
+                    {/* Level 2 Horizontal Connector Line */}
+                    <div style={{ width: '640px', height: '2px', backgroundColor: '#CBD5E1', marginTop: '14px' }}></div>
+                  </div>
+
+                  {/* Level 2: Department Leads (3 Columns) */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', width: '680px', marginTop: '0px', position: 'relative' }}>
+                    
+                    {/* Lead 1: Stitching Master (Kartick) */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+                      <div style={{ width: '2px', height: '24px', backgroundColor: '#CBD5E1' }}></div>
+                      <div className="org-node-card" style={{
+                        width: '210px',
+                        backgroundColor: '#FFFFFF',
+                        borderRadius: '16px',
+                        border: '1px solid #E2E8F0',
+                        boxShadow: '0 6px 20px -4px rgba(0,0,0,0.06)',
+                        padding: '14px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%' }}>
+                          <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#3B82F6', color: '#FFF', fontWeight: 700, fontSize: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            K
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#1E1E24' }}>Kartick</div>
+                            <div style={{ fontSize: '11px', color: '#62636C', fontWeight: 500 }}>Master Tailor Head</div>
+                          </div>
+                        </div>
+                        <button 
+                          type="button" 
+                          onClick={() => setViewingUser({ name: "Kartick", email: "kartick@varahiexport.com", role: "Stitching Unit Master", status: "Active" })}
+                          style={{ marginTop: '4px', border: 'none', background: 'none', color: '#3B82F6', fontSize: '11.5px', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          Détails
+                        </button>
+                      </div>
+
+                      {/* Sub-connector for Stitchers */}
+                      <div style={{ width: '2px', height: '24px', backgroundColor: '#3B82F6' }}></div>
+                      <div style={{
+                        width: '22px', height: '22px', borderRadius: '50%',
+                        backgroundColor: '#3B82F6', color: '#FFF',
+                        fontSize: '11px', fontWeight: 800,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        zIndex: 3, marginTop: '-11px'
+                      }}>
+                        2
+                      </div>
+
+                      {/* Sub-level 3: Stitchers */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '14px' }}>
+                        <div style={{
+                          width: '190px', backgroundColor: '#FFFFFF', borderRadius: '12px',
+                          border: '1px solid #E2E8F0', padding: '10px 12px',
+                          display: 'flex', alignItems: 'center', gap: '8px',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
+                        }}>
+                          <div style={{ width: '30px', height: '30px', borderRadius: '50%', backgroundColor: '#10B981', color: '#FFF', fontWeight: 700, fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            C
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#1E1E24' }}>Chithra</div>
+                            <div style={{ fontSize: '10.5px', color: '#64748B' }}>Senior Stitcher</div>
+                          </div>
+                        </div>
+
+                        <div style={{
+                          width: '190px', backgroundColor: '#FFFFFF', borderRadius: '12px',
+                          border: '1px solid #E2E8F0', padding: '10px 12px',
+                          display: 'flex', alignItems: 'center', gap: '8px',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
+                        }}>
+                          <div style={{ width: '30px', height: '30px', borderRadius: '50%', backgroundColor: '#F59E0B', color: '#FFF', fontWeight: 700, fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            S
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#1E1E24' }}>Srimathi</div>
+                            <div style={{ fontSize: '10.5px', color: '#64748B' }}>Stitcher (Overlock)</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Lead 2: Cutting Unit Lead (Ramesh Kumar) */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+                      <div style={{ width: '2px', height: '24px', backgroundColor: '#CBD5E1' }}></div>
+                      <div className="org-node-card" style={{
+                        width: '210px',
+                        backgroundColor: '#FFFFFF',
+                        borderRadius: '16px',
+                        border: '1px solid #E2E8F0',
+                        boxShadow: '0 6px 20px -4px rgba(0,0,0,0.06)',
+                        padding: '14px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%' }}>
+                          <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#8B5CF6', color: '#FFF', fontWeight: 700, fontSize: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            R
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#1E1E24' }}>Ramesh Kumar</div>
+                            <div style={{ fontSize: '11px', color: '#62636C', fontWeight: 500 }}>Cutting Unit Head</div>
+                          </div>
+                        </div>
+                        <button 
+                          type="button" 
+                          onClick={() => setViewingUser({ name: "Ramesh Kumar", email: "ramesh@varahiexport.com", role: "Cutting Master Supervisor", status: "Active" })}
+                          style={{ marginTop: '4px', border: 'none', background: 'none', color: '#8B5CF6', fontSize: '11.5px', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          Détails
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Lead 3: QC & Finishing Lead (Anitha Devi) */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+                      <div style={{ width: '2px', height: '24px', backgroundColor: '#CBD5E1' }}></div>
+                      <div className="org-node-card" style={{
+                        width: '210px',
+                        backgroundColor: '#FFFFFF',
+                        borderRadius: '16px',
+                        border: '1px solid #E2E8F0',
+                        boxShadow: '0 6px 20px -4px rgba(0,0,0,0.06)',
+                        padding: '14px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%' }}>
+                          <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#EC4899', color: '#FFF', fontWeight: 700, fontSize: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            A
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#1E1E24' }}>Anitha Devi</div>
+                            <div style={{ fontSize: '11px', color: '#62636C', fontWeight: 500 }}>QC & Finishing Lead</div>
+                          </div>
+                        </div>
+                        <button 
+                          type="button" 
+                          onClick={() => setViewingUser({ name: "Anitha Devi", email: "anitha@varahiexport.com", role: "Quality Control Lead", status: "Active" })}
+                          style={{ marginTop: '4px', border: 'none', background: 'none', color: '#EC4899', fontSize: '11.5px', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          Détails
+                        </button>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* Floating Bottom Control Bar (matching screenshot) */}
+                  <div style={{
+                    position: 'absolute',
+                    bottom: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    backgroundColor: '#1C1C21',
+                    borderRadius: '12px',
+                    padding: '4px 6px',
+                    boxShadow: '0 12px 32px rgba(0,0,0,0.25)',
+                    color: '#FFFFFF'
+                  }}>
+                    <button type="button" style={{ border: 'none', background: 'none', color: '#FFFFFF', padding: '6px 12px', fontSize: '12px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                      <i className="ph ph-tree-structure"></i> Vue par équipe
+                    </button>
+                    <button type="button" style={{ border: 'none', background: 'rgba(255,255,255,0.12)', borderRadius: '8px', color: '#FFFFFF', padding: '6px 12px', fontSize: '12px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                      <i className="ph ph-user"></i> Vue par collaborator
+                    </button>
+                    <button type="button" style={{ border: 'none', backgroundColor: '#6E56CF', borderRadius: '8px', color: '#FFFFFF', padding: '6px 12px', fontSize: '12px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                      Filtrer ({employees.length > 0 ? employees.length : 4}) <i className="ph ph-sliders"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : employeesSubTab === 'attendance' ? (
               <div className="table-card bg-surface border" style={{ marginTop: '20px' }}>
                 <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Daily Shift & Attendance Log</h3>
