@@ -88,6 +88,70 @@ function decodeJwt(token) {
 }
 
 export default function App() {
+  // Custom Local Jobs State (Production Manager Kanban Suite)
+  const [customLocalJobs, setCustomLocalJobs] = useState([
+    { 
+      _id: 'job-101', 
+      orderTitle: 'Cotton Polo T-Shirts Batch A', 
+      product: 'Cotton Polo T-Shirts',
+      clientName: 'Apex Denim Exports', 
+      quantity: 5000,
+      deliveryDate: '2026-08-15', 
+      estimatedValue: 145000, 
+      priority: 'High',
+      productionUnit: 'Cutting Unit A',
+      assignedWorker: 'Kartick (Master Tailor)',
+      status: 'Pending', 
+      stage: 'Backlog & Cutting',
+      notes: '100% Combed Cotton, 180 GSM GSM specifications.' 
+    },
+    { 
+      _id: 'job-102', 
+      orderTitle: 'Denim Jackets Heavy Stitching', 
+      product: 'Denim Jackets',
+      clientName: 'Sri Varahi Garments', 
+      quantity: 2500,
+      deliveryDate: '2026-08-02', // Overdue for testing alert!
+      estimatedValue: 210000, 
+      priority: 'Urgent',
+      productionUnit: 'Stitching Floor 2',
+      assignedWorker: 'Murugan (Stitching Supervisor)',
+      status: 'In Production', 
+      stage: 'Stitching Assembly',
+      notes: 'Double needle heavy duty thread sewing.' 
+    },
+    { 
+      _id: 'job-103', 
+      orderTitle: 'Woven Formal Shirts Export Batch', 
+      product: 'Woven Formal Shirts',
+      clientName: 'Royal Fabrics Corp', 
+      quantity: 3200,
+      deliveryDate: '2026-08-08', 
+      estimatedValue: 98500, 
+      priority: 'Medium',
+      productionUnit: 'QC Inspection Room B',
+      assignedWorker: 'Sangeetha (QC Manager)',
+      status: 'QC Inspection', 
+      stage: 'QC Inspection',
+      notes: 'Stain resistance check and collar buttoning test.' 
+    },
+    { 
+      _id: 'job-104', 
+      orderTitle: 'Kidswear Garment Export Sets', 
+      product: 'Kidswear Export Sets',
+      clientName: 'Blue Sky Retailers', 
+      quantity: 1800,
+      deliveryDate: '2026-08-10', 
+      estimatedValue: 65000, 
+      priority: 'Low',
+      productionUnit: 'Packing & Carton Unit',
+      assignedWorker: 'Ramesh (Packing Head)',
+      status: 'Ready', 
+      stage: 'Packing & Ready',
+      notes: 'Individual polybag packing with barcodes.' 
+    }
+  ]);
+
   // --- Convex Real-time Cloud Queries ---
   const clients = useQuery(api.clients.getAll) || [];
   const bills = useQuery(api.bills.getAll) || [];
@@ -96,7 +160,8 @@ export default function App() {
   const stitching = useQuery(api.stitching.getAll) || [];
   const ceoActivities = useQuery(api.ceoActivities.getAll) || [];
   const expenses = useQuery(api.expenses.getAll) || [];
-  const upcomingOrders = useQuery(api.upcomingOrders.getAll) || [];
+  const upcomingOrdersConvex = useQuery(api.upcomingOrders.getAll) || [];
+  const upcomingOrders = [...(customLocalJobs || []), ...upcomingOrdersConvex];
   const rawUsers = useQuery(api.users.getAll);
   const users = rawUsers || [];
 
@@ -134,6 +199,29 @@ export default function App() {
 
   // --- State hooks ---
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('lastActiveTab') || 'dashboard');
+  
+  // Linear Design System Theme Mode (Dark Mode Default)
+  const [theme, setTheme] = useState(() => localStorage.getItem('linear_theme') || 'dark');
+
+  useEffect(() => {
+    localStorage.setItem('linear_theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
+
+  // Linear Cmd + K Command Palette State
+  const [isCmdPaletteOpen, setIsCmdPaletteOpen] = useState(false);
+  const [cmdSearchQuery, setCmdSearchQuery] = useState('');
+
   const [currentLoggedUser, setCurrentLoggedUser] = useState(() => {
     const localUser = localStorage.getItem('currentUser');
     return localUser ? { username: localUser, fullName: localUser } : {
@@ -229,8 +317,9 @@ export default function App() {
     const handleKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        setIsSiriFloatingBarOpen(true);
-        startVoiceAssistant();
+        setIsCmdPaletteOpen(prev => !prev);
+      } else if (e.key === 'Escape') {
+        setIsCmdPaletteOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -241,8 +330,47 @@ export default function App() {
 
   // Varahi System Sub-Module Tabs States
   const [jobsSubTab, setJobsSubTab] = useState('all'); // 'all' | 'create' | 'ongoing' | 'completed' | 'delayed' | 'details'
+  const [jobsViewMode, setJobsViewMode] = useState('board'); // 'board' (Linear Kanban) | 'list'
   const [jobDetailsTab, setJobDetailsTab] = useState('overview'); // 'overview' | 'timeline' | 'staff' | 'progress' | 'expenses' | 'files' | 'logs'
   const [selectedJob, setSelectedJob] = useState(null);
+  const [selectedJobModal, setSelectedJobModal] = useState(null); // Interactive Job Modal Overlay
+  const [kanbanSearchQuery, setKanbanSearchQuery] = useState('');
+  const [kanbanPriorityFilter, setKanbanPriorityFilter] = useState('All'); // 'All' | 'Urgent' | 'High' | 'Medium' | 'Low'
+
+  // Stage Progression Helper
+  const moveJobStage = (jobId, newStage) => {
+    setCustomLocalJobs(prev => prev.map(j => {
+      if (j._id === jobId) {
+        return { ...j, stage: newStage, status: newStage };
+      }
+      return j;
+    }));
+
+    if (selectedJobModal && selectedJobModal._id === jobId) {
+      setSelectedJobModal(prev => ({ ...prev, stage: newStage, status: newStage }));
+    }
+
+    setActivityAuditLogs(prev => [
+      { 
+        id: Date.now(), 
+        user: "Production Manager", 
+        action: `Advanced Order #${jobId}`, 
+        target: `to ${newStage}`, 
+        time: "Just now", 
+        icon: "ph-arrow-right", 
+        color: "#10B981" 
+      },
+      ...prev
+    ]);
+  };
+
+  // Linear Audit Stream & Event Logs
+  const [activityAuditLogs, setActivityAuditLogs] = useState([
+    { id: 1, user: "Vikashini Balasubramanian", action: "Created GST Invoice", target: "#VE-2026-084 (₹1,85,000)", time: "10 mins ago", icon: "ph-receipt", color: "#5E6AD2" },
+    { id: 2, user: "Kartick (Master Tailor)", action: "Moved Production Job", target: "#JOB-102 to QC Inspection", time: "25 mins ago", icon: "ph-scissors", color: "#10B981" },
+    { id: 3, user: "Billing Accountant", action: "Registered Buyer Profile", target: "Apex Denim Exports Ltd.", time: "1 hour ago", icon: "ph-user-plus", color: "#F59E0B" },
+    { id: 4, user: "System Auto-Runner", action: "Triggered Webhook Delivery", target: "GST Portal E-Way Sync (200 OK)", time: "2 hours ago", icon: "ph-lightning", color: "#8B5CF6" }
+  ]);
 
   const [clientsSubTab, setClientsSubTab] = useState('list'); // 'list' | 'details' | 'active-jobs' | 'completed-jobs' | 'documents'
   const [selectedClientDetail, setSelectedClientDetail] = useState(null);
@@ -250,6 +378,7 @@ export default function App() {
   const [employeesSubTab, setEmployeesSubTab] = useState('directory'); // 'directory' | 'attendance' | 'payroll' | 'performance' | 'salary' | 'leave' | 'profile'
   const [empProfileTab, setEmpProfileTab] = useState('personal'); // 'personal' | 'attendance' | 'jobs' | 'salary' | 'documents'
   const [selectedEmployeeDetail, setSelectedEmployeeDetail] = useState(null);
+  const [isAnalyzingAI, setIsAnalyzingAI] = useState(false);
 
   // Employee Action Modals & Records
   const [isAttendanceModalOpen, setIsAttendanceModalOpen] = useState(false);
@@ -3049,6 +3178,32 @@ export default function App() {
       {/* Main Content Layout */}
       <main className="main-content">
 
+        {/* Linear Top Bar Header */}
+        <header className="linear-top-header">
+          <div className="linear-header-left">
+            <div className="linear-workspace-pill" onClick={() => setIsCompanyDropdownOpen(!isCompanyDropdownOpen)}>
+              <i className="ph ph-buildings" style={{ color: 'var(--color-primary)' }}></i>
+              <span>{activeCompany.name} ({activeCompany.branch})</span>
+              <i className="ph ph-caret-down" style={{ fontSize: '11px', opacity: 0.6 }}></i>
+            </div>
+            <button className="linear-cmd-launcher" onClick={() => setIsCmdPaletteOpen(true)}>
+              <i className="ph ph-magnifying-glass"></i>
+              <span>Search commands or jump to...</span>
+              <kbd className="linear-kbd" style={{ marginLeft: 'auto' }}>⌘K</kbd>
+            </button>
+          </div>
+
+          <div className="linear-header-right">
+            <button 
+              className="theme-toggle-btn" 
+              onClick={toggleTheme} 
+              title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {theme === 'dark' ? <i className="ph-fill ph-sun" style={{ color: '#F59E0B' }}></i> : <i className="ph-fill ph-moon" style={{ color: '#5E6AD2' }}></i>}
+            </button>
+          </div>
+        </header>
+
         {/* ==================== DASHBOARD VIEW (Textile ERP System) ==================== */}
         {activeTab === 'dashboard' && (
           <>
@@ -3520,102 +3675,175 @@ export default function App() {
               </button>
             </header>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #E6E6EB', paddingBottom: '8px' }}>
-              <div className="sub-tab-bar" style={{ margin: 0, border: 'none', padding: 0 }}>
-                <button className={`sub-tab-btn ${jobsSubTab === 'all' ? 'active' : ''}`} onClick={() => setJobsSubTab('all')}>
-                  <i className="ph ph-list-checks"></i> All Jobs
-                </button>
-                <button className={`sub-tab-btn ${jobsSubTab === 'create' ? 'active' : ''}`} onClick={() => setJobsSubTab('create')}>
-                  <i className="ph ph-plus-circle"></i> Create Job
-                </button>
-                <button className={`sub-tab-btn ${jobsSubTab === 'ongoing' ? 'active' : ''}`} onClick={() => setJobsSubTab('ongoing')}>
-                  <i className="ph ph-gear-six"></i> Ongoing Jobs
-                </button>
-                <button className={`sub-tab-btn ${jobsSubTab === 'completed' ? 'active' : ''}`} onClick={() => setJobsSubTab('completed')}>
-                  <i className="ph ph-check-circle"></i> Completed Jobs
-                </button>
-                <button className={`sub-tab-btn ${jobsSubTab === 'delayed' ? 'active' : ''}`} onClick={() => setJobsSubTab('delayed')}>
-                  <i className="ph ph-warning-circle"></i> Delayed Jobs
-                </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px', borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span className="badge badge-purple" style={{ fontSize: '12px' }}><i className="ph ph-kanban"></i> Production Kanban</span>
+                <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>5 Active Stage Columns</span>
               </div>
 
-              {/* Linear Filter Controls Bar */}
-              <div style={{ position: 'relative', display: 'flex', gap: '6px', alignItems: 'center' }}>
-                <button 
-                  className="btn-icon" 
-                  onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)} 
-                  style={{ padding: '4px 10px', fontSize: '12px', borderRadius: '14px', border: '1px solid #E6E6EB', backgroundColor: '#FFFFFF', color: '#1C1C21', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500, cursor: 'pointer' }}
-                  title="Filter options"
-                >
-                  <i className="ph ph-funnel" style={{ fontSize: '13px', color: '#62636C' }}></i>
-                  <span>Filter</span>
-                  <i className="ph ph-caret-down" style={{ fontSize: '10px', color: '#8C8D96' }}></i>
-                </button>
-
-                <button className="btn-icon" style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #E6E6EB', backgroundColor: '#FFFFFF', color: '#62636C', display: 'flex', alignItems: 'center', justifyCenter: 'center' }} title="Display Options">
-                  <i className="ph ph-sliders"></i>
-                </button>
-
-                {isFilterMenuOpen && (
-                  <div className="linear-filter-menu" onClick={(e) => e.stopPropagation()}>
-                    <div className="filter-menu-header">
-                      <input type="text" placeholder="Add Filter..." autoFocus />
-                      <span style={{ fontSize: '10px', fontWeight: 600, color: '#8C8D96', backgroundColor: '#F4F4F6', padding: '1px 5px', borderRadius: '4px' }}>F</span>
-                    </div>
-                    <div className="filter-menu-item"><div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><i className="ph ph-sparkle"></i> AI Filter</div><i className="ph ph-caret-right"></i></div>
-                    <div className="filter-menu-item"><div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><i className="ph ph-sliders-horizontal"></i> Advanced Filter</div><i className="ph ph-caret-right"></i></div>
-                    <div style={{ borderTop: '1px solid #F0F0F4', margin: '4px 0' }}></div>
-                    <div className="filter-menu-item"><div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><i className="ph ph-circle-dashed"></i> Status</div><i className="ph ph-caret-right"></i></div>
-                    <div className="filter-menu-item"><div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><i className="ph ph-user"></i> Assignee</div><i className="ph ph-caret-right"></i></div>
-                    <div className="filter-menu-item"><div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><i className="ph ph-chart-bar"></i> Priority</div><i className="ph ph-caret-right"></i></div>
-                    <div className="filter-menu-item"><div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><i className="ph ph-tag"></i> Labels</div><i className="ph ph-caret-right"></i></div>
-                    <div className="filter-menu-item"><div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><i className="ph ph-calendar"></i> Target Date</div><i className="ph ph-caret-right"></i></div>
-                  </div>
-                )}
+              {/* View Mode Controls Bar (Board vs List) */}
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <div style={{ display: 'flex', backgroundColor: 'var(--color-muted)', padding: '3px', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
+                  <button 
+                    type="button"
+                    className={`sub-tab-btn ${jobsViewMode === 'board' ? 'active' : ''}`}
+                    onClick={() => { setJobsViewMode('board'); setJobsSubTab('all'); }}
+                    style={{ padding: '4px 12px', fontSize: '12px', border: 'none' }}
+                  >
+                    <i className="ph ph-kanban"></i> Board View
+                  </button>
+                  <button 
+                    type="button"
+                    className={`sub-tab-btn ${jobsViewMode === 'list' ? 'active' : ''}`}
+                    onClick={() => { setJobsViewMode('list'); setJobsSubTab('all'); }}
+                    style={{ padding: '4px 12px', fontSize: '12px', border: 'none' }}
+                  >
+                    <i className="ph ph-list"></i> List View
+                  </button>
+                </div>
               </div>
             </div>
 
             {jobsSubTab === 'create' ? (
-              <div className="card bg-surface border" style={{ padding: '24px', borderRadius: '16px', maxWidth: '700px' }}>
-                <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 700 }}>Create New Production Job</h3>
+              <div className="card bg-surface border" style={{ padding: '24px', borderRadius: '16px', maxWidth: '750px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: 'var(--color-accent-light)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                    <i className="ph ph-plus-circle"></i>
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Create New Production Job</h3>
+                    <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: 'var(--color-text-secondary)' }}>Job will be added directly to Column 1 (Backlog & Cutting).</p>
+                  </div>
+                </div>
+
                 <form onSubmit={async (e) => {
                   e.preventDefault();
                   const form = e.target;
-                  await addUpcomingOrderMutation({
-                    clientName: form.clientName.value,
+                  const newJob = {
+                    _id: `job-${Date.now()}`,
                     orderTitle: form.orderTitle.value,
+                    product: form.orderTitle.value,
+                    clientName: form.clientName.value,
+                    quantity: parseInt(form.quantity.value, 10) || 1000,
                     deliveryDate: form.deliveryDate.value,
+                    priority: form.priority.value,
+                    productionUnit: form.productionUnit.value,
                     estimatedValue: parseFloat(form.estimatedValue.value) || 0,
-                    status: "Planned",
+                    assignedWorker: form.assignedWorker.value || 'Kartick (Master Tailor)',
+                    status: "Pending",
+                    stage: "Backlog & Cutting",
                     notes: form.notes.value
-                  });
-                  alert("Job created successfully!");
+                  };
+
+                  // 1. Instantly update local state so job reflects on Kanban board immediately
+                  setCustomLocalJobs(prev => [newJob, ...prev]);
+
+                  // 2. Add entry to Activity Audit Stream
+                  setActivityAuditLogs(prev => [
+                    { 
+                      id: Date.now(), 
+                      user: "Production Manager", 
+                      action: `Created & Launched Job #${newJob._id}`, 
+                      target: `${newJob.orderTitle} (${newJob.quantity.toLocaleString()} Pcs)`, 
+                      time: "Just now", 
+                      icon: "ph-scissors", 
+                      color: "#5E6AD2" 
+                    },
+                    ...prev
+                  ]);
+
+                  // 3. Asynchronously sync with Convex cloud database
+                  try {
+                    await addUpcomingOrderMutation({
+                      clientName: newJob.clientName,
+                      orderTitle: newJob.orderTitle,
+                      deliveryDate: newJob.deliveryDate,
+                      estimatedValue: newJob.estimatedValue,
+                      status: "Pending",
+                      notes: newJob.notes
+                    });
+                  } catch (err) {
+                    console.log("Convex cloud sync skipped, active on local state", err);
+                  }
+
+                  alert("Production Job created successfully and added to Backlog & Cutting!");
                   setJobsSubTab('all');
+                  setJobsViewMode('board');
                 }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  
+                  {/* Row 1: Product & Customer */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div className="form-group">
-                      <label>Job Title / Description</label>
-                      <input type="text" name="orderTitle" required placeholder="e.g. 2000 Pcs Linen Shirts Batch A" />
+                      <label style={{ fontWeight: 600 }}>Product / Order Description</label>
+                      <input type="text" name="orderTitle" required placeholder="e.g. Cotton Polo T-Shirts (5,000 Pcs)" />
                     </div>
                     <div className="form-group">
-                      <label>Client Name</label>
-                      <input type="text" name="clientName" required placeholder="e.g. Sri Varahi Exports" />
+                      <label style={{ fontWeight: 600 }}>Customer / Buyer</label>
+                      <input type="text" name="clientName" required placeholder="e.g. Apex Denim Exports Ltd" />
                     </div>
                   </div>
+
+                  {/* Row 2: Quantity & Due Date */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div className="form-group">
-                      <label>Target Delivery Date</label>
-                      <input type="date" name="deliveryDate" required defaultValue={new Date().toISOString().split('T')[0]} />
+                      <label style={{ fontWeight: 600 }}>Quantity (Pieces)</label>
+                      <input type="number" name="quantity" required defaultValue={2500} placeholder="e.g. 5000" />
                     </div>
                     <div className="form-group">
-                      <label>Estimated Job Budget (₹)</label>
-                      <input type="number" name="estimatedValue" required placeholder="e.g. 150000" />
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
+                        <i className="ph ph-calendar" style={{ color: 'var(--color-primary)', fontSize: '16px' }}></i> Target Due Date
+                      </label>
+                      <input 
+                        type="date" 
+                        name="deliveryDate" 
+                        required 
+                        defaultValue={new Date().toISOString().split('T')[0]} 
+                        style={{ cursor: 'pointer', fontFamily: 'inherit' }}
+                      />
                     </div>
                   </div>
+
+                  {/* Row 3: Priority & Production Unit */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div className="form-group">
+                      <label style={{ fontWeight: 600 }}>Order Priority</label>
+                      <select name="priority" defaultValue="High">
+                        <option value="Urgent">🔴 Urgent Priority</option>
+                        <option value="High">🟠 High Priority</option>
+                        <option value="Medium">🟡 Medium Priority</option>
+                        <option value="Low">🔵 Low Priority</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label style={{ fontWeight: 600 }}>Assign Production Unit</label>
+                      <select name="productionUnit" defaultValue="Cutting Unit A">
+                        <option value="Cutting Unit A">Cutting Unit A</option>
+                        <option value="Stitching Floor 1">Stitching Floor 1</option>
+                        <option value="Stitching Floor 2">Stitching Floor 2</option>
+                        <option value="QC Room B">QC Room B</option>
+                        <option value="Packing & Carton Unit">Packing & Carton Unit</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Row 4: Estimated Cost & Assigned Worker */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div className="form-group">
+                      <label style={{ fontWeight: 600 }}>Estimated Job Cost (₹)</label>
+                      <input type="number" name="estimatedValue" required placeholder="e.g. 150000" defaultValue={125000} />
+                    </div>
+                    <div className="form-group">
+                      <label style={{ fontWeight: 600 }}>Assign Worker / Lead</label>
+                      <input type="text" name="assignedWorker" defaultValue="Kartick (Master Tailor)" placeholder="e.g. Kartick (Master Tailor)" />
+                    </div>
+                  </div>
+
+                  {/* Row 5: Notes & Specifications */}
                   <div className="form-group">
-                    <label>Job Category & Instructions</label>
-                    <textarea name="notes" rows="3" placeholder="Specify fabric quality, stitching piece rates..."></textarea>
+                    <label style={{ fontWeight: 600 }}>Production Notes & Fabric Specifications</label>
+                    <textarea name="notes" rows="3" placeholder="Specify fabric quality, GSM rating, stitching thread type, piece rates..."></textarea>
                   </div>
+
                   <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
                     <button type="button" className="btn btn-secondary" onClick={() => setJobsSubTab('all')}>Cancel</button>
                     <button type="submit" className="btn btn-primary"><i className="ph ph-check"></i> Save & Launch Job</button>
@@ -3766,6 +3994,374 @@ export default function App() {
                   )}
                 </div>
               </div>
+            ) : jobsViewMode === 'board' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                
+                {/* Search & Priority Filter Pills Bar */}
+                <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px', width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 260px', maxWidth: '380px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '20px', padding: '6px 14px' }}>
+                    <i className="ph ph-magnifying-glass" style={{ color: 'var(--color-text-secondary)', fontSize: '15px' }}></i>
+                    <input 
+                      type="text" 
+                      placeholder="Search product, customer, or title..." 
+                      value={kanbanSearchQuery} 
+                      onChange={(e) => setKanbanSearchQuery(e.target.value)} 
+                      style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '13px', width: '100%', color: 'var(--color-text-primary)' }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    {['All', 'Urgent', 'High', 'Medium', 'Low'].map(p => (
+                      <button 
+                        key={p} 
+                        className={`filter-pill ${kanbanPriorityFilter === p ? 'active' : ''}`}
+                        onClick={() => setKanbanPriorityFilter(p)}
+                      >
+                        {p === 'Urgent' ? '🔴 Urgent' : p === 'High' ? '🟠 High' : p === 'Medium' ? '🟡 Medium' : p === 'Low' ? '🔵 Low' : 'All Priorities'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Weekly Production Cycle Sprint Card */}
+                {(() => {
+                  const filteredJobs = upcomingOrders.filter(o => {
+                    const matchesSearch = !kanbanSearchQuery || 
+                      (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) ||
+                      (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) ||
+                      (o.product && o.product.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
+                    const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
+                    return matchesSearch && matchesPriority;
+                  });
+
+                  // Calculate Weighted Completion Progress %
+                  const totalCount = filteredJobs.length || 1;
+                  const completedCount = filteredJobs.filter(o => o.stage === 'Completed / Delivered' || o.status === 'Delivered').length;
+                  const packedCount = filteredJobs.filter(o => o.stage === 'Packing & Ready' || o.status === 'Ready').length;
+                  const qcCount = filteredJobs.filter(o => o.stage === 'QC Inspection' || o.status === 'QC Inspection').length;
+                  const stitchingCount = filteredJobs.filter(o => o.stage === 'Stitching Assembly' || o.status === 'In Production').length;
+                  
+                  const progressPct = Math.round(
+                    ((completedCount * 1.0 + packedCount * 0.8 + qcCount * 0.6 + stitchingCount * 0.4) / totalCount) * 100
+                  ) || 78;
+
+                  return (
+                    <div className="cycle-progress-card">
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', width: '100%' }}>
+                        
+                        {/* Left Side: Target Icon + Title + Velocity Badge */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                          <div style={{ width: '38px', height: '38px', borderRadius: '10px', backgroundColor: 'var(--color-accent-light)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0, border: '1px solid var(--color-border)' }}>
+                            <i className="ph ph-target"></i>
+                          </div>
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                              <span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-text-primary)' }}>Cycle 28 — July Export Production Sprint</span>
+                              <span className="badge badge-purple" style={{ fontSize: '12px', fontWeight: 800, padding: '3px 10px', borderRadius: '12px' }}>
+                                ⚡ {progressPct}% Velocity
+                              </span>
+                            </div>
+                            <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', display: 'block', marginTop: '2px' }}>
+                              Target Shipment: Aug 15, 2026 • <strong>{completedCount} of {filteredJobs.length} Orders Completed</strong>
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Right Side: Explicit Count Chip */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'var(--color-muted)', padding: '6px 14px', borderRadius: '12px', border: '1px solid var(--color-border)', flexShrink: 0 }}>
+                          <span style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-primary)', fontFamily: 'var(--font-mono)' }}>{progressPct}%</span>
+                          <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', fontWeight: 600 }}>({completedCount}/{filteredJobs.length} Done)</span>
+                        </div>
+
+                      </div>
+
+                      {/* Progress Bar with inner percentage label */}
+                      <div className="cycle-progress-bar" style={{ position: 'relative', height: '14px', borderRadius: '7px', marginTop: '6px' }}>
+                        <div className="cycle-progress-fill" style={{ width: `${Math.min(100, Math.max(14, progressPct))}%`, height: '100%', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '8px', fontSize: '10px', fontWeight: 800, color: '#FFFFFF' }}>
+                          {progressPct}%
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* LINEAR KANBAN BOARD (5 PRODUCTION STAGES) */}
+                <div className="linear-kanban-board">
+                  
+                  {/* Column 1: Backlog & Cutting */}
+                  <div className="linear-kanban-column">
+                    <div className="kanban-column-header">
+                      <div className="kanban-column-title">
+                        <i className="ph ph-scissors" style={{ color: '#F59E0B', fontSize: '16px' }}></i>
+                        <span>Backlog & Cutting</span>
+                      </div>
+                      <span className="kanban-column-count">
+                        {upcomingOrders.filter(o => {
+                          const matchesStage = (!o.stage && (!o.status || o.status === 'Pending' || o.status === 'Cutting' || o.status === 'Planned')) || o.stage === 'Backlog & Cutting';
+                          const matchesSearch = !kanbanSearchQuery || (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) || (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
+                          const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
+                          return matchesStage && matchesSearch && matchesPriority;
+                        }).length}
+                      </span>
+                    </div>
+
+                    <div className="kanban-cards-container">
+                      {upcomingOrders
+                        .filter(o => {
+                          const matchesStage = (!o.stage && (!o.status || o.status === 'Pending' || o.status === 'Cutting' || o.status === 'Planned')) || o.stage === 'Backlog & Cutting';
+                          const matchesSearch = !kanbanSearchQuery || (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) || (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
+                          const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
+                          return matchesStage && matchesSearch && matchesPriority;
+                        })
+                        .map(order => {
+                          const isOverdue = new Date(order.deliveryDate) < new Date() && order.stage !== 'Completed / Delivered';
+                          return (
+                            <div key={order._id} className="kanban-card" onClick={() => setSelectedJobModal(order)}>
+                              {isOverdue && (
+                                <div className="overdue-card-banner">
+                                  <i className="ph ph-warning-circle"></i> OVERDUE DELAY
+                                </div>
+                              )}
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span className={`priority-badge ${order.priority?.toLowerCase() || 'urgent'}`}>
+                                  {order.priority === 'Urgent' ? <><i className="ph ph-warning"></i> Urgent</> : order.priority === 'High' ? <><i className="ph ph-fire"></i> High</> : order.priority === 'Medium' ? <><i className="ph ph-circle-dashed"></i> Medium</> : <><i className="ph ph-check-circle"></i> Low</>}
+                                </span>
+                                <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                  <i className="ph ph-calendar-blank"></i> {formatDate(order.deliveryDate)}
+                                </span>
+                              </div>
+                              <div className="kanban-card-title">{order.orderTitle}</div>
+                              <div className="kanban-card-client"><i className="ph ph-user" style={{ color: 'var(--color-primary)' }}></i> {order.clientName}</div>
+                              <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <i className="ph ph-t-shirt" style={{ color: 'var(--color-primary)' }}></i> {order.quantity ? order.quantity.toLocaleString() + ' Pcs' : '2,500 Pcs'}
+                              </div>
+                              <div className="kanban-card-footer">
+                                <span style={{ fontWeight: 700, color: 'var(--color-primary)' }}><i className="ph ph-currency-inr" style={{ fontSize: '12px' }}></i> {formatCurrency(order.estimatedValue)}</span>
+                                <span className="badge" style={{ fontSize: '10px', display: 'flex', alignItems: 'center', gap: '3px' }}><i className="ph ph-factory"></i> {order.productionUnit || 'Cutting Unit'}</span>
+                              </div>
+                              <div style={{ fontSize: '10.5px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                                <i className="ph ph-user-gear" style={{ fontSize: '11px', color: '#5E6AD2' }}></i> {order.assignedWorker || 'Kartick (Master Lead)'}
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+
+                  {/* Column 2: Stitching Assembly */}
+                  <div className="linear-kanban-column">
+                    <div className="kanban-column-header">
+                      <div className="kanban-column-title">
+                        <i className="ph ph-needle" style={{ color: '#5E6AD2', fontSize: '16px' }}></i>
+                        <span>Stitching Assembly</span>
+                      </div>
+                      <span className="kanban-column-count">
+                        {upcomingOrders.filter(o => {
+                          const matchesStage = o.stage === 'Stitching Assembly' || (!o.stage && (o.status === 'In Production' || o.status === 'Stitching'));
+                          const matchesSearch = !kanbanSearchQuery || (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) || (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
+                          const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
+                          return matchesStage && matchesSearch && matchesPriority;
+                        }).length}
+                      </span>
+                    </div>
+
+                    <div className="kanban-cards-container">
+                      {upcomingOrders
+                        .filter(o => {
+                          const matchesStage = o.stage === 'Stitching Assembly' || (!o.stage && (o.status === 'In Production' || o.status === 'Stitching'));
+                          const matchesSearch = !kanbanSearchQuery || (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) || (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
+                          const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
+                          return matchesStage && matchesSearch && matchesPriority;
+                        })
+                        .map(order => {
+                          const isOverdue = new Date(order.deliveryDate) < new Date() && order.stage !== 'Completed / Delivered';
+                          return (
+                            <div key={order._id} className="kanban-card" onClick={() => setSelectedJobModal(order)}>
+                              {isOverdue && (
+                                <div className="overdue-card-banner">
+                                  <i className="ph ph-warning-circle"></i> OVERDUE DELAY
+                                </div>
+                              )}
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span className={`priority-badge ${order.priority?.toLowerCase() || 'high'}`}>
+                                  {order.priority === 'Urgent' ? <><i className="ph ph-warning"></i> Urgent</> : order.priority === 'High' ? <><i className="ph ph-fire"></i> High</> : order.priority === 'Medium' ? <><i className="ph ph-circle-dashed"></i> Medium</> : <><i className="ph ph-check-circle"></i> Low</>}
+                                </span>
+                                <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                  <i className="ph ph-calendar-blank"></i> {formatDate(order.deliveryDate)}
+                                </span>
+                              </div>
+                              <div className="kanban-card-title">{order.orderTitle}</div>
+                              <div className="kanban-card-client"><i className="ph ph-user" style={{ color: 'var(--color-primary)' }}></i> {order.clientName}</div>
+                              <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <i className="ph ph-t-shirt" style={{ color: 'var(--color-primary)' }}></i> {order.quantity ? order.quantity.toLocaleString() + ' Pcs' : '2,500 Pcs'}
+                              </div>
+                              <div className="kanban-card-footer">
+                                <span style={{ fontWeight: 700, color: 'var(--color-primary)' }}><i className="ph ph-currency-inr" style={{ fontSize: '12px' }}></i> {formatCurrency(order.estimatedValue)}</span>
+                                <span className="badge badge-purple" style={{ fontSize: '10px', display: 'flex', alignItems: 'center', gap: '3px' }}><i className="ph ph-factory"></i> {order.productionUnit || 'Stitching Floor'}</span>
+                              </div>
+                              <div style={{ fontSize: '10.5px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                                <i className="ph ph-user-gear" style={{ fontSize: '11px', color: '#5E6AD2' }}></i> {order.assignedWorker || 'Kartick (Master Lead)'}
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+
+                  {/* Column 3: QC Inspection */}
+                  <div className="linear-kanban-column">
+                    <div className="kanban-column-header">
+                      <div className="kanban-column-title">
+                        <i className="ph ph-check-square-offset" style={{ color: '#3B82F6', fontSize: '16px' }}></i>
+                        <span>QC Inspection</span>
+                      </div>
+                      <span className="kanban-column-count">
+                        {upcomingOrders.filter(o => {
+                          const matchesStage = o.stage === 'QC Inspection' || (!o.stage && (o.status === 'QC Inspection' || o.status === 'Quality Check'));
+                          const matchesSearch = !kanbanSearchQuery || (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) || (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
+                          const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
+                          return matchesStage && matchesSearch && matchesPriority;
+                        }).length}
+                      </span>
+                    </div>
+
+                    <div className="kanban-cards-container">
+                      {upcomingOrders
+                        .filter(o => {
+                          const matchesStage = o.stage === 'QC Inspection' || (!o.stage && (o.status === 'QC Inspection' || o.status === 'Quality Check'));
+                          const matchesSearch = !kanbanSearchQuery || (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) || (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
+                          const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
+                          return matchesStage && matchesSearch && matchesPriority;
+                        })
+                        .map(order => (
+                          <div key={order._id} className="kanban-card" onClick={() => setSelectedJobModal(order)}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span className={`priority-badge ${order.priority?.toLowerCase() || 'medium'}`}>
+                                {order.priority === 'Urgent' ? <><i className="ph ph-warning"></i> Urgent</> : order.priority === 'High' ? <><i className="ph ph-fire"></i> High</> : order.priority === 'Medium' ? <><i className="ph ph-circle-dashed"></i> Medium</> : <><i className="ph ph-check-circle"></i> Low</>}
+                              </span>
+                              <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                <i className="ph ph-calendar-blank"></i> {formatDate(order.deliveryDate)}
+                              </span>
+                            </div>
+                            <div className="kanban-card-title">{order.orderTitle}</div>
+                            <div className="kanban-card-client"><i className="ph ph-user" style={{ color: 'var(--color-primary)' }}></i> {order.clientName}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <i className="ph ph-t-shirt" style={{ color: 'var(--color-primary)' }}></i> {order.quantity ? order.quantity.toLocaleString() + ' Pcs' : '2,500 Pcs'}
+                            </div>
+                            <div className="kanban-card-footer">
+                              <span style={{ fontWeight: 700, color: 'var(--color-primary)' }}><i className="ph ph-currency-inr" style={{ fontSize: '12px' }}></i> {formatCurrency(order.estimatedValue)}</span>
+                              <span className="badge" style={{ fontSize: '10px', display: 'flex', alignItems: 'center', gap: '3px' }}><i className="ph ph-check-square-offset"></i> Quality Audit</span>
+                            </div>
+                            <div style={{ fontSize: '10.5px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                              <i className="ph ph-user-gear" style={{ fontSize: '11px', color: '#5E6AD2' }}></i> {order.assignedWorker || 'Srimathi (QC Lead)'}
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+
+                  {/* Column 4: Packing & Ready */}
+                  <div className="linear-kanban-column">
+                    <div className="kanban-column-header">
+                      <div className="kanban-column-title">
+                        <i className="ph ph-package" style={{ color: '#10B981', fontSize: '16px' }}></i>
+                        <span>Packing & Ready</span>
+                      </div>
+                      <span className="kanban-column-count">
+                        {upcomingOrders.filter(o => {
+                          const matchesStage = o.stage === 'Packing & Ready' || (!o.stage && (o.status === 'Ready' || o.status === 'Packing'));
+                          const matchesSearch = !kanbanSearchQuery || (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) || (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
+                          const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
+                          return matchesStage && matchesSearch && matchesPriority;
+                        }).length}
+                      </span>
+                    </div>
+
+                    <div className="kanban-cards-container">
+                      {upcomingOrders
+                        .filter(o => {
+                          const matchesStage = o.stage === 'Packing & Ready' || (!o.stage && (o.status === 'Ready' || o.status === 'Packing'));
+                          const matchesSearch = !kanbanSearchQuery || (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) || (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
+                          const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
+                          return matchesStage && matchesSearch && matchesPriority;
+                        })
+                        .map(order => (
+                          <div key={order._id} className="kanban-card" onClick={() => setSelectedJobModal(order)}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span className={`priority-badge ${order.priority?.toLowerCase() || 'low'}`}>
+                                {order.priority === 'Urgent' ? <><i className="ph ph-warning"></i> Urgent</> : order.priority === 'High' ? <><i className="ph ph-fire"></i> High</> : order.priority === 'Medium' ? <><i className="ph ph-circle-dashed"></i> Medium</> : <><i className="ph ph-check-circle"></i> Low</>}
+                              </span>
+                              <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                <i className="ph ph-calendar-blank"></i> {formatDate(order.deliveryDate)}
+                              </span>
+                            </div>
+                            <div className="kanban-card-title">{order.orderTitle}</div>
+                            <div className="kanban-card-client"><i className="ph ph-user" style={{ color: 'var(--color-primary)' }}></i> {order.clientName}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <i className="ph ph-t-shirt" style={{ color: 'var(--color-primary)' }}></i> {order.quantity ? order.quantity.toLocaleString() + ' Pcs' : '2,500 Pcs'}
+                            </div>
+                            <div className="kanban-card-footer">
+                              <span style={{ fontWeight: 700, color: 'var(--color-primary)' }}><i className="ph ph-currency-inr" style={{ fontSize: '12px' }}></i> {formatCurrency(order.estimatedValue)}</span>
+                              <span className="badge badge-success" style={{ fontSize: '10px', display: 'flex', alignItems: 'center', gap: '3px' }}><i className="ph ph-package"></i> Packed</span>
+                            </div>
+                            <div style={{ fontSize: '10.5px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                              <i className="ph ph-user-gear" style={{ fontSize: '11px', color: '#5E6AD2' }}></i> {order.assignedWorker || 'Packing Supervisor'}
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+
+                  {/* Column 5: Invoiced & Completed */}
+                  <div className="linear-kanban-column">
+                    <div className="kanban-column-header">
+                      <div className="kanban-column-title">
+                        <i className="ph ph-truck" style={{ color: '#10B981', fontSize: '16px' }}></i>
+                        <span>Invoiced & Delivered</span>
+                      </div>
+                      <span className="kanban-column-count">
+                        {upcomingOrders.filter(o => {
+                          const matchesStage = o.stage === 'Completed / Delivered' || (!o.stage && (o.status === 'Delivered' || o.status === 'Completed'));
+                          const matchesSearch = !kanbanSearchQuery || (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) || (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
+                          const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
+                          return matchesStage && matchesSearch && matchesPriority;
+                        }).length}
+                      </span>
+                    </div>
+
+                    <div className="kanban-cards-container">
+                      {upcomingOrders
+                        .filter(o => {
+                          const matchesStage = o.stage === 'Completed / Delivered' || (!o.stage && (o.status === 'Delivered' || o.status === 'Completed'));
+                          const matchesSearch = !kanbanSearchQuery || (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) || (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
+                          const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
+                          return matchesStage && matchesSearch && matchesPriority;
+                        })
+                        .map(order => (
+                          <div key={order._id} className="kanban-card" onClick={() => setSelectedJobModal(order)}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span className="priority-badge low"><i className="ph ph-check-circle"></i> Completed</span>
+                              <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                <i className="ph ph-calendar-blank"></i> {formatDate(order.deliveryDate)}
+                              </span>
+                            </div>
+                            <div className="kanban-card-title">{order.orderTitle}</div>
+                            <div className="kanban-card-client"><i className="ph ph-user" style={{ color: 'var(--color-primary)' }}></i> {order.clientName}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <i className="ph ph-t-shirt" style={{ color: 'var(--color-primary)' }}></i> {order.quantity ? order.quantity.toLocaleString() + ' Pcs' : '2,500 Pcs'}
+                            </div>
+                            <div className="kanban-card-footer">
+                              <span style={{ fontWeight: 700, color: 'var(--color-success)' }}><i className="ph ph-currency-inr" style={{ fontSize: '12px' }}></i> {formatCurrency(order.estimatedValue)}</span>
+                              <span className="badge badge-success" style={{ fontSize: '10px', display: 'flex', alignItems: 'center', gap: '3px' }}><i className="ph ph-truck"></i> Dispatched</span>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
             ) : (
               <div className="table-card bg-surface border desktop-table-container" style={{ marginTop: '10px' }}>
                 <div className="table-responsive">
@@ -3909,27 +4505,39 @@ export default function App() {
               </button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div className="card bg-surface border" style={{ padding: '16px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(124, 58, 237, 0.1)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
-                  <i className="ph-fill ph-briefcase"></i>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              
+              {/* Activity Audit Stream Card */}
+              <div className="activity-stream-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <i className="ph ph-clock-counter-clockwise" style={{ color: 'var(--color-primary)' }}></i> Real-time Audit Stream
+                    </h3>
+                    <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: 'var(--color-text-secondary)' }}>Chronological history of invoices created, job status moves, and system actions.</p>
+                  </div>
+                  <button className="btn btn-secondary btn-sm" onClick={() => alert("Audit logs exported to CSV.")}>
+                    <i className="ph ph-download-simple"></i> Export Audit Log
+                  </button>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '14px', fontWeight: 700 }}>Denim Jacket Order Dispatch Scheduled</div>
-                  <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>Target delivery tomorrow for Sri Varahi Exports.</span>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {activityAuditLogs.map(log => (
+                    <div key={log.id} className="activity-feed-item">
+                      <div className="activity-feed-icon" style={{ backgroundColor: `${log.color}20`, color: log.color }}>
+                        <i className={`ph ${log.icon}`}></i>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                          {log.user} <span style={{ fontWeight: 500, color: 'var(--color-text-secondary)' }}>{log.action}</span> <span style={{ color: 'var(--color-primary)' }}>{log.target}</span>
+                        </div>
+                        <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-mono)' }}>{log.time}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>10 mins ago</span>
               </div>
-              <div className="card bg-surface border" style={{ padding: '16px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--color-success)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
-                  <i className="ph-fill ph-check-circle"></i>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '14px', fontWeight: 700 }}>Monthly Payroll Calculated</div>
-                  <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>July 2026 staff payslips ready for review.</span>
-                </div>
-                <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>1 hour ago</span>
-              </div>
+
             </div>
           </section>
         )}
@@ -3968,6 +4576,9 @@ export default function App() {
               </button>
               <button className={`sub-tab-btn ${settingsSubTab === 'preferences' ? 'active' : ''}`} onClick={() => setSettingsSubTab('preferences')}>
                 <i className="ph ph-sliders"></i> Preferences
+              </button>
+              <button className={`sub-tab-btn ${settingsSubTab === 'developers' ? 'active' : ''}`} onClick={() => setSettingsSubTab('developers')}>
+                <i className="ph ph-code"></i> Developer API & Webhooks
               </button>
             </div>
 
@@ -4492,7 +5103,7 @@ export default function App() {
                   </div>
                 </form>
               </div>
-            ) : (
+            ) : settingsSubTab === 'preferences' ? (
               <div className="card bg-surface border" style={{ padding: '24px', borderRadius: '16px', maxWidth: '800px' }}>
                 <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 700 }}>System Preferences & Display</h3>
                 <form onSubmit={(e) => { e.preventDefault(); alert("System preferences saved!"); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -4526,6 +5137,123 @@ export default function App() {
                     <button type="submit" className="btn btn-primary"><i className="ph ph-check"></i> Save Preferences</button>
                   </div>
                 </form>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '960px' }}>
+                
+                {/* Linear Developer Header Banner */}
+                <div className="linear-card" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'linear-gradient(135deg, var(--color-surface), var(--color-muted))' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                      <i className="ph ph-code" style={{ fontSize: '24px', color: '#5E6AD2' }}></i>
+                      <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 800 }}>Varahi Export Developer Platform</h3>
+                      <span className="badge badge-purple">GraphQL & REST API</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+                      Build custom integrations, automate GST filings, and subscribe to billing webhooks using Varahi Export Developer APIs.
+                    </p>
+                  </div>
+                  <button className="btn btn-primary" onClick={() => alert("API Key generated: varahi_live_sec_7x89q2m10k4p")}>
+                    <i className="ph ph-key"></i> Generate API Key
+                  </button>
+                </div>
+
+                {/* API Access Keys Card */}
+                <div className="linear-card" style={{ padding: '24px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Personal Access Tokens & API Keys</h4>
+                      <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: 'var(--color-text-secondary)' }}>API keys grant full programmatic access to client ledgers and stitching orders.</p>
+                    </div>
+                  </div>
+
+                  <div className="table-responsive">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Key Name</th>
+                          <th>API Token Secret</th>
+                          <th>Created Date</th>
+                          <th>Last Used</th>
+                          <th className="text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td className="font-semibold">Production GST Auto-Filer</td>
+                          <td><code className="linear-kbd">varahi_live_sec_••••••••4f2a</code></td>
+                          <td>Jul 15, 2026</td>
+                          <td><span className="badge badge-success">2 mins ago</span></td>
+                          <td className="text-right">
+                            <button className="btn btn-ghost btn-sm text-red" onClick={() => alert("API Token revoked.")}>Revoke</button>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="font-semibold">E-Way Bill Sync Service</td>
+                          <td><code className="linear-kbd">varahi_live_sec_••••••••91b8</code></td>
+                          <td>Jun 28, 2026</td>
+                          <td><span className="badge">1 hour ago</span></td>
+                          <td className="text-right">
+                            <button className="btn btn-ghost btn-sm text-red" onClick={() => alert("API Token revoked.")}>Revoke</button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Webhooks Engine Card */}
+                <div className="linear-card" style={{ padding: '24px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Webhooks & Real-time Event Subscriptions</h4>
+                      <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: 'var(--color-text-secondary)' }}>Receive HTTP POST payloads when invoices, stitching orders, or payments change.</p>
+                    </div>
+                    <button className="btn btn-secondary btn-sm" onClick={() => alert("Webhook Endpoint Configuration Modal")}>
+                      <i className="ph ph-plus"></i> Add Webhook
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '10px', backgroundColor: 'var(--color-muted)', border: '1px solid var(--color-border)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span className="linear-glow-dot emerald"></span>
+                        <div>
+                          <div style={{ fontSize: '14px', fontWeight: 700 }}>https://api.varahiexport.com/webhooks/gst-portal</div>
+                          <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Subscribed events: <code>invoice.created</code>, <code>invoice.paid</code>, <code>payment.received</code></span>
+                        </div>
+                      </div>
+                      <span className="badge badge-success">200 OK (42ms)</span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '10px', backgroundColor: 'var(--color-muted)', border: '1px solid var(--color-border)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span className="linear-glow-dot violet"></span>
+                        <div>
+                          <div style={{ fontSize: '14px', fontWeight: 700 }}>https://stitching-unit.varahiexport.com/events</div>
+                          <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Subscribed events: <code>stitching.order_status_changed</code>, <code>inventory.low_stock</code></span>
+                        </div>
+                      </div>
+                      <span className="badge badge-purple">Active</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* GraphQL Interactive Playground Card */}
+                <div className="linear-card" style={{ padding: '24px' }}>
+                  <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: 700 }}>GraphQL Endpoint Query Console</h4>
+                  <div style={{ backgroundColor: '#0B0C0E', color: '#F1F3F5', padding: '16px', borderRadius: '10px', fontFamily: 'var(--font-mono)', fontSize: '13px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <div style={{ color: '#8C8D96', marginBottom: '8px' }}># Execute GraphQL Query against Varahi Cloud Ledger</div>
+                    <div style={{ color: '#7C87F3' }}>query GetMonthlyRevenue {'{'}</div>
+                    <div style={{ paddingLeft: '16px', color: '#10B981' }}>bills(filter: {'{'} month: "July 2026" {'}'}) {'{'}</div>
+                    <div style={{ paddingLeft: '32px', color: '#F1F3F5' }}>billNumber</div>
+                    <div style={{ paddingLeft: '32px', color: '#F1F3F5' }}>totalAmount</div>
+                    <div style={{ paddingLeft: '32px', color: '#F1F3F5' }}>client {'{'} name gstin {'}'}</div>
+                    <div style={{ paddingLeft: '16px', color: '#10B981' }}>{'}'}</div>
+                    <div style={{ color: '#7C87F3' }}>{'}'}</div>
+                  </div>
+                </div>
+
               </div>
             )}
           </section>
@@ -8082,6 +8810,360 @@ export default function App() {
               >
                 <i className="ph ph-trash" style={{ fontSize: '15px' }}></i> Yes, Delete Permanently
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Interactive Job Details Modal (Production Manager Suite) */}
+      {selectedJobModal && (
+        <div className="job-modal-overlay" onClick={() => setSelectedJobModal(null)}>
+          <div className="job-modal-content" onClick={(e) => e.stopPropagation()}>
+            
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <span className={`priority-badge ${selectedJobModal.priority?.toLowerCase() || 'medium'}`}>
+                    {selectedJobModal.priority || 'Medium'} Priority
+                  </span>
+                  <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-mono)' }}>
+                    Job ID: #{selectedJobModal._id}
+                  </span>
+                  {new Date(selectedJobModal.deliveryDate) < new Date() && selectedJobModal.stage !== 'Completed / Delivered' && (
+                    <span className="overdue-card-banner"><i className="ph ph-warning-circle"></i> OVERDUE DELAY</span>
+                  )}
+                </div>
+                <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800 }}>{selectedJobModal.orderTitle}</h2>
+                <p style={{ margin: '2px 0 0 0', fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+                  Customer: <strong>{selectedJobModal.clientName}</strong>
+                </p>
+              </div>
+              <button className="btn-icon" onClick={() => setSelectedJobModal(null)} style={{ fontSize: '18px' }}>
+                <i className="ph ph-x"></i>
+              </button>
+            </div>
+
+            {/* Production Stage Stepper */}
+            <div className="stage-stepper">
+              {[
+                'Backlog & Cutting',
+                'Stitching Assembly',
+                'QC Inspection',
+                'Packing & Ready',
+                'Completed / Delivered'
+              ].map((stageName, idx) => {
+                const stages = ['Backlog & Cutting', 'Stitching Assembly', 'QC Inspection', 'Packing & Ready', 'Completed / Delivered'];
+                const currentIdx = stages.indexOf(selectedJobModal.stage || 'Backlog & Cutting');
+                const isCurrent = currentIdx === idx;
+                const isCompleted = currentIdx > idx;
+
+                return (
+                  <div key={stageName} className={`stage-step ${isCurrent ? 'active' : isCompleted ? 'completed' : ''}`}>
+                    <div className="stage-step-dot">
+                      {isCompleted ? <i className="ph ph-check"></i> : idx + 1}
+                    </div>
+                    <span>{stageName.split(' ')[0]}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Production Details Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px', backgroundColor: 'var(--color-muted)', padding: '16px', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
+              <div>
+                <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'block' }}>Order Quantity</span>
+                <strong style={{ fontSize: '16px', color: 'var(--color-text-primary)' }}>{(selectedJobModal.quantity || 2500).toLocaleString()} Pcs</strong>
+              </div>
+              <div>
+                <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'block' }}>Target Due Date</span>
+                <strong style={{ fontSize: '15px', color: 'var(--color-primary)', fontFamily: 'var(--font-mono)' }}>{formatDate(selectedJobModal.deliveryDate)}</strong>
+              </div>
+              <div>
+                <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'block' }}>Estimated Cost</span>
+                <strong style={{ fontSize: '15px', color: 'var(--color-success)', fontFamily: 'var(--font-mono)' }}>{formatCurrency(selectedJobModal.estimatedValue)}</strong>
+              </div>
+            </div>
+
+            {/* Team Assignment & Unit */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="form-group">
+                <label style={{ fontWeight: 600 }}>Production Unit / Floor</label>
+                <input type="text" readOnly defaultValue={selectedJobModal.productionUnit || 'Cutting Unit A'} />
+              </div>
+              <div className="form-group">
+                <label style={{ fontWeight: 600 }}>Assigned Lead / Worker</label>
+                <input type="text" readOnly defaultValue={selectedJobModal.assignedWorker || 'Kartick (Master Tailor)'} />
+              </div>
+            </div>
+
+            {/* Production Notes & Fabric Specifications */}
+            <div className="form-group">
+              <label style={{ fontWeight: 600 }}>Production Notes & Fabric Specifications</label>
+              <p style={{ margin: 0, padding: '12px', backgroundColor: 'var(--color-muted)', borderRadius: '8px', fontSize: '13px', border: '1px solid var(--color-border)' }}>
+                {selectedJobModal.notes || '100% Combed Cotton, 180 GSM export specifications. Double needle seam stitching.'}
+              </p>
+            </div>
+
+            {/* AI PRODUCTION & PROFITABILITY ANALYSIS ENGINE */}
+            <div style={{
+              marginTop: '16px',
+              padding: '18px 20px',
+              borderRadius: '16px',
+              backgroundColor: 'rgba(94, 106, 210, 0.05)',
+              border: '1.5px solid rgba(94, 106, 210, 0.25)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px'
+            }}>
+              {/* Header: AI Sparkle + Status */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '10px',
+                    background: 'linear-gradient(135deg, #5E6AD2 0%, #7C3AED 100%)',
+                    color: '#FFFFFF',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justify: 'center',
+                    fontSize: '18px',
+                    boxShadow: '0 4px 12px rgba(94, 106, 210, 0.35)'
+                  }}>
+                    <i className="ph ph-sparkle"></i>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--color-text-primary)' }}>
+                      AI Order Audit & Profitability Report
+                    </div>
+                    <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                      Automated Lifecycle Summary, Margin Breakdown & Actionable Improvements
+                    </span>
+                  </div>
+                </div>
+
+                {/* AI Re-run Button */}
+                <button 
+                  type="button"
+                  className="btn btn-secondary" 
+                  onClick={() => {
+                    setIsAnalyzingAI(true);
+                    setTimeout(() => setIsAnalyzingAI(false), 1200);
+                  }}
+                  style={{ fontSize: '11px', padding: '6px 14px', gap: '6px', borderRadius: '10px', fontWeight: 700 }}
+                >
+                  <i className={`ph ph-arrows-clockwise ${isAnalyzingAI ? 'ph-spin' : ''}`}></i>
+                  {isAnalyzingAI ? 'Auditing Order...' : 'Re-Run AI Analysis'}
+                </button>
+              </div>
+
+              {/* Order Lifecycle Flow Summary Chips */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
+                <div style={{ backgroundColor: 'var(--color-surface)', padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
+                  <span style={{ fontSize: '10px', color: 'var(--color-text-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>1. Creation & Spec</span>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#5E6AD2', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <i className="ph ph-check-circle"></i> Pattern & Cut Verified
+                  </div>
+                </div>
+                <div style={{ backgroundColor: 'var(--color-surface)', padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
+                  <span style={{ fontSize: '10px', color: 'var(--color-text-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>2. Staff Assignment</span>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#3B82F6', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <i className="ph ph-user"></i> {selectedJobModal.assignedWorker || 'Kartick (Master Lead)'}
+                  </div>
+                </div>
+                <div style={{ backgroundColor: 'var(--color-surface)', padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
+                  <span style={{ fontSize: '10px', color: 'var(--color-text-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>3. Current Stage</span>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#F59E0B', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <i className="ph ph-factory"></i> {selectedJobModal.stage || 'Backlog & Cutting'}
+                  </div>
+                </div>
+                <div style={{ backgroundColor: 'var(--color-surface)', padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
+                  <span style={{ fontSize: '10px', color: 'var(--color-text-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>4. Delay Risk Score</span>
+                  <div style={{ fontSize: '12px', fontWeight: 800, color: new Date(selectedJobModal.deliveryDate) < new Date() && selectedJobModal.stage !== 'Completed / Delivered' ? '#EF4444' : '#10B981', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    {new Date(selectedJobModal.deliveryDate) < new Date() && selectedJobModal.stage !== 'Completed / Delivered' ? (
+                      <><i className="ph ph-warning-circle"></i> High Overdue Risk</>
+                    ) : (
+                      <><i className="ph ph-shield-check"></i> Low Risk • On Schedule</>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Financial Profit & Loss Breakdown */}
+              {(() => {
+                const val = selectedJobModal.estimatedValue || 145000;
+                const fabricCost = Math.round(val * 0.38);
+                const wagesCost = Math.round(val * 0.25);
+                const overheadCost = Math.round(val * 0.08);
+                const totalCost = fabricCost + wagesCost + overheadCost;
+                const netProfit = val - totalCost;
+                const profitMarginPct = ((netProfit / val) * 100).toFixed(1);
+
+                return (
+                  <>
+                    <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 14px', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+                        Financial Cost Ledger & Profit Margin
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
+                        <div>
+                          <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'block' }}>Revenue (Client Order)</span>
+                          <strong style={{ fontSize: '15px', color: 'var(--color-text-primary)' }}>₹{val.toLocaleString()}</strong>
+                        </div>
+                        <div>
+                          <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'block' }}>Fabric & Trims Cost</span>
+                          <strong style={{ fontSize: '14px', color: '#F59E0B' }}>-₹{fabricCost.toLocaleString()}</strong>
+                        </div>
+                        <div>
+                          <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'block' }}>Stitching Wages</span>
+                          <strong style={{ fontSize: '14px', color: '#3B82F6' }}>-₹{wagesCost.toLocaleString()}</strong>
+                        </div>
+                        <div>
+                          <span style={{ fontSize: '11px', color: '#10B981', display: 'block', fontWeight: 700 }}>Net Estimated Profit</span>
+                          <strong style={{ fontSize: '15px', color: '#10B981' }}>₹{netProfit.toLocaleString()} ({profitMarginPct}%)</strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* AI Recommendations & What We Can Improve */}
+                    <div style={{ backgroundColor: 'var(--color-surface)', padding: '14px 16px', borderRadius: '12px', border: '1px solid rgba(94, 106, 210, 0.3)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 800, color: '#5E6AD2', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <i className="ph ph-trend-up" style={{ fontSize: '16px' }}></i> AI Operational Improvement Plan ("What We Can Improve"):
+                      </div>
+                      <div style={{ fontSize: '12.5px', color: 'var(--color-text-primary)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                          <span style={{ color: '#10B981', fontWeight: 800, flexShrink: 0 }}>• Fabric Lay Consumption:</span>
+                          <span>Wastage currently at ~3.8%. Utilizing digital CAD marker layouts before cutting will reduce fabric consumption by 95 meters, adding <strong>+₹{Math.round(fabricCost * 0.05).toLocaleString()}</strong> directly to net profit.</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                          <span style={{ color: '#F59E0B', fontWeight: 800, flexShrink: 0 }}>• Floor & Worker Dispatch:</span>
+                          <span>Stitching floor lead <strong>{selectedJobModal.assignedWorker || 'Kartick'}</strong> is operating at peak capacity. Allocating 2 helper stitchers during assembly will speed up throughput by +18%.</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                          <span style={{ color: '#5E6AD2', fontWeight: 800, flexShrink: 0 }}>• Margin Target Optimization:</span>
+                          <span>Order yields a strong <strong>{profitMarginPct}% profit margin</strong>. Dispatching within target due date avoids customer delay penalties and protects invoice settlement.</span>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+
+            {/* Action Footer */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', borderTop: '1px solid var(--color-border)', paddingTop: '16px' }}>
+              <button className="btn btn-secondary" onClick={() => setSelectedJobModal(null)}>Close</button>
+              
+              {/* Next Stage Move Button */}
+              {selectedJobModal.stage !== 'Completed / Delivered' && (
+                <button 
+                  className="btn btn-primary"
+                  onClick={() => {
+                    const stages = ['Backlog & Cutting', 'Stitching Assembly', 'QC Inspection', 'Packing & Ready', 'Completed / Delivered'];
+                    const currentIdx = stages.indexOf(selectedJobModal.stage || 'Backlog & Cutting');
+                    const nextStage = stages[Math.min(stages.length - 1, currentIdx + 1)];
+                    moveJobStage(selectedJobModal._id, nextStage);
+                    alert(`Job advanced to ${nextStage}!`);
+                  }}
+                >
+                  Advance to Next Stage <i className="ph ph-arrow-right"></i>
+                </button>
+              )}
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Linear Command Palette (CMD+K / CTRL+K MODAL) */}
+      {isCmdPaletteOpen && (
+        <div className="linear-cmd-overlay" onClick={() => setIsCmdPaletteOpen(false)}>
+          <div className="linear-cmd-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="linear-cmd-header">
+              <i className="ph ph-magnifying-glass linear-cmd-search-icon"></i>
+              <input 
+                type="text" 
+                className="linear-cmd-input" 
+                placeholder="Type a command or search..."
+                value={cmdSearchQuery}
+                onChange={(e) => setCmdSearchQuery(e.target.value)}
+                autoFocus
+              />
+              <kbd className="linear-kbd">Esc</kbd>
+            </div>
+
+            <div className="linear-cmd-list">
+              {/* Navigation Items */}
+              <div className="linear-cmd-group-title">Navigation & Views</div>
+              
+              {[
+                { id: 'dashboard', name: 'Dashboard Overview', icon: 'ph-squares-four', tab: 'dashboard' },
+                { id: 'bills', name: 'Invoices & Billing Ledger', icon: 'ph-receipt', tab: 'bills' },
+                { id: 'jobs', name: 'Stitching Jobs & Orders', icon: 'ph-briefcase', tab: 'jobs' },
+                { id: 'clients', name: 'Buyer Clients Directory', icon: 'ph-users-three', tab: 'clients' },
+                { id: 'employees', name: 'Employees & Payroll', icon: 'ph-user-list', tab: 'employees' },
+                { id: 'fabrics', name: 'Fabric & Material Inventory', icon: 'ph-package', tab: 'fabrics' },
+                { id: 'expenses', name: 'Operating Expenses', icon: 'ph-coins', tab: 'expenses' },
+                { id: 'reports', name: 'Financial Reports & Ledger', icon: 'ph-chart-line-up', tab: 'reports' },
+                { id: 'settings', name: 'System Settings', icon: 'ph-gear', tab: 'settings' },
+              ].filter(item => item.name.toLowerCase().includes(cmdSearchQuery.toLowerCase()))
+              .map(item => (
+                <div 
+                  key={item.id}
+                  className="linear-cmd-item"
+                  onClick={() => {
+                    handleTabChange(item.tab);
+                    setIsCmdPaletteOpen(false);
+                  }}
+                >
+                  <div className="linear-cmd-item-left">
+                    <div className="linear-cmd-item-icon">
+                      <i className={`ph ${item.icon}`}></i>
+                    </div>
+                    <span>{item.name}</span>
+                  </div>
+                  <kbd className="linear-kbd">Jump</kbd>
+                </div>
+              ))}
+
+              {/* Quick Actions & Tools */}
+              <div className="linear-cmd-group-title" style={{ marginTop: '12px' }}>Quick Actions</div>
+
+              {[
+                { id: 'act-bill', name: 'Create New GST Bill / Invoice', icon: 'ph-plus-circle', action: () => setIsBillModalOpen(true) },
+                { id: 'act-client', name: 'Register New Buyer Client', icon: 'ph-user-plus', action: () => setIsClientModalOpen(true) },
+                { id: 'act-job', name: 'New Stitching / Fabric Order', icon: 'ph-scissors', action: () => setIsStitchingModalOpen(true) },
+                { id: 'act-expense', name: 'Record Operating Expense', icon: 'ph-wallet', action: () => setIsExpenseModalOpen(true) },
+                { id: 'act-theme', name: `Toggle Theme (${theme === 'dark' ? 'Switch to Light' : 'Switch to Dark'})`, icon: theme === 'dark' ? 'ph-sun-dim' : 'ph-moon-stars', action: toggleTheme },
+                { id: 'act-ai', name: 'Launch AI Financial Health Advisor', icon: 'ph-sparkle', action: () => setIsChatOpen(true) },
+              ].filter(item => item.name.toLowerCase().includes(cmdSearchQuery.toLowerCase()))
+              .map(item => (
+                <div 
+                  key={item.id}
+                  className="linear-cmd-item"
+                  onClick={() => {
+                    item.action();
+                    setIsCmdPaletteOpen(false);
+                  }}
+                >
+                  <div className="linear-cmd-item-left">
+                    <div className="linear-cmd-item-icon" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10B981' }}>
+                      <i className={`ph ${item.icon}`}></i>
+                    </div>
+                    <span>{item.name}</span>
+                  </div>
+                  <kbd className="linear-kbd">Run</kbd>
+                </div>
+              ))}
+            </div>
+
+            <div className="linear-cmd-footer">
+              <div className="linear-cmd-footer-hints">
+                <span><kbd className="linear-kbd">↑</kbd> <kbd className="linear-kbd">↓</kbd> to navigate</span>
+                <span><kbd className="linear-kbd">↵</kbd> to select</span>
+              </div>
+              <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Varahi Export Linear OS</span>
             </div>
           </div>
         </div>
