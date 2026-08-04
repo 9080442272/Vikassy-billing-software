@@ -8203,13 +8203,16 @@ export default function App() {
                 </div>
                 <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div className="form-group">
-                    <label>Advance Amount (₹) *</label>
-                    <input type="number" name="amount" required placeholder="2000" step="100" />
+                    <label htmlFor="adv-amount">Advance Amount (₹) *</label>
+                    <input type="number" id="adv-amount" name="amount" required placeholder="e.g. 120 or 2000" step="any" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }} />
                   </div>
-                  <div className="form-group">
-                    <label>Date Disbursed *</label>
-                    <input type="date" name="date" required defaultValue={new Date().toISOString().split('T')[0]} />
-                  </div>
+                  <LinearDatePickerInput 
+                    id="adv-date" 
+                    name="date" 
+                    label="Date Disbursed *" 
+                    defaultValue={new Date().toISOString().split('T')[0]} 
+                    required 
+                  />
                 </div>
                 <div className="form-group">
                   <label>Payment Category / Type *</label>
@@ -8344,7 +8347,7 @@ export default function App() {
                       name="baseSalary" 
                       required 
                       defaultValue="25000" 
-                      step="100" 
+                      step="any" 
                       style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}
                     />
                   </div>
@@ -8355,7 +8358,7 @@ export default function App() {
                       id="payout-deductions"
                       name="deductions" 
                       defaultValue="1500" 
-                      step="100" 
+                      step="any" 
                       style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}
                     />
                   </div>
