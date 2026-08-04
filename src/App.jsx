@@ -2938,9 +2938,9 @@ export default function App() {
                     <span className="metric-label">Today's Billing</span>
                     <div className="metric-icon purple"><i className="ph ph-receipt"></i></div>
                   </div>
-                  <div className="metric-value font-mono">₹61,346</div>
+                  <div className="metric-value font-mono">₹0</div>
                   <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
-                    <span style={{ color: '#10B981', fontWeight: 700 }}>↑ 18%</span>
+                    <span style={{ color: '#64748B', fontWeight: 600 }}>0%</span>
                     <span style={{ color: '#8C8D96', marginLeft: '4px' }}>vs Yesterday</span>
                   </div>
                 </div>
@@ -2951,9 +2951,9 @@ export default function App() {
                     <span className="metric-label">Pending Payments</span>
                     <div className="metric-icon gold"><i className="ph ph-clock-countdown"></i></div>
                   </div>
-                  <div className="metric-value font-mono">₹1,45,200</div>
+                  <div className="metric-value font-mono">₹0</div>
                   <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
-                    <span style={{ color: '#F59E0B', fontWeight: 700 }}>4 Overdue</span>
+                    <span style={{ color: '#64748B', fontWeight: 600 }}>0 Overdue</span>
                     <span style={{ color: '#8C8D96', marginLeft: '4px' }}>Invoices</span>
                   </div>
                 </div>
@@ -2964,9 +2964,9 @@ export default function App() {
                     <span className="metric-label">Active Jobs</span>
                     <div className="metric-icon purple"><i className="ph ph-gear-six"></i></div>
                   </div>
-                  <div className="metric-value font-mono">18 Jobs</div>
+                  <div className="metric-value font-mono">0 Jobs</div>
                   <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
-                    <span style={{ color: '#6E56CF', fontWeight: 600 }}>8 Stitching, 6 Cutting</span>
+                    <span style={{ color: '#6E56CF', fontWeight: 600 }}>0 Stitching, 0 Cutting</span>
                   </div>
                 </div>
 
@@ -2976,9 +2976,9 @@ export default function App() {
                     <span className="metric-label">Staff Attendance</span>
                     <div className="metric-icon" style={{ color: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)' }}><i className="ph ph-users-three"></i></div>
                   </div>
-                  <div className="metric-value font-mono">14 / 16</div>
+                  <div className="metric-value font-mono">0 / 0</div>
                   <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
-                    <span style={{ color: '#10B981', fontWeight: 700 }}>87.5%</span>
+                    <span style={{ color: '#64748B', fontWeight: 600 }}>0%</span>
                     <span style={{ color: '#8C8D96', marginLeft: '4px' }}>Attendance Rate</span>
                   </div>
                 </div>
@@ -2989,9 +2989,9 @@ export default function App() {
                     <span className="metric-label">Pending Deliveries</span>
                     <div className="metric-icon gold"><i className="ph ph-truck"></i></div>
                   </div>
-                  <div className="metric-value font-mono">3 Orders</div>
+                  <div className="metric-value font-mono">0 Orders</div>
                   <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
-                    <span style={{ color: '#F59E0B', fontWeight: 600 }}>Target Delivery Today</span>
+                    <span style={{ color: '#64748B', fontWeight: 600 }}>Target Delivery Today</span>
                   </div>
                 </div>
 
@@ -3001,9 +3001,9 @@ export default function App() {
                     <span className="metric-label">Fabric Inventory</span>
                     <div className="metric-icon"><i className="ph ph-package"></i></div>
                   </div>
-                  <div className="metric-value font-mono">4,250 Mtrs</div>
+                  <div className="metric-value font-mono">0 Mtrs</div>
                   <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
-                    <span style={{ color: '#64748B', fontWeight: 500 }}>Cotton & Denim Rolls</span>
+                    <span style={{ color: '#64748B', fontWeight: 500 }}>0 Rolls Stocked</span>
                   </div>
                 </div>
               </div>
@@ -3022,27 +3022,27 @@ export default function App() {
                 <div className="snapshot-pills-row">
                   <div className="snapshot-pill" onClick={() => { setActiveTab('jobs'); setJobsSubTab('active'); }} style={{ cursor: 'pointer' }} title="Click to view Running Jobs">
                     <span className="status-dot green"></span>
-                    <span><strong>18</strong> Jobs Running</span>
+                    <span><strong>0</strong> Jobs Running</span>
                   </div>
                   <div className="snapshot-pill" onClick={() => { setActiveTab('jobs'); setJobsSubTab('active'); }} style={{ cursor: 'pointer' }} title="Click to view Completed Jobs">
                     <span className="status-dot blue"></span>
-                    <span><strong>7</strong> Jobs Completed</span>
+                    <span><strong>0</strong> Jobs Completed</span>
                   </div>
                   <div className="snapshot-pill" onClick={() => { setActiveTab('jobs'); setJobsSubTab('active'); }} style={{ cursor: 'pointer' }} title="Click to view Pending Dispatches">
                     <span className="status-dot amber"></span>
-                    <span><strong>3</strong> Waiting for Dispatch</span>
+                    <span><strong>0</strong> Waiting for Dispatch</span>
                   </div>
                   <div className="snapshot-pill" onClick={() => { setActiveTab('employees'); setEmployeesSubTab('attendance'); }} style={{ cursor: 'pointer' }} title="Click to view Staff Attendance">
                     <span className="status-dot green"></span>
-                    <span><strong>14</strong> Employees Present</span>
+                    <span><strong>0</strong> Employees Present</span>
                   </div>
                   <div className="snapshot-pill" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Pending Invoices">
                     <span className="status-dot amber"></span>
-                    <span><strong>2</strong> Bills Pending</span>
+                    <span><strong>0</strong> Bills Pending</span>
                   </div>
-                  <div className="snapshot-pill" onClick={() => setActiveTab('bills')} style={{ borderColor: 'rgba(239,68,68,0.3)', backgroundColor: '#FEF2F2', cursor: 'pointer' }} title="Click to view Overdue Payments">
-                    <span className="status-dot red"></span>
-                    <span style={{ color: '#991B1B' }}><strong>1</strong> Payment Overdue</span>
+                  <div className="snapshot-pill" onClick={() => setActiveTab('bills')} style={{ borderColor: 'rgba(226,232,240,0.8)', backgroundColor: '#F8FAFC', cursor: 'pointer' }} title="Click to view Overdue Payments">
+                    <span className="status-dot green"></span>
+                    <span style={{ color: '#64748B' }}><strong>0</strong> Payment Overdue</span>
                   </div>
                 </div>
               </div>
@@ -3085,10 +3085,10 @@ export default function App() {
                     <div onClick={() => setActiveTab('clients')} style={{ cursor: 'pointer' }} title="Click to view Client Directory">
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
                         <span style={{ fontWeight: 600, color: '#1C1C21' }}>Sounder Exports</span>
-                        <span style={{ fontWeight: 700, color: '#6E56CF', fontFamily: 'var(--font-mono)' }}>₹4,85,000 (62%)</span>
+                        <span style={{ fontWeight: 700, color: '#6E56CF', fontFamily: 'var(--font-mono)' }}>₹0 (0%)</span>
                       </div>
                       <div style={{ height: '6px', width: '100%', backgroundColor: '#F0F0F4', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ width: '62%', height: '100%', backgroundColor: '#6E56CF', borderRadius: '4px' }}></div>
+                        <div style={{ width: '0%', height: '100%', backgroundColor: '#6E56CF', borderRadius: '4px' }}></div>
                       </div>
                     </div>
 
@@ -3096,10 +3096,10 @@ export default function App() {
                     <div onClick={() => setActiveTab('clients')} style={{ cursor: 'pointer' }} title="Click to view Client Directory">
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
                         <span style={{ fontWeight: 600, color: '#1C1C21' }}>Raj Textiles</span>
-                        <span style={{ fontWeight: 700, color: '#10B981', fontFamily: 'var(--font-mono)' }}>₹1,45,000 (18%)</span>
+                        <span style={{ fontWeight: 700, color: '#10B981', fontFamily: 'var(--font-mono)' }}>₹0 (0%)</span>
                       </div>
                       <div style={{ height: '6px', width: '100%', backgroundColor: '#F0F0F4', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ width: '18%', height: '100%', backgroundColor: '#10B981', borderRadius: '4px' }}></div>
+                        <div style={{ width: '0%', height: '100%', backgroundColor: '#10B981', borderRadius: '4px' }}></div>
                       </div>
                     </div>
 
@@ -3107,10 +3107,10 @@ export default function App() {
                     <div onClick={() => setActiveTab('clients')} style={{ cursor: 'pointer' }} title="Click to view Client Directory">
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
                         <span style={{ fontWeight: 600, color: '#1C1C21' }}>Anand Mills</span>
-                        <span style={{ fontWeight: 700, color: '#F59E0B', fontFamily: 'var(--font-mono)' }}>₹95,000 (12%)</span>
+                        <span style={{ fontWeight: 700, color: '#F59E0B', fontFamily: 'var(--font-mono)' }}>₹0 (0%)</span>
                       </div>
                       <div style={{ height: '6px', width: '100%', backgroundColor: '#F0F0F4', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ width: '12%', height: '100%', backgroundColor: '#F59E0B', borderRadius: '4px' }}></div>
+                        <div style={{ width: '0%', height: '100%', backgroundColor: '#F59E0B', borderRadius: '4px' }}></div>
                       </div>
                     </div>
 
@@ -3118,10 +3118,10 @@ export default function App() {
                     <div onClick={() => setActiveTab('clients')} style={{ cursor: 'pointer' }} title="Click to view Client Directory">
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
                         <span style={{ fontWeight: 600, color: '#1C1C21' }}>Varahi Domestic</span>
-                        <span style={{ fontWeight: 700, color: '#64748B', fontFamily: 'var(--font-mono)' }}>₹65,000 (8%)</span>
+                        <span style={{ fontWeight: 700, color: '#64748B', fontFamily: 'var(--font-mono)' }}>₹0 (0%)</span>
                       </div>
                       <div style={{ height: '6px', width: '100%', backgroundColor: '#F0F0F4', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ width: '8%', height: '100%', backgroundColor: '#64748B', borderRadius: '4px' }}></div>
+                        <div style={{ width: '0%', height: '100%', backgroundColor: '#64748B', borderRadius: '4px' }}></div>
                       </div>
                     </div>
                   </div>
@@ -3129,24 +3129,24 @@ export default function App() {
               </div>
 
               {/* Actionable Insights: Client Concentration Risk (Interlinked) */}
-              <div className="table-card bg-surface border" onClick={() => setActiveTab('clients')} style={{ padding: '20px', marginBottom: '24px', backgroundColor: '#FFFAED', borderColor: '#FDE68A', cursor: 'pointer' }} title="Click to open Clients directory to manage accounts">
+              <div className="table-card bg-surface border" onClick={() => setActiveTab('clients')} style={{ padding: '20px', marginBottom: '24px', backgroundColor: '#F8FAFC', borderColor: '#E2E8F0', cursor: 'pointer' }} title="Click to open Clients directory to manage accounts">
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', backgroundColor: '#FEF3C7', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>
-                    <i className="ph ph-warning"></i>
+                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', backgroundColor: '#F1F5F9', color: '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>
+                    <i className="ph ph-shield-check"></i>
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#92400E' }}>Client Concentration Risk Warning</h4>
-                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#D97706', fontFamily: 'var(--font-mono)' }}>92% High Risk Dependency</span>
+                      <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>Client Portfolio Risk Analysis</h4>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#10B981', fontFamily: 'var(--font-mono)' }}>0% Healthy Balanced Distribution</span>
                     </div>
-                    <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#78350F', lineHeight: 1.4 }}>
-                      <strong>⚠ 92% of total company revenue</strong> originates from a single buyer (Sounder Exports).
+                    <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#64748B', lineHeight: 1.4 }}>
+                      <strong>Balanced revenue portfolio:</strong> No single customer accounts for excessive risk concentration.
                     </p>
-                    <div style={{ height: '8px', width: '100%', backgroundColor: '#FDE68A', borderRadius: '4px', overflow: 'hidden', marginBottom: '10px' }}>
-                      <div style={{ width: '92%', height: '100%', backgroundColor: '#D97706', borderRadius: '4px' }}></div>
+                    <div style={{ height: '8px', width: '100%', backgroundColor: '#E2E8F0', borderRadius: '4px', overflow: 'hidden', marginBottom: '10px' }}>
+                      <div style={{ width: '0%', height: '100%', backgroundColor: '#10B981', borderRadius: '4px' }}></div>
                     </div>
-                    <div style={{ fontSize: '12px', color: '#92400E', backgroundColor: '#FEF3C7', padding: '6px 12px', borderRadius: '6px', display: 'inline-block' }}>
-                      <strong>Actionable Recommendation:</strong> Diversify customer portfolio by onboarding new garment export buyers to protect factory cash flow.
+                    <div style={{ fontSize: '12px', color: '#0F172A', backgroundColor: '#F1F5F9', padding: '6px 12px', borderRadius: '6px', display: 'inline-block' }}>
+                      <strong>System Status:</strong> Ready for new client onboarding and active GST bill entries.
                     </div>
                   </div>
                 </div>
@@ -3158,9 +3158,9 @@ export default function App() {
                 <div className="action-required-card">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                     <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#1C1C21', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <i className="ph ph-check-square" style={{ color: '#EF4444' }}></i> Action Required
+                      <i className="ph ph-check-square" style={{ color: '#10B981' }}></i> Action Required
                     </h3>
-                    <span className="badge badge-warning" style={{ fontSize: '11px' }}>4 Urgent Items</span>
+                    <span className="badge badge-success" style={{ fontSize: '11px' }}>0 Urgent Items</span>
                   </div>
 
                   <div className="action-item red-border" onClick={() => setActiveTab('reports')} style={{ cursor: 'pointer' }} title="Click to view Reports & Tax Compliance">
