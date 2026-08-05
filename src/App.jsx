@@ -3751,76 +3751,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Action Required (Pending Tasks) & Recent Activity Timeline Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
-                  {/* Left: Action Required (Pending Tasks) */}
-                  <div className="action-required-card">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                      <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#1C1C21', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <i className="ph ph-check-square" style={{ color: '#10B981' }}></i> Priority Action Center
-                      </h3>
-                      <span className="badge badge-purple" style={{ fontSize: '11px' }}>
-                        {pendingInvoices.length + pendingJobsList.length} Active Items
-                      </span>
-                    </div>
 
-                    {pendingInvoices.length > 0 && (
-                      <div className="action-item red-border" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Pending Invoices">
-                        <i className="ph ph-clock-countdown" style={{ color: '#EF4444', fontSize: '18px', marginTop: '2px' }}></i>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: '13px', fontWeight: 700, color: '#991B1B' }}>
-                            {pendingInvoices.length} Unpaid Invoices ({formatCurrency(totalPendingAmount)})
-                          </div>
-                          <div style={{ fontSize: '12px', color: '#62636C' }}>Follow up with buyer clients for payment settlement.</div>
-                        </div>
-                      </div>
-                    )}
-
-                    {pendingJobsList.length > 0 && (
-                      <div className="action-item orange-border" onClick={() => { setActiveTab('jobs'); setJobsSubTab('all'); }} style={{ cursor: 'pointer' }} title="Click to view Pending Orders">
-                        <i className="ph ph-scissors" style={{ color: '#F59E0B', fontSize: '18px', marginTop: '2px' }}></i>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: '13px', fontWeight: 700, color: '#92400E' }}>
-                            {pendingJobsList.length} Production Jobs Pending Allocation
-                          </div>
-                          <div style={{ fontSize: '12px', color: '#62636C' }}>Review piece rates and assign stitching operators.</div>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="action-item yellow-border" onClick={() => setActiveTab('expenses')} style={{ cursor: 'pointer' }} title="Click to view Capital Sourcing">
-                      <i className="ph ph-wallet" style={{ color: '#D97706', fontSize: '18px', marginTop: '2px' }}></i>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#92400E' }}>
-                          Capital Allocation ({formatCurrency(totalCapitalSourced)})
-                        </div>
-                        <div style={{ fontSize: '12px', color: '#62636C' }}>Active working capital ready for production orders execution.</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right: Recent Activity Timeline */}
-                  <div className="table-card bg-surface border" style={{ padding: '20px', margin: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                      <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#1C1C21', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <i className="ph ph-clock-counter-clockwise" style={{ color: '#6E56CF' }}></i> Live Activity Audit Log
-                      </h3>
-                      <span className="badge badge-success" style={{ fontSize: '11px' }}>Real-time Audit Stream</span>
-                    </div>
-
-                    <div className="activity-timeline">
-                      {activityAuditLogs.slice(0, 5).map((log) => (
-                        <div key={log.id} className="timeline-event" style={{ cursor: 'pointer' }}>
-                          <div>
-                            <div style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C21' }}>{log.action}</div>
-                            <div style={{ fontSize: '12px', color: '#62636C' }}>{log.user}: {log.target}</div>
-                          </div>
-                          <span style={{ fontSize: '11px', color: '#8C8D96', fontWeight: 500 }}>{log.time}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
 
                 {/* Active Production Jobs Operations Panel */}
                 <div className="table-card bg-surface border" style={{ padding: '20px', marginBottom: '24px' }}>
