@@ -493,7 +493,7 @@ export default function App() {
 
   // Varahi System Sub-Module Tabs States
   const [jobsSubTab, setJobsSubTab] = useState('all'); // 'all' | 'create' | 'ongoing' | 'completed' | 'delayed' | 'details'
-  const [jobsViewMode, setJobsViewMode] = useState('board'); // 'board' (Linear Kanban) | 'list'
+  const [jobsViewMode, setJobsViewMode] = useState('list'); // 'list' (Table View) | 'board'
   const [jobDetailsTab, setJobDetailsTab] = useState('overview'); // 'overview' | 'timeline' | 'staff' | 'progress' | 'expenses' | 'files' | 'logs'
   const [selectedJob, setSelectedJob] = useState(null);
   const [selectedJobModal, setSelectedJobModal] = useState(null); // Interactive Job Modal Overlay
@@ -3946,35 +3946,6 @@ export default function App() {
                 </button>
               </div>
             </header>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px', borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span className="badge badge-purple" style={{ fontSize: '12px' }}><i className="ph ph-kanban"></i> Production Kanban</span>
-                <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>5 Active Stage Columns</span>
-              </div>
-
-              {/* View Mode Controls Bar (Board vs List) */}
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <div style={{ display: 'flex', backgroundColor: 'var(--color-muted)', padding: '3px', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
-                  <button 
-                    type="button"
-                    className={`sub-tab-btn ${jobsViewMode === 'board' ? 'active' : ''}`}
-                    onClick={() => { setJobsViewMode('board'); setJobsSubTab('all'); }}
-                    style={{ padding: '4px 12px', fontSize: '12px', border: 'none' }}
-                  >
-                    <i className="ph ph-kanban"></i> Board View
-                  </button>
-                  <button 
-                    type="button"
-                    className={`sub-tab-btn ${jobsViewMode === 'list' ? 'active' : ''}`}
-                    onClick={() => { setJobsViewMode('list'); setJobsSubTab('all'); }}
-                    style={{ padding: '4px 12px', fontSize: '12px', border: 'none' }}
-                  >
-                    <i className="ph ph-list"></i> List View
-                  </button>
-                </div>
-              </div>
-            </div>
 
             {jobsSubTab === 'details' ? (
               <div>
