@@ -5420,24 +5420,6 @@ export default function App() {
               </button>
             </header>
 
-            <div className="sub-tab-bar">
-              <button className={`sub-tab-btn ${clientsSubTab === 'list' ? 'active' : ''}`} onClick={() => setClientsSubTab('list')}>
-                <i className="ph ph-users-three"></i> Client List
-              </button>
-              <button className={`sub-tab-btn ${clientsSubTab === 'details' ? 'active' : ''}`} onClick={() => setClientsSubTab('details')}>
-                <i className="ph ph-user-gear"></i> Client Details
-              </button>
-              <button className={`sub-tab-btn ${clientsSubTab === 'active-jobs' ? 'active' : ''}`} onClick={() => setClientsSubTab('active-jobs')}>
-                <i className="ph ph-briefcase"></i> Active Jobs
-              </button>
-              <button className={`sub-tab-btn ${clientsSubTab === 'completed-jobs' ? 'active' : ''}`} onClick={() => setClientsSubTab('completed-jobs')}>
-                <i className="ph ph-check-circle"></i> Completed Jobs
-              </button>
-              <button className={`sub-tab-btn ${clientsSubTab === 'documents' ? 'active' : ''}`} onClick={() => setClientsSubTab('documents')}>
-                <i className="ph ph-file-text"></i> Documents
-              </button>
-            </div>
-
             <div className="search-filter-row" style={{ marginBottom: '20px' }}>
               <div className="search-input-wrapper">
                 <i className="ph ph-magnifying-glass"></i>
