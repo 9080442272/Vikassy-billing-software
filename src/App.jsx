@@ -7723,11 +7723,34 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="modal-footer" style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setIsCreateJobModalOpen(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 700, borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                  <i className="ph ph-rocket-launch" style={{ fontSize: '16px' }}></i> Create & Launch Production Job
-                </button>
+              <div className="modal-footer" style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                {(() => {
+                  const totalRatePerPc = (parseFloat(createJobStitchRate) || 0) + 
+                                         (parseFloat(createJobCuttingRate) || 0) + 
+                                         (parseFloat(createJobSingerRate) || 0) + 
+                                         (parseFloat(createJobOverlockRate) || 0) + 
+                                         jobCustomRatesList.reduce((sum, r) => sum + (parseFloat(r.val) || 0), 0);
+                  const qty = parseInt(createJobQuantity, 10) || 0;
+                  const calcTotalJobCost = Math.round(qty * totalRatePerPc);
+
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        Total Job Value
+                      </span>
+                      <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-primary)', fontFamily: 'var(--font-mono)' }}>
+                        {formatCurrency(calcTotalJobCost)} <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontWeight: 600 }}>({qty.toLocaleString()} Pcs @ {formatCurrency(totalRatePerPc)}/Pc)</span>
+                      </span>
+                    </div>
+                  );
+                })()}
+
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <button type="button" className="btn btn-secondary" onClick={() => setIsCreateJobModalOpen(false)}>Cancel</button>
+                  <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 700, borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                    <i className="ph ph-rocket-launch" style={{ fontSize: '16px' }}></i> Create & Launch Production Job
+                  </button>
+                </div>
               </div>
             </form>
           </div>
