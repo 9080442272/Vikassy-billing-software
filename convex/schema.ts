@@ -29,6 +29,8 @@ export default defineSchema({
     subtotal: v.number(),
     totalGst: v.number(),
     totalAmount: v.number(),
+    paymentStatus: v.optional(v.string()),
+    status: v.optional(v.string()),
     fileData: v.optional(v.string()), // base64 attachment
     fileName: v.optional(v.string()),
     createdAt: v.string(),

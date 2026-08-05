@@ -722,6 +722,7 @@ export default function App() {
   const [billGrandTotal, setBillGrandTotal] = useState('0');
   const [billAttachmentData, setBillAttachmentData] = useState(null);
   const [billAttachmentName, setBillAttachmentName] = useState('');
+  const [billPaymentStatus, setBillPaymentStatus] = useState('Paid'); // 'Paid' (Payment Received) | 'Pending' (Payment Pending)
 
   const handleClientSelectForInvoice = (clientId) => {
     setBillClient(clientId);
@@ -1927,6 +1928,8 @@ export default function App() {
       subtotal: parseFloat(billSubtotal),
       totalGst: parseFloat(billGstAmount) || 0,
       totalAmount: parseFloat(billGrandTotal),
+      paymentStatus: billPaymentStatus,
+      status: billPaymentStatus,
       fileData: billAttachmentData || undefined,
       fileName: billAttachmentName || undefined
     };
@@ -1944,6 +1947,50 @@ export default function App() {
       closeBillModal();
     } catch (err) {
       console.error("Error saving invoice:", err);
+    }
+  };
+
+  const toggleBillPaymentStatus = async (bill) => {
+    if (!bill) return;
+    const currentStatus = bill.paymentStatus || bill.status || 'Pending';
+    const newStatus = currentStatus === 'Paid' ? 'Pending' : 'Paid';
+    try {
+      if (updateBillMutation) {
+        await updateBillMutation({
+          id: bill._id,
+          clientId: bill.clientId,
+          billNumber: bill.billNumber,
+          date: bill.date,
+          billType: bill.billType,
+          items: bill.items,
+          discount: bill.discount,
+          subtotal: bill.subtotal,
+          totalGst: bill.totalGst,
+          totalAmount: bill.totalAmount,
+          paymentStatus: newStatus,
+          status: newStatus,
+          fileData: bill.fileData,
+          fileName: bill.fileName,
+          createdAt: bill.createdAt
+        });
+      }
+      if (viewingInvoice && viewingInvoice._id === bill._id) {
+        setViewingInvoice(prev => ({ ...prev, paymentStatus: newStatus, status: newStatus }));
+      }
+      setActivityAuditLogs(prev => [
+        {
+          id: Date.now(),
+          user: "Billing Accountant",
+          action: newStatus === 'Paid' ? "Payment Received" : "Payment Marked Pending",
+          target: `Invoice #${bill.billNumber} (${formatCurrency(bill.totalAmount)})`,
+          time: "Just now",
+          icon: newStatus === 'Paid' ? "ph-check-circle" : "ph-clock-countdown",
+          color: newStatus === 'Paid' ? "#10B981" : "#F59E0B"
+        },
+        ...prev
+      ]);
+    } catch (err) {
+      console.error("Error toggling bill status:", err);
     }
   };
 
@@ -1978,6 +2025,7 @@ export default function App() {
     setBillGstAmount(b.totalGst.toString());
     setBillDiscount(b.discount.toString());
     setBillGrandTotal(b.totalAmount.toString());
+    setBillPaymentStatus(b.paymentStatus || b.status || 'Paid');
     setBillAttachmentData(b.fileData || null);
     setBillAttachmentName(b.fileName || '');
     setIsBillModalOpen(true);
@@ -1994,6 +2042,7 @@ export default function App() {
     setBillGstAmount('');
     setBillDiscount('0');
     setBillGrandTotal('0');
+    setBillPaymentStatus('Paid');
     setBillAttachmentData(null);
     setBillAttachmentName('');
   };
@@ -4605,6 +4654,7 @@ export default function App() {
                       <th className="text-right">GST Tax</th>
                       <th className="text-right">Discount</th>
                       <th className="text-right">Grand Total</th>
+                      <th className="text-center">Payment Status</th>
                       <th>Attachment</th>
                       <th className="text-right">Actions</th>
                     </tr>
@@ -4612,6 +4662,7 @@ export default function App() {
                   <tbody>
                     {bills.filter(b => b.billNumber.toLowerCase().includes(billSearch.toLowerCase())).map(b => {
                       const c = clients.find(cl => cl._id === b.clientId);
+                      const isPaid = (b.paymentStatus === 'Paid' || b.status === 'Paid');
                       return (
                         <tr key={b._id}>
                           <td className="font-semibold text-primary">{b.billNumber}</td>
@@ -4622,6 +4673,30 @@ export default function App() {
                           <td className="text-right">{formatCurrency(b.totalGst)}</td>
                           <td className="text-right text-red">-{formatCurrency(b.discount)}</td>
                           <td className="text-right font-semibold text-green">{formatCurrency(b.totalAmount)}</td>
+                          <td className="text-center">
+                            <button
+                              type="button"
+                              onClick={() => toggleBillPaymentStatus(b)}
+                              title="Click to toggle Payment Received status"
+                              style={{
+                                border: isPaid ? '1px solid #A7F3D0' : '1px solid #FDE68A',
+                                backgroundColor: isPaid ? '#ECFDF5' : '#FFFBEB',
+                                color: isPaid ? '#047857' : '#B45309',
+                                borderRadius: '12px',
+                                padding: '4px 10px',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                transition: 'all 0.15s ease'
+                              }}
+                            >
+                              <i className={`ph ${isPaid ? 'ph-check-circle' : 'ph-clock-countdown'}`} style={{ fontSize: '13px' }}></i>
+                              {isPaid ? 'Payment Received' : 'Payment Pending'}
+                            </button>
+                          </td>
                           <td>
                             {b.fileData ? (
                               <a href={b.fileData} download={b.fileName} className="badge" style={{ textDecoration: 'none', backgroundColor: 'rgba(124,58,237,0.1)', color: 'var(--color-primary)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
@@ -5675,6 +5750,57 @@ export default function App() {
                       <span className="slider"></span>
                     </label>
                     <span className="toggle-label font-medium text-primary" style={{ fontSize: '12px', fontWeight: 600 }}>With GST (5%)</span>
+                  </div>
+                </div>
+
+                {/* Payment Received Status Option */}
+                <div className="form-group" style={{ backgroundColor: '#F8FAFC', padding: '12px 16px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+                  <label style={{ marginBottom: '8px', display: 'block', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', color: '#1C1C21' }}>
+                    Payment Settlement Status *
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setBillPaymentStatus('Paid')}
+                      style={{
+                        padding: '10px 14px',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        backgroundColor: billPaymentStatus === 'Paid' ? '#10B981' : '#F1F5F9',
+                        color: billPaymentStatus === 'Paid' ? '#FFFFFF' : '#475569',
+                        border: billPaymentStatus === 'Paid' ? '1px solid #059669' : '1px solid #CBD5E1',
+                        borderRadius: '10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <i className="ph ph-check-circle" style={{ fontSize: '16px' }}></i> Payment Received
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBillPaymentStatus('Pending')}
+                      style={{
+                        padding: '10px 14px',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        backgroundColor: billPaymentStatus === 'Pending' ? '#F59E0B' : '#F1F5F9',
+                        color: billPaymentStatus === 'Pending' ? '#FFFFFF' : '#475569',
+                        border: billPaymentStatus === 'Pending' ? '1px solid #D97706' : '1px solid #CBD5E1',
+                        borderRadius: '10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <i className="ph ph-clock-countdown" style={{ fontSize: '16px' }}></i> Payment Pending
+                    </button>
                   </div>
                 </div>
 
@@ -7136,7 +7262,33 @@ export default function App() {
           <div className="modal-card modal-large invoice-view-modal">
             <div className="modal-header no-print">
               <h3>Invoice Details</h3>
-              <div className="modal-header-actions">
+              <div className="modal-header-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {(() => {
+                  const isPaid = (viewingInvoice.paymentStatus === 'Paid' || viewingInvoice.status === 'Paid');
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => toggleBillPaymentStatus(viewingInvoice)}
+                      title="Click to toggle payment status"
+                      style={{
+                        padding: '6px 14px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        backgroundColor: isPaid ? '#ECFDF5' : '#FFFBEB',
+                        color: isPaid ? '#047857' : '#B45309',
+                        border: isPaid ? '1px solid #A7F3D0' : '1px solid #FDE68A',
+                        borderRadius: '8px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <i className={`ph ${isPaid ? 'ph-check-circle' : 'ph-clock-countdown'}`} style={{ fontSize: '15px' }}></i>
+                      {isPaid ? '✓ Payment Received' : '⏳ Mark Payment Received'}
+                    </button>
+                  );
+                })()}
                 <button className="btn btn-primary" onClick={() => window.print()}>
                   <i className="ph ph-printer"></i> Print / Download PDF
                 </button>
@@ -7144,11 +7296,30 @@ export default function App() {
               </div>
             </div>
             <div className="modal-body print-area" id="print-area">
-              <div className="invoice-printout" style={{ padding: '20px', fontFamily: "'Inter', sans-serif", color: '#000', backgroundColor: '#fff', border: '1px solid #000', maxWidth: '800px', margin: '0 auto', boxShadow: 'none', borderRadius: 0 }}>
+              <div className="invoice-printout" style={{ padding: '20px', fontFamily: "'Inter', sans-serif", color: '#000', backgroundColor: '#fff', border: '1px solid #000', maxWidth: '800px', margin: '0 auto', boxShadow: 'none', borderRadius: 0, position: 'relative' }}>
                 
-                {/* Document Title Header */}
-                <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px', borderBottom: '1px solid #000', paddingBottom: '4px', marginBottom: 0, color: '#000' }}>
-                  Tax Invoice
+                {/* Document Title Header with Payment Status Stamp */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #000', paddingBottom: '6px', marginBottom: 0 }}>
+                  <div style={{ fontWeight: 'bold', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px', color: '#000' }}>
+                    Tax Invoice
+                  </div>
+                  {(() => {
+                    const isPaid = (viewingInvoice.paymentStatus === 'Paid' || viewingInvoice.status === 'Paid');
+                    return (
+                      <div style={{
+                        fontSize: '11px',
+                        fontWeight: 800,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                        color: isPaid ? '#047857' : '#B45309',
+                        border: isPaid ? '1.5px solid #047857' : '1.5px solid #B45309',
+                        padding: '2px 8px',
+                        borderRadius: '4px'
+                      }}>
+                        {isPaid ? '✓ PAYMENT RECEIVED' : '⏳ PAYMENT PENDING'}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Top Grid */}
