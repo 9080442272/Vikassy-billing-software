@@ -4138,15 +4138,15 @@ export default function App() {
                   });
 
                   // Calculate Weighted Completion Progress %
-                  const totalCount = filteredJobs.length || 1;
+                  const totalCount = filteredJobs.length;
                   const completedCount = filteredJobs.filter(o => o.stage === 'Completed / Delivered' || o.status === 'Delivered').length;
                   const packedCount = filteredJobs.filter(o => o.stage === 'Packing & Ready' || o.status === 'Ready').length;
                   const qcCount = filteredJobs.filter(o => o.stage === 'QC Inspection' || o.status === 'QC Inspection').length;
                   const stitchingCount = filteredJobs.filter(o => o.stage === 'Stitching Assembly' || o.status === 'In Production').length;
                   
-                  const progressPct = Math.round(
-                    ((completedCount * 1.0 + packedCount * 0.8 + qcCount * 0.6 + stitchingCount * 0.4) / totalCount) * 100
-                  ) || 78;
+                  const progressPct = totalCount > 0 
+                    ? Math.round(((completedCount * 1.0 + packedCount * 0.8 + qcCount * 0.6 + stitchingCount * 0.4) / totalCount) * 100)
+                    : 0;
 
                   return (
                     <div className="cycle-progress-card">
