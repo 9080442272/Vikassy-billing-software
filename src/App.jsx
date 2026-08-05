@@ -3988,7 +3988,7 @@ export default function App() {
                   onClick={openCreateJobModal}
                   style={{ padding: '10px 20px', fontSize: '13.5px', fontWeight: 800, borderRadius: '12px', boxShadow: '0 4px 14px rgba(94, 106, 210, 0.35)', display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
                 >
-                  <i className="ph ph-plus-circle" style={{ fontSize: '18px' }}></i> + Create New Job Order
+                  <i className="ph ph-plus-circle" style={{ fontSize: '18px' }}></i> Create New Job Order
                 </button>
               </div>
             </header>
@@ -4076,7 +4076,7 @@ export default function App() {
                           style={{ border: '1px solid rgba(245, 158, 11, 0.3)', background: 'rgba(245, 158, 11, 0.1)', color: '#D97706', fontSize: '11px', fontWeight: 800, padding: '3px 9px', borderRadius: '8px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                           title="Add new job order to Backlog"
                         >
-                          <i className="ph ph-plus" style={{ fontSize: '12px' }}></i> + Add Job
+                          <i className="ph ph-plus" style={{ fontSize: '12px' }}></i> Add Job
                         </button>
                         <span className="kanban-column-count">
                           {upcomingOrders.filter(o => {
@@ -4664,7 +4664,7 @@ export default function App() {
                     </div>
 
                     <button className="btn btn-primary btn-sm" onClick={() => setIsAddUserModalOpen(true)} style={{ borderRadius: '10px', padding: '8px 16px' }}>
-                      <i className="ph ph-user-plus"></i> + Add System User
+                      <i className="ph ph-user-plus"></i> Add System User
                     </button>
                   </div>
                 </div>
@@ -5625,10 +5625,10 @@ export default function App() {
                     </div>
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                       <button className="btn btn-secondary btn-sm text-primary" onClick={() => setIsAdvanceModalOpen(true)} style={{ fontWeight: 700 }}>
-                        <i className="ph ph-hand-coins"></i> + Give Advance
+                        <i className="ph ph-hand-coins"></i> Give Advance
                       </button>
                       <button className="btn btn-primary btn-sm" onClick={() => setIsDisbursePayrollModalOpen(true)}>
-                        <i className="ph ph-money"></i> + Disburse Weekly Payout
+                        <i className="ph ph-money"></i> Disburse Weekly Payout
                       </button>
                     </div>
                   </div>
@@ -6056,7 +6056,7 @@ export default function App() {
                   </p>
                 </div>
                 <button className="btn btn-primary" onClick={() => setIsInvestmentModalOpen(true)} style={{ padding: '10px 20px', fontSize: '13.5px', fontWeight: 800, borderRadius: '12px', boxShadow: '0 4px 14px rgba(94, 106, 210, 0.35)', display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                  <i className="ph ph-plus-circle" style={{ fontSize: '18px' }}></i> + Log Investment / Capital
+                  <i className="ph ph-plus-circle" style={{ fontSize: '18px' }}></i> Log Investment / Capital
                 </button>
               </header>
 
@@ -6162,7 +6162,7 @@ export default function App() {
                       {investmentRecords.length === 0 && (
                         <tr>
                           <td colSpan="5" className="text-center text-muted" style={{ padding: '32px' }}>
-                            No investment records logged. Click <strong>"+ Log Investment / Capital"</strong> to record capital sourcing.
+                            No investment records logged. Click <strong>"Log Investment / Capital"</strong> to record capital sourcing.
                           </td>
                         </tr>
                       )}
