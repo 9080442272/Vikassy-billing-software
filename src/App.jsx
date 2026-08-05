@@ -3854,7 +3854,7 @@ export default function App() {
                     </thead>
                     <tbody>
                       {upcomingOrders.map((ord) => (
-                        <tr key={ord._id} style={{ cursor: 'pointer' }} onClick={() => { setSelectedJob(ord); setActiveTab('jobs'); setJobsSubTab('details'); }}>
+                        <tr key={ord._id} style={{ cursor: 'pointer' }} onClick={() => setActiveTab('jobs')}>
                           <td className="font-semibold">{ord.orderTitle}</td>
                           <td>{ord.clientName}</td>
                           <td className="font-medium">{formatDate(ord.deliveryDate)}</td>
@@ -3865,8 +3865,8 @@ export default function App() {
                             </span>
                           </td>
                           <td className="text-right" onClick={(e) => e.stopPropagation()}>
-                            <button className="btn-ghost" onClick={() => { setSelectedJob(ord); setActiveTab('jobs'); setJobsSubTab('details'); }}>
-                              View Details
+                            <button className="btn-ghost" onClick={() => setActiveTab('jobs')}>
+                              View Jobs
                             </button>
                           </td>
                         </tr>
@@ -3944,150 +3944,7 @@ export default function App() {
               </div>
             </header>
 
-            {jobsSubTab === 'details' ? (
-              <div>
-                <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', backgroundColor: 'var(--color-muted)', padding: '6px', borderRadius: '12px', overflowX: 'auto' }}>
-                  {['overview', 'timeline', 'staff', 'progress', 'expenses', 'logs'].map((tab) => (
-                    <button 
-                      key={tab}
-                      className={`btn btn-sm ${jobDetailsTab === tab ? 'btn-primary' : 'btn-secondary'}`}
-                      onClick={() => setJobDetailsTab(tab)}
-                      style={{ textTransform: 'capitalize', borderRadius: '8px' }}
-                    >
-                      {tab === 'staff' ? 'Assigned Staff' : tab === 'progress' ? 'Daily Progress' : tab === 'logs' ? 'Activity Log' : tab}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="card bg-surface border" style={{ padding: '24px', borderRadius: '16px' }}>
-                  {jobDetailsTab === 'overview' && (
-                    <div>
-                      <h4 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: 700 }}>Order Overview</h4>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-                        <div style={{ padding: '16px', backgroundColor: 'var(--color-muted)', borderRadius: '12px' }}>
-                          <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Target Buyer</span>
-                          <div style={{ fontSize: '16px', fontWeight: 700 }}>{selectedJobModal?.clientName || 'Apex Denim Exports'}</div>
-                        </div>
-                        <div style={{ padding: '16px', backgroundColor: 'var(--color-muted)', borderRadius: '12px' }}>
-                          <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Order Valuation</span>
-                          <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-text-primary)' }}>₹1,20,000</div>
-                        </div>
-                        <div style={{ padding: '16px', backgroundColor: 'var(--color-muted)', borderRadius: '12px' }}>
-                          <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Stitching Progress</span>
-                          <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-success)' }}>72% (720 / 1000 Pcs)</div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {jobDetailsTab === 'timeline' && (
-                    <div>
-                      <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: 700 }}>Production Timeline & Milestones</h4>
-                      <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        <li style={{ padding: '12px', borderLeft: '4px solid var(--color-success)', backgroundColor: 'var(--color-muted)', borderRadius: '0 8px 8px 0' }}>
-                          <strong>Fabric Arrival:</strong> 500 Meters Blue Denim received.
-                        </li>
-                        <li style={{ padding: '12px', borderLeft: '4px solid var(--color-primary)', backgroundColor: 'var(--color-muted)', borderRadius: '0 8px 8px 0' }}>
-                          <strong>Cutting & Patterning:</strong> 1000 Panels Cut.
-                        </li>
-                        <li style={{ padding: '12px', borderLeft: '4px solid var(--color-warning)', backgroundColor: 'var(--color-muted)', borderRadius: '0 8px 8px 0' }}>
-                          <strong>Stitching Line 1:</strong> 720 Jackets completed.
-                        </li>
-                      </ul>
-                    </div>
-                  )}
-                  {jobDetailsTab === 'staff' && (
-                    <div>
-                      <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: 700 }}>Assigned Employees & Piece Rates</h4>
-                      <div className="table-responsive">
-                        <table className="data-table">
-                          <thead>
-                            <tr>
-                              <th>Staff Name</th>
-                              <th>Role</th>
-                              <th>Assigned Pieces</th>
-                              <th>Piece Rate (₹)</th>
-                              <th>Total Payout</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {employees.slice(0, 3).map(e => (
-                              <tr key={e._id}>
-                                <td className="font-semibold">{e.name}</td>
-                                <td>{e.role}</td>
-                                <td>240 Pcs</td>
-                                <td>₹{e.stitchRate || 45}/pc</td>
-                                <td className="font-bold text-primary">₹{(240 * (e.stitchRate || 45)).toLocaleString()}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
-                  {jobDetailsTab === 'progress' && (
-                    <div>
-                      <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: 700 }}>Daily Production Log</h4>
-                      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '12px' }}>
-                        <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-muted)', borderRadius: '10px' }}>
-                          <strong>Today:</strong> 110 Pcs Stitched
-                        </div>
-                        <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-muted)', borderRadius: '10px' }}>
-                          <strong>Yesterday:</strong> 145 Pcs Stitched
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {jobDetailsTab === 'expenses' && (
-                    <div>
-                      <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: 700 }}>Job Direct Expenses Ledger</h4>
-                      <div className="table-responsive">
-                        <table className="data-table">
-                          <thead>
-                            <tr>
-                              <th>Category</th>
-                              <th>Description</th>
-                              <th>Amount</th>
-                              <th>Date</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {expenses.slice(0, 2).map(exp => (
-                              <tr key={exp._id}>
-                                <td>{exp.category}</td>
-                                <td>{exp.description}</td>
-                                <td className="font-bold text-red">₹{exp.amount.toLocaleString()}</td>
-                                <td>{exp.date}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
-                  {jobDetailsTab === 'files' && (
-                    <div>
-                      <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: 700 }}>Job Files & Tech Packs</h4>
-                      <div style={{ padding: '14px 18px', border: '1px solid var(--color-border)', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
-                        <i className="ph-fill ph-file-pdf" style={{ fontSize: '24px', color: '#EF4444' }}></i>
-                        <div>
-                          <div style={{ fontSize: '13px', fontWeight: 600 }}>Tech_Pack_Denim_Jacket_2026.pdf</div>
-                          <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>2.4 MB • Spec Sheet</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {jobDetailsTab === 'logs' && (
-                    <div>
-                      <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: 700 }}>Audit Activity Log</h4>
-                      <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <div>• <strong>2026-07-25 10:30 AM:</strong> Job launched by Administrator.</div>
-                        <div>• <strong>2026-07-26 11:00 AM:</strong> Supervisor updated count to 720 Pcs.</div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : jobsViewMode === 'board' ? (
+            {jobsViewMode === 'board' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {/* Weekly Production Cycle Sprint Card */}
 
@@ -4493,7 +4350,7 @@ export default function App() {
                           return true;
                         })
                         .map(order => (
-                          <tr key={order._id} style={{ cursor: 'pointer' }} onClick={() => { setSelectedJob(order); setJobsSubTab('details'); }}>
+                          <tr key={order._id}>
                             <td className="font-semibold">{order.orderTitle}</td>
                             <td>
                               <span className="badge badge-purple" style={{ fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
@@ -4518,9 +4375,6 @@ export default function App() {
                             </td>
                             <td className="text-right" onClick={(e) => e.stopPropagation()}>
                               <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
-                                <button className="btn btn-secondary btn-sm" onClick={() => { setSelectedJob(order); setJobsSubTab('details'); }}>
-                                  View Details
-                                </button>
                                 <button 
                                   className="btn-icon text-red" 
                                   onClick={() => deleteUpcomingOrder(order._id, order)}
