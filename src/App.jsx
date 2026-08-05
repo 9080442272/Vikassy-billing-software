@@ -573,8 +573,8 @@ export default function App() {
 
   // Capital Sourcing & Order Investment States
   const [investmentRecords, setInvestmentRecords] = useState([
-    { id: 1, investorName: "Managing Director (MD)", date: new Date().toISOString().split('T')[0], type: "MD Capital Infusion", amount: 300000, linkedOrder: "Order Style #ST-2026-01", notes: "CEO brought amount from MD to run Order ST-2026-01", mode: "Bank Transfer" },
-    { id: 2, investorName: "Director / CEO Loan", date: new Date().toISOString().split('T')[0], type: "Director Loan", amount: 250000, linkedOrder: "Factory Raw Materials", notes: "Short-term capital loan from CEO for order execution", mode: "Cheque" }
+    { id: 1, date: new Date().toISOString().split('T')[0], type: "CEO brought amount from MD to run order", amount: 300000, linkedOrder: "Style #ST-2026-01 (Apex Denim Exports)" },
+    { id: 2, date: new Date().toISOString().split('T')[0], type: "CEO brought loan for working capital", amount: 250000, linkedOrder: "General Factory Operational Fund" }
   ]);
   const [isInvestmentModalOpen, setIsInvestmentModalOpen] = useState(false);
   const [isAllocateOrderModalOpen, setIsAllocateOrderModalOpen] = useState(false);
@@ -6128,7 +6128,6 @@ export default function App() {
                       <tr>
                         <th>Date</th>
                         <th>Source Category</th>
-                        <th>Provider / Investor</th>
                         <th>Target Order / Purpose</th>
                         <th className="text-right">Capital Amount (₹)</th>
                         <th className="text-right">Action</th>
@@ -6140,10 +6139,9 @@ export default function App() {
                           <td className="text-muted">{rec.date}</td>
                           <td>
                             <span className="badge badge-purple" style={{ fontSize: '11.5px', fontWeight: 700 }}>
-                              {rec.type || 'MD Infusion'}
+                              {rec.type || 'CEO brought amount from MD'}
                             </span>
                           </td>
-                          <td className="font-semibold">{rec.investorName || 'MD (Managing Director)'}</td>
                           <td>
                             <span className="font-semibold text-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                               <i className="ph ph-tag" style={{ fontSize: '12px' }}></i> {rec.linkedOrder || 'Run Production Order'}
@@ -6163,7 +6161,7 @@ export default function App() {
                       ))}
                       {investmentRecords.length === 0 && (
                         <tr>
-                          <td colSpan="6" className="text-center text-muted" style={{ padding: '32px' }}>
+                          <td colSpan="5" className="text-center text-muted" style={{ padding: '32px' }}>
                             No investment records logged. Click <strong>"+ Log Investment / Capital"</strong> to record capital sourcing.
                           </td>
                         </tr>
@@ -6189,17 +6187,15 @@ export default function App() {
             <form onSubmit={(e) => {
               e.preventDefault();
               const form = e.target;
-              const type = form.sourceType.value;
-              const investorName = form.investorName.value.trim();
-              const linkedOrder = form.linkedOrder.value.trim();
+              const type = form.sourceType.value.trim();
+              const linkedOrder = form.linkedOrder.value;
               const amount = parseFloat(form.amount.value) || 0;
               const date = form.investmentDate.value;
 
               const newRec = {
                 id: Date.now(),
-                type: type || "MD Capital Infusion",
-                investorName: investorName || "Managing Director (MD)",
-                linkedOrder: linkedOrder || "Run Production Order",
+                type: type || "CEO brought amount from MD",
+                linkedOrder: linkedOrder || "General Factory Operational Fund",
                 amount,
                 date
               };
@@ -6210,23 +6206,27 @@ export default function App() {
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px' }}>
                 <div className="form-group">
                   <label htmlFor="inv-type" style={{ fontWeight: 600 }}>Source Category *</label>
-                  <select id="inv-type" name="sourceType" required style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}>
-                    <option value="MD Capital Infusion">👑 MD Capital Infusion (CEO brought amount from MD)</option>
-                    <option value="Director Loan">🏦 Director / CEO Loan</option>
-                    <option value="Bank Loan">🏛️ Bank / NBFC Working Capital Loan</option>
-                    <option value="Partner Capital">💼 Partner Equity / Capital</option>
-                    <option value="Other Sourcing">💵 Other Capital Source</option>
+                  <input 
+                    type="text" 
+                    id="inv-type" 
+                    name="sourceType" 
+                    required 
+                    placeholder="e.g. CEO brought amount from MD to run an order, CEO brought loan..." 
+                    style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }} 
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="inv-order" style={{ fontWeight: 600 }}>Target Order (From Jobs) *</label>
+                  <select id="inv-order" name="linkedOrder" required style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}>
+                    <option value="">-- Choose Job Order --</option>
+                    {upcomingOrders.map(j => (
+                      <option key={j._id} value={`${j.styleNumber ? `Style #${j.styleNumber}` : j.orderTitle} (${j.clientName})`}>
+                        {j.styleNumber ? `Style #${j.styleNumber}` : j.orderTitle} ({j.clientName} - {(j.orderQty || j.quantity || 2500).toLocaleString()} Pcs)
+                      </option>
+                    ))}
+                    <option value="General Factory Operational Fund">⚙️ General Factory Operational Fund</option>
                   </select>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="inv-name" style={{ fontWeight: 600 }}>Provider / Investor Name *</label>
-                  <input type="text" id="inv-name" name="investorName" required defaultValue="Managing Director (MD)" placeholder="e.g. Managing Director (MD), HDFC Bank Loan" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }} />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="inv-order" style={{ fontWeight: 600 }}>Target Order / Purpose *</label>
-                  <input type="text" id="inv-order" name="linkedOrder" required placeholder="e.g. To run Style ST-2026-01 Order or Bulk Fabric Purchase" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }} />
                 </div>
 
                 <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
