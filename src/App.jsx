@@ -4365,7 +4365,7 @@ export default function App() {
                           return true;
                         })
                         .map(order => (
-                          <tr key={order._id}>
+                          <tr key={order._id} style={{ cursor: 'pointer' }} onClick={() => setSelectedJobModal(order)}>
                             <td className="font-semibold">{order.orderTitle}</td>
                             <td>
                               <span className="badge badge-purple" style={{ fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
@@ -4390,6 +4390,15 @@ export default function App() {
                             </td>
                             <td className="text-right" onClick={(e) => e.stopPropagation()}>
                               <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                <button 
+                                  type="button"
+                                  className="btn btn-secondary btn-sm" 
+                                  onClick={(e) => { e.stopPropagation(); setSelectedJobModal(order); }}
+                                  title="View Job Order Details"
+                                  style={{ padding: '5px 12px', fontSize: '12px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '5px', borderRadius: '8px' }}
+                                >
+                                  <i className="ph ph-eye" style={{ fontSize: '14px' }}></i> View
+                                </button>
                                 <button 
                                   className="btn-icon text-red" 
                                   onClick={() => deleteUpcomingOrder(order._id, order)}
@@ -9671,9 +9680,12 @@ export default function App() {
             {/* Modal Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
                   <span className={`priority-badge ${selectedJobModal.priority?.toLowerCase() || 'medium'}`}>
                     {selectedJobModal.priority || 'Medium'} Priority
+                  </span>
+                  <span className="badge badge-purple" style={{ fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
+                    Style #{selectedJobModal.styleNumber || 'ST-2026-01'}
                   </span>
                   <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-mono)' }}>
                     Job ID: #{selectedJobModal._id}
@@ -9718,17 +9730,22 @@ export default function App() {
             </div>
 
             {/* Production Details Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px', backgroundColor: 'var(--color-muted)', padding: '16px', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '14px', backgroundColor: 'var(--color-muted)', padding: '16px', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
               <div>
-                <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'block' }}>Order Quantity</span>
-                <strong style={{ fontSize: '16px', color: 'var(--color-text-primary)' }}>{(selectedJobModal.quantity || 2500).toLocaleString()} Pcs</strong>
+                <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'block' }}>Order & Shipment Qty</span>
+                <strong style={{ fontSize: '15px', color: 'var(--color-text-primary)' }}>
+                  {(selectedJobModal.orderQty || selectedJobModal.quantity || 2500).toLocaleString()} Pcs
+                </strong>
+                <div style={{ fontSize: '10.5px', color: 'var(--color-text-secondary)' }}>
+                  Ship: {(selectedJobModal.shipmentQty || selectedJobModal.quantity || 2500).toLocaleString()} Pcs
+                </div>
               </div>
               <div>
                 <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'block' }}>Target Due Date</span>
                 <strong style={{ fontSize: '15px', color: 'var(--color-primary)', fontFamily: 'var(--font-mono)' }}>{formatDate(selectedJobModal.deliveryDate)}</strong>
               </div>
               <div>
-                <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'block' }}>Estimated Cost</span>
+                <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'block' }}>Total Valuation</span>
                 <strong style={{ fontSize: '15px', color: 'var(--color-success)', fontFamily: 'var(--font-mono)' }}>{formatCurrency(selectedJobModal.estimatedValue)}</strong>
               </div>
             </div>
