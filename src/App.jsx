@@ -3258,10 +3258,7 @@ export default function App() {
             <i className="ph ph-coins"></i>
             <span>Expenses</span>
           </button>
-          <button className={`nav-item ${activeTab === 'reports' ? 'active' : ''}`} onClick={() => handleTabChange('reports')}>
-            <i className="ph ph-chart-line-up"></i>
-            <span>Reports</span>
-          </button>
+
 
           <div style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '14px 8px 4px 8px' }}>
             System ▾
@@ -4426,63 +4423,7 @@ export default function App() {
 
 
 
-        {/* ==================== REPORTS VIEW ==================== */}
-        {activeTab === 'reports' && (
-          <section id="reports-view" className="tab-view active">
-            <header className="view-header">
-              <div>
-                <h1>Business Reports & Analytics</h1>
-                <p className="subtitle">Generate export reports for production jobs, staff wages, expenditures, and GST.</p>
-              </div>
-              <button className="btn btn-primary" onClick={() => alert("Downloading PDF summary report...")}>
-                <i className="ph ph-download-simple"></i> Download PDF Report
-              </button>
-            </header>
 
-            <div className="sub-tab-bar">
-              <button className={`sub-tab-btn ${reportsSubTab === 'job-reports' ? 'active' : ''}`} onClick={() => setReportsSubTab('job-reports')}>
-                <i className="ph ph-briefcase"></i> Job Reports
-              </button>
-              <button className={`sub-tab-btn ${reportsSubTab === 'employee-reports' ? 'active' : ''}`} onClick={() => setReportsSubTab('employee-reports')}>
-                <i className="ph ph-users"></i> Employee Reports
-              </button>
-              <button className={`sub-tab-btn ${reportsSubTab === 'attendance-reports' ? 'active' : ''}`} onClick={() => setReportsSubTab('attendance-reports')}>
-                <i className="ph ph-clock"></i> Attendance Reports
-              </button>
-              <button className={`sub-tab-btn ${reportsSubTab === 'payroll-reports' ? 'active' : ''}`} onClick={() => setReportsSubTab('payroll-reports')}>
-                <i className="ph ph-money"></i> Payroll Reports
-              </button>
-              <button className={`sub-tab-btn ${reportsSubTab === 'expense-reports' ? 'active' : ''}`} onClick={() => setReportsSubTab('expense-reports')}>
-                <i className="ph ph-coins"></i> Expense Reports
-              </button>
-              <button className={`sub-tab-btn ${reportsSubTab === 'business-summary' ? 'active' : ''}`} onClick={() => setReportsSubTab('business-summary')}>
-                <i className="ph ph-chart-line-up"></i> Business Summary
-              </button>
-            </div>
-
-            <div className="card bg-surface border" style={{ padding: '24px', borderRadius: '16px' }}>
-              <h3 style={{ margin: '0 0 12px 0', fontSize: '18px', fontWeight: 700 }}>
-                {reportsSubTab.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-              </h3>
-              <p style={{ color: 'var(--color-text-secondary)', fontSize: '13px' }}>Comprehensive audit breakdown for Varahi Export operations.</p>
-              
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginTop: '20px' }}>
-                <div style={{ padding: '20px', backgroundColor: 'var(--color-muted)', borderRadius: '14px' }}>
-                  <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>Total Jobs Executed</span>
-                  <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-primary)', marginTop: '4px' }}>{upcomingOrders.length} Orders</div>
-                </div>
-                <div style={{ padding: '20px', backgroundColor: 'var(--color-muted)', borderRadius: '14px' }}>
-                  <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>Total Billed Revenue</span>
-                  <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-success)', marginTop: '4px' }}>{formatCurrency(bills.reduce((s, b) => s + b.totalAmount, 0))}</div>
-                </div>
-                <div style={{ padding: '20px', backgroundColor: 'var(--color-muted)', borderRadius: '14px' }}>
-                  <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>Operating Expenditure</span>
-                  <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-danger)', marginTop: '4px' }}>{formatCurrency(expenses.reduce((s, e) => s + e.amount, 0))}</div>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
 
         {/* ==================== NOTIFICATIONS VIEW ==================== */}
         {activeTab === 'notifications' && (
