@@ -659,6 +659,12 @@ export default function App() {
   const [customEmpRateNameInput, setCustomEmpRateNameInput] = useState('');
   const [customEmpRateValInput, setCustomEmpRateValInput] = useState('');
 
+  // Job Modal Custom Piece-Rates States
+  const [isJobCustomRateActive, setIsJobCustomRateActive] = useState(false);
+  const [jobCustomRatesList, setJobCustomRatesList] = useState([]);
+  const [jobCustomRateNameInput, setJobCustomRateNameInput] = useState('');
+  const [jobCustomRateValInput, setJobCustomRateValInput] = useState('');
+
   const [attendanceSubTab, setAttendanceSubTab] = useState('daily'); // 'daily' | 'shifts' | 'approvals' | 'reports'
   const [payrollSubTab, setPayrollSubTab] = useState('monthly'); // 'monthly' | 'calculation' | 'incentives' | 'advances' | 'payslips' | 'history'
   const [expensesSubTab, setExpensesSubTab] = useState('all'); // 'all' | 'add' | 'categories' | 'pending' | 'approved' | 'summary'
@@ -7908,6 +7914,116 @@ export default function App() {
                       {employees.length === 0 && <option value="Kartick (Master Tailor)">Kartick (Master Tailor)</option>}
                     </select>
                   </div>
+                </div>
+
+                {/* Job Operation Piece-Rates Section */}
+                <div style={{ marginTop: '4px', paddingTop: '14px', borderTop: '1px dashed var(--color-border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <label style={{ margin: 0, fontWeight: 700, fontSize: '13px', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <i className="ph ph-scissors"></i> Job Piece-Rates (PC Rates)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setIsJobCustomRateActive(!isJobCustomRateActive)}
+                      style={{
+                        border: 'none',
+                        background: 'transparent',
+                        color: 'var(--color-primary)',
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: 0
+                      }}
+                    >
+                      <i className={`ph ${isJobCustomRateActive ? 'ph-minus-circle' : 'ph-plus-circle'}`}></i>
+                      {isJobCustomRateActive ? 'Hide Custom Rate Input' : '+ Add Custom Operation Rate'}
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div className="form-group">
+                      <label htmlFor="job-stitch-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Stitching Rate (₹ / Pc)</label>
+                      <input type="number" id="job-stitch-rate" name="stitchRate" step="any" placeholder="e.g. 12.00" defaultValue="12.00" style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="job-cutting-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Cutting Rate (₹ / Pc)</label>
+                      <input type="number" id="job-cutting-rate" name="cuttingRate" step="any" placeholder="e.g. 3.50" defaultValue="3.50" style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="job-singer-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Singer Machine Rate (₹ / Pc)</label>
+                      <input type="number" id="job-singer-rate" name="singerRate" step="any" placeholder="e.g. 8.50" defaultValue="8.50" style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="job-overlock-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Overlock Rate (₹ / Pc)</label>
+                      <input type="number" id="job-overlock-rate" name="overlockRate" step="any" placeholder="e.g. 4.50" defaultValue="4.50" style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} />
+                    </div>
+                  </div>
+
+                  {/* Dynamic Custom Rates List for Job */}
+                  {jobCustomRatesList.length > 0 && (
+                    <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {jobCustomRatesList.map((rateObj, idx) => (
+                        <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <span style={{ fontSize: '12px', fontWeight: 600, minWidth: '130px', color: 'var(--color-text-secondary)' }}>{rateObj.name} (₹/Pc):</span>
+                          <input 
+                            type="number" 
+                            step="any"
+                            value={rateObj.val} 
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setJobCustomRatesList(prev => prev.map((r, i) => i === idx ? { ...r, val } : r));
+                            }} 
+                            style={{ fontSize: '13px', padding: '7px 10px', borderRadius: '8px', flex: 1 }} 
+                          />
+                          <button type="button" className="btn-icon text-red" onClick={() => setJobCustomRatesList(prev => prev.filter((_, i) => i !== idx))}>
+                            <i className="ph ph-x"></i>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Inline Custom Rate Add Box */}
+                  {isJobCustomRateActive && (
+                    <div style={{ marginTop: '10px', padding: '10px', backgroundColor: 'var(--color-muted)', borderRadius: '10px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <input 
+                        type="text" 
+                        placeholder="Custom Rate Name (e.g. Ironing Rate, Pocket Rate)" 
+                        value={jobCustomRateNameInput}
+                        onChange={(e) => setJobCustomRateNameInput(e.target.value)}
+                        style={{ fontSize: '12.5px', padding: '8px 10px', flex: 2, borderRadius: '8px', border: '1px solid var(--color-border)' }}
+                      />
+                      <input 
+                        type="number" 
+                        step="any"
+                        placeholder="Rate (₹)" 
+                        value={jobCustomRateValInput}
+                        onChange={(e) => setJobCustomRateValInput(e.target.value)}
+                        style={{ fontSize: '12.5px', padding: '8px 10px', flex: 1, borderRadius: '8px', border: '1px solid var(--color-border)' }}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={() => {
+                          if (jobCustomRateNameInput.trim() && jobCustomRateValInput) {
+                            setJobCustomRatesList(prev => [...prev, { name: jobCustomRateNameInput.trim(), val: parseFloat(jobCustomRateValInput) || 0 }]);
+                            setJobCustomRateNameInput('');
+                            setJobCustomRateValInput('');
+                            setIsJobCustomRateActive(false);
+                          }
+                        }}
+                        style={{ padding: '8px 12px', fontSize: '12px', whiteSpace: 'nowrap' }}
+                      >
+                        <i className="ph ph-check"></i> Add Rate
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Row 5: Notes & Fabric Specifications */}
