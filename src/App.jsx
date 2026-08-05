@@ -673,6 +673,13 @@ export default function App() {
   const [isCustomUnitActive, setIsCustomUnitActive] = useState(false);
   const [customUnitInputVal, setCustomUnitInputVal] = useState("");
 
+  // Create Job Live Calculation States
+  const [createJobQuantity, setCreateJobQuantity] = useState(2500);
+  const [createJobStitchRate, setCreateJobStitchRate] = useState(12.00);
+  const [createJobCuttingRate, setCreateJobCuttingRate] = useState(3.50);
+  const [createJobSingerRate, setCreateJobSingerRate] = useState(8.50);
+  const [createJobOverlockRate, setCreateJobOverlockRate] = useState(4.50);
+
   // --- Invoice creation state values ---
   const [billClient, setBillClient] = useState('');
   const [billNumber, setBillNumber] = useState('');
@@ -4462,6 +4469,7 @@ export default function App() {
                     <thead>
                       <tr>
                         <th>Job Title / Order Description</th>
+                        <th>Style #</th>
                         <th>Client Name</th>
                         <th>Delivery Target Date</th>
                         <th>Estimated Budget (₹)</th>
@@ -4480,6 +4488,11 @@ export default function App() {
                         .map(order => (
                           <tr key={order._id} style={{ cursor: 'pointer' }} onClick={() => { setSelectedJob(order); setJobsSubTab('details'); }}>
                             <td className="font-semibold">{order.orderTitle}</td>
+                            <td>
+                              <span className="badge badge-purple" style={{ fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
+                                {order.styleNumber || 'ST-2026-01'}
+                              </span>
+                            </td>
                             <td>{order.clientName}</td>
                             <td>{formatDate(order.deliveryDate)}</td>
                             <td className="font-bold text-primary" style={{ fontFamily: 'var(--font-mono)' }}>{formatCurrency(order.estimatedValue)}</td>
@@ -7291,16 +7304,26 @@ export default function App() {
             <form onSubmit={async (e) => {
               e.preventDefault();
               const form = e.target;
+              const styleNo = form.styleNumber.value.trim();
+              const qty = parseInt(createJobQuantity, 10) || 0;
+              const totalRatePerPc = (parseFloat(createJobStitchRate) || 0) + 
+                                     (parseFloat(createJobCuttingRate) || 0) + 
+                                     (parseFloat(createJobSingerRate) || 0) + 
+                                     (parseFloat(createJobOverlockRate) || 0) + 
+                                     jobCustomRatesList.reduce((sum, r) => sum + (parseFloat(r.val) || 0), 0);
+              const calcJobTotalCost = Math.round(qty * totalRatePerPc);
+
               const newJob = {
                 _id: `job-${Date.now()}`,
-                orderTitle: form.orderTitle.value,
-                product: form.orderTitle.value,
+                orderTitle: styleNo ? `Style ${styleNo}` : 'Custom Production Job',
+                styleNumber: styleNo,
+                product: styleNo ? `Style ${styleNo}` : 'Garment Batch',
                 clientName: form.clientName.value,
-                quantity: parseInt(form.quantity.value, 10) || 1000,
+                quantity: qty,
                 deliveryDate: form.deliveryDate.value,
                 priority: form.priority.value,
                 productionUnit: form.productionUnit.value,
-                estimatedValue: parseFloat(form.estimatedValue.value) || 0,
+                estimatedValue: calcJobTotalCost,
                 assignedWorker: form.assignedWorker.value || 'Kartick (Master Tailor)',
                 status: "Pending",
                 stage: "Backlog & Cutting",
@@ -7336,11 +7359,11 @@ export default function App() {
               setIsCreateJobModalOpen(false);
             }}>
               <div className="modal-body" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {/* Row 1: Product & Customer */}
+                {/* Row 1: Style Number & Customer */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div className="form-group">
-                    <label style={{ fontWeight: 600 }}>Product / Order Description *</label>
-                    <input type="text" name="orderTitle" required placeholder="e.g. Cotton Polo T-Shirts (5,000 Pcs)" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
+                    <label style={{ fontWeight: 600 }}>Style Number *</label>
+                    <input type="text" name="styleNumber" required placeholder="e.g. ST-2026-88" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
                   </div>
                   <div className="form-group">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
@@ -7398,7 +7421,15 @@ export default function App() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div className="form-group">
                     <label style={{ fontWeight: 600 }}>Quantity (Pieces) *</label>
-                    <input type="number" name="quantity" required defaultValue="2500" placeholder="e.g. 2500" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
+                    <input 
+                      type="number" 
+                      name="quantity" 
+                      required 
+                      value={createJobQuantity} 
+                      onChange={(e) => setCreateJobQuantity(e.target.value)}
+                      placeholder="e.g. 2500" 
+                      style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} 
+                    />
                   </div>
                   <LinearDatePickerInput 
                     id="job-target-due-date"
@@ -7500,19 +7531,13 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Row 4: Estimated Cost & Assigned Worker */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div className="form-group">
-                    <label style={{ fontWeight: 600 }}>Estimated Job Cost (₹) *</label>
-                    <input type="number" name="estimatedValue" step="any" required defaultValue="125000" placeholder="e.g. 125000" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
-                  </div>
-                  <div className="form-group">
-                    <label style={{ fontWeight: 600 }}>Assign Worker / Lead *</label>
-                    <select name="assignedWorker" defaultValue="Kartick (Master Tailor)" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }}>
-                      {employees.map(e => <option key={e._id} value={`${e.name} (${e.role})`}>{e.name} ({e.role})</option>)}
-                      {employees.length === 0 && <option value="Kartick (Master Tailor)">Kartick (Master Tailor)</option>}
-                    </select>
-                  </div>
+                {/* Row 4: Assigned Worker */}
+                <div className="form-group">
+                  <label style={{ fontWeight: 600 }}>Assign Worker / Lead *</label>
+                  <select name="assignedWorker" defaultValue="Kartick (Master Tailor)" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}>
+                    {employees.map(e => <option key={e._id} value={`${e.name} (${e.role})`}>{e.name} ({e.role})</option>)}
+                    {employees.length === 0 && <option value="Kartick (Master Tailor)">Kartick (Master Tailor)</option>}
+                  </select>
                 </div>
 
                 {/* Job Operation Piece-Rates Section */}
@@ -7545,22 +7570,58 @@ export default function App() {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                     <div className="form-group">
                       <label htmlFor="job-stitch-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Stitching Rate (₹ / Pc)</label>
-                      <input type="number" id="job-stitch-rate" name="stitchRate" step="any" placeholder="e.g. 12.00" defaultValue="12.00" style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} />
+                      <input 
+                        type="number" 
+                        id="job-stitch-rate" 
+                        name="stitchRate" 
+                        step="any" 
+                        placeholder="e.g. 12.00" 
+                        value={createJobStitchRate}
+                        onChange={(e) => setCreateJobStitchRate(e.target.value)}
+                        style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} 
+                      />
                     </div>
 
                     <div className="form-group">
                       <label htmlFor="job-cutting-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Cutting Rate (₹ / Pc)</label>
-                      <input type="number" id="job-cutting-rate" name="cuttingRate" step="any" placeholder="e.g. 3.50" defaultValue="3.50" style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} />
+                      <input 
+                        type="number" 
+                        id="job-cutting-rate" 
+                        name="cuttingRate" 
+                        step="any" 
+                        placeholder="e.g. 3.50" 
+                        value={createJobCuttingRate}
+                        onChange={(e) => setCreateJobCuttingRate(e.target.value)}
+                        style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} 
+                      />
                     </div>
 
                     <div className="form-group">
                       <label htmlFor="job-singer-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Singer Machine Rate (₹ / Pc)</label>
-                      <input type="number" id="job-singer-rate" name="singerRate" step="any" placeholder="e.g. 8.50" defaultValue="8.50" style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} />
+                      <input 
+                        type="number" 
+                        id="job-singer-rate" 
+                        name="singerRate" 
+                        step="any" 
+                        placeholder="e.g. 8.50" 
+                        value={createJobSingerRate}
+                        onChange={(e) => setCreateJobSingerRate(e.target.value)}
+                        style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} 
+                      />
                     </div>
 
                     <div className="form-group">
                       <label htmlFor="job-overlock-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Overlock Rate (₹ / Pc)</label>
-                      <input type="number" id="job-overlock-rate" name="overlockRate" step="any" placeholder="e.g. 4.50" defaultValue="4.50" style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} />
+                      <input 
+                        type="number" 
+                        id="job-overlock-rate" 
+                        name="overlockRate" 
+                        step="any" 
+                        placeholder="e.g. 4.50" 
+                        value={createJobOverlockRate}
+                        onChange={(e) => setCreateJobOverlockRate(e.target.value)}
+                        style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} 
+                      />
                     </div>
                   </div>
 
@@ -7623,6 +7684,36 @@ export default function App() {
                       </button>
                     </div>
                   )}
+
+                  {/* Live Calculated Total Job Amount Box */}
+                  {(() => {
+                    const totalRatePerPc = (parseFloat(createJobStitchRate) || 0) + 
+                                           (parseFloat(createJobCuttingRate) || 0) + 
+                                           (parseFloat(createJobSingerRate) || 0) + 
+                                           (parseFloat(createJobOverlockRate) || 0) + 
+                                           jobCustomRatesList.reduce((sum, r) => sum + (parseFloat(r.val) || 0), 0);
+                    const qty = parseInt(createJobQuantity, 10) || 0;
+                    const calcTotalJobCost = Math.round(qty * totalRatePerPc);
+
+                    return (
+                      <div style={{ marginTop: '16px', padding: '16px', borderRadius: '12px', backgroundColor: '#F5F3FF', border: '1.5px solid #DDD6FE', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                        <div>
+                          <div style={{ fontSize: '11px', fontWeight: 800, color: '#6E56CF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Calculated Total Job Amount</div>
+                          <div style={{ fontSize: '24px', fontWeight: 800, color: '#5E6AD2', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
+                            {formatCurrency(calcTotalJobCost)}
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#1E293B' }}>
+                            {qty.toLocaleString()} Pcs × {formatCurrency(totalRatePerPc)} / Pc
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#10B981', fontWeight: 700, marginTop: '2px' }}>
+                            ⚡ Auto-calculated from Stitching + Cutting + Machine Rates
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Row 5: Notes & Fabric Specifications */}
