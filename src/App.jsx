@@ -4477,20 +4477,7 @@ export default function App() {
               </button>
             </header>
 
-            <div className="sub-tab-bar">
-              <button className={`sub-tab-btn ${notificationsSubTab === 'job-updates' ? 'active' : ''}`} onClick={() => setNotificationsSubTab('job-updates')}>
-                <i className="ph ph-briefcase"></i> Job Updates
-              </button>
-              <button className={`sub-tab-btn ${notificationsSubTab === 'attendance-alerts' ? 'active' : ''}`} onClick={() => setNotificationsSubTab('attendance-alerts')}>
-                <i className="ph ph-clock"></i> Attendance Alerts
-              </button>
-              <button className={`sub-tab-btn ${notificationsSubTab === 'salary-alerts' ? 'active' : ''}`} onClick={() => setNotificationsSubTab('salary-alerts')}>
-                <i className="ph ph-money"></i> Salary Alerts
-              </button>
-              <button className={`sub-tab-btn ${notificationsSubTab === 'system-notifications' ? 'active' : ''}`} onClick={() => setNotificationsSubTab('system-notifications')}>
-                <i className="ph ph-bell"></i> System Notifications
-              </button>
-            </div>
+
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               
