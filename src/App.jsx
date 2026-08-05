@@ -2356,16 +2356,20 @@ export default function App() {
     const title = typeof orderObj === 'object' ? orderObj.orderTitle : orderObj || '';
     
     requestDeleteConfirmation({
-      heading: 'Are you sure you want to cancel and delete this order?',
-      subheading: 'Deleting this scheduled order will remove it from target delivery calendars.',
-      itemName: title || 'Upcoming Order',
+      heading: 'Are you sure you want to cancel and delete this job order?',
+      subheading: 'Deleting this order will remove it permanently from Kanban columns, progress sprints, and reports.',
+      itemName: title || 'Production Job Order',
       impactType: 'job',
-      impactAmount: '- 1 Target Order',
+      impactAmount: '- 1 Production Job',
       impactList: [
-        '📉 Target Deliveries count on Dashboard will minus 1 Order.'
+        '📉 Active Production Jobs count on Kanban board will minus 1 Job.',
+        '✂️ Fabric roll allocations and piece-rate assignments will be cleared.'
       ],
       onConfirm: async () => {
-        await deleteUpcomingOrderMutation({ id });
+        setCustomLocalJobs(prev => prev.filter(j => j._id !== id));
+        try {
+          await deleteUpcomingOrderMutation({ id });
+        } catch (err) {}
       }
     });
   };
@@ -4296,9 +4300,23 @@ export default function App() {
                                 <span className={`priority-badge ${order.priority?.toLowerCase() || 'urgent'}`}>
                                   {order.priority === 'Urgent' ? <><i className="ph ph-warning"></i> Urgent</> : order.priority === 'High' ? <><i className="ph ph-fire"></i> High</> : order.priority === 'Medium' ? <><i className="ph ph-circle-dashed"></i> Medium</> : <><i className="ph ph-check-circle"></i> Low</>}
                                 </span>
-                                <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                                  <i className="ph ph-calendar-blank"></i> {formatDate(order.deliveryDate)}
-                                </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                    <i className="ph ph-calendar-blank"></i> {formatDate(order.deliveryDate)}
+                                  </span>
+                                  <button 
+                                    type="button" 
+                                    className="btn-icon text-red" 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteUpcomingOrder(order._id, order);
+                                    }}
+                                    title="Delete Job Order"
+                                    style={{ padding: '2px 4px', fontSize: '13px', border: 'none', background: 'transparent', cursor: 'pointer', opacity: 0.8 }}
+                                  >
+                                    <i className="ph ph-trash"></i>
+                                  </button>
+                                </div>
                               </div>
                               <div className="kanban-card-title">{order.orderTitle}</div>
                               <div className="kanban-card-client"><i className="ph ph-user" style={{ color: 'var(--color-primary)' }}></i> {order.clientName}</div>
@@ -4356,9 +4374,23 @@ export default function App() {
                                 <span className={`priority-badge ${order.priority?.toLowerCase() || 'high'}`}>
                                   {order.priority === 'Urgent' ? <><i className="ph ph-warning"></i> Urgent</> : order.priority === 'High' ? <><i className="ph ph-fire"></i> High</> : order.priority === 'Medium' ? <><i className="ph ph-circle-dashed"></i> Medium</> : <><i className="ph ph-check-circle"></i> Low</>}
                                 </span>
-                                <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                                  <i className="ph ph-calendar-blank"></i> {formatDate(order.deliveryDate)}
-                                </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                    <i className="ph ph-calendar-blank"></i> {formatDate(order.deliveryDate)}
+                                  </span>
+                                  <button 
+                                    type="button" 
+                                    className="btn-icon text-red" 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteUpcomingOrder(order._id, order);
+                                    }}
+                                    title="Delete Job Order"
+                                    style={{ padding: '2px 4px', fontSize: '13px', border: 'none', background: 'transparent', cursor: 'pointer', opacity: 0.8 }}
+                                  >
+                                    <i className="ph ph-trash"></i>
+                                  </button>
+                                </div>
                               </div>
                               <div className="kanban-card-title">{order.orderTitle}</div>
                               <div className="kanban-card-client"><i className="ph ph-user" style={{ color: 'var(--color-primary)' }}></i> {order.clientName}</div>
@@ -4566,9 +4598,19 @@ export default function App() {
                               </span>
                             </td>
                             <td className="text-right" onClick={(e) => e.stopPropagation()}>
-                              <button className="btn btn-secondary btn-sm" onClick={() => { setSelectedJob(order); setJobsSubTab('details'); }}>
-                                View Details
-                              </button>
+                              <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                <button className="btn btn-secondary btn-sm" onClick={() => { setSelectedJob(order); setJobsSubTab('details'); }}>
+                                  View Details
+                                </button>
+                                <button 
+                                  className="btn-icon text-red" 
+                                  onClick={() => deleteUpcomingOrder(order._id, order)}
+                                  title="Delete Job Order"
+                                  style={{ padding: '4px 6px', fontSize: '15px' }}
+                                >
+                                  <i className="ph ph-trash"></i>
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))}
