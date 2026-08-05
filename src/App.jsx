@@ -4181,42 +4181,7 @@ export default function App() {
               </div>
             ) : jobsViewMode === 'board' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                
-                {/* Search & Priority Filter Pills Bar */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', width: '100%' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 260px', maxWidth: '380px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '20px', padding: '6px 14px' }}>
-                      <i className="ph ph-magnifying-glass" style={{ color: 'var(--color-text-secondary)', fontSize: '15px' }}></i>
-                      <input 
-                        type="text" 
-                        placeholder="Search product, customer, or title..." 
-                        value={kanbanSearchQuery} 
-                        onChange={(e) => setKanbanSearchQuery(e.target.value)} 
-                        style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '13px', width: '100%', color: 'var(--color-text-primary)' }}
-                      />
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      {['All', 'Urgent', 'High', 'Medium', 'Low'].map(p => (
-                        <button 
-                          key={p} 
-                          className={`filter-pill ${kanbanPriorityFilter === p ? 'active' : ''}`}
-                          onClick={() => setKanbanPriorityFilter(p)}
-                        >
-                          {p === 'Urgent' ? '🔴 Urgent' : p === 'High' ? '🟠 High' : p === 'Medium' ? '🟡 Medium' : p === 'Low' ? '🔵 Low' : 'All Priorities'}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <button 
-                    className="btn btn-primary" 
-                    onClick={() => setJobsSubTab('create')}
-                    style={{ padding: '8px 18px', fontSize: '12.5px', fontWeight: 800, borderRadius: '20px', boxShadow: '0 3px 10px rgba(94, 106, 210, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', cursor: 'pointer' }}
-                  >
-                    <i className="ph ph-plus-circle" style={{ fontSize: '16px' }}></i> + Add New Job
-                  </button>
-                </div>
+                {/* Weekly Production Cycle Sprint Card */}
 
                 {/* Weekly Production Cycle Sprint Card */}
                 {(() => {
