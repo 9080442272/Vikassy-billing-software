@@ -571,9 +571,10 @@ export default function App() {
     { id: 1, empName: "Balasubramainan", month: "July 2026", baseSalary: 75000, bonus: 10000, deductions: 0, netPayable: 85000, status: "Disbursed & Paid", date: new Date().toISOString().split('T')[0] }
   ]);
 
-  // Owner Investments & Order Capital Allocation States
+  // Capital Sourcing & Order Investment States
   const [investmentRecords, setInvestmentRecords] = useState([
-    { id: 1, investorName: "Balasubramainan (Owner)", date: new Date().toISOString().split('T')[0], type: "Capital Injection", amount: 150000, linkedOrder: "General Fund", notes: "Owner brought capital for today's operational expenses", mode: "Bank Transfer" }
+    { id: 1, investorName: "Managing Director (MD)", date: new Date().toISOString().split('T')[0], type: "MD Capital Infusion", amount: 300000, linkedOrder: "Order Style #ST-2026-01", notes: "CEO brought amount from MD to run Order ST-2026-01", mode: "Bank Transfer" },
+    { id: 2, investorName: "Director / CEO Loan", date: new Date().toISOString().split('T')[0], type: "Director Loan", amount: 250000, linkedOrder: "Factory Raw Materials", notes: "Short-term capital loan from CEO for order execution", mode: "Cheque" }
   ]);
   const [isInvestmentModalOpen, setIsInvestmentModalOpen] = useState(false);
   const [isAllocateOrderModalOpen, setIsAllocateOrderModalOpen] = useState(false);
@@ -3285,7 +3286,7 @@ export default function App() {
           </div>
           <button className={`nav-item ${activeTab === 'expenses' ? 'active' : ''}`} onClick={() => handleTabChange('expenses')}>
             <i className="ph ph-coins"></i>
-            <span>Expenses</span>
+            <span>Capital & Investment</span>
           </button>
 
 
@@ -6041,448 +6042,139 @@ export default function App() {
           </section>
         )}
 
-        {/* ==================== EXPENSES VIEW ==================== */}
+        {/* ==================== CAPITAL & INVESTMENT SOURCING VIEW ==================== */}
         {activeTab === 'expenses' && (() => {
-          const totalExpenseAmt = expenses.reduce((s, e) => s + e.amount, 0);
-          const totalRevenue = bills.reduce((s, b) => s + b.subtotal, 0);
-          const netProfitTotal = totalRevenue - totalExpenseAmt;
-          const avgMargin = totalRevenue > 0 ? (netProfitTotal / totalRevenue) * 100 : 0;
-
-          // Find top category
-          const categoriesMap = expenses.reduce((acc, exp) => {
-            acc[exp.category] = (acc[exp.category] || 0) + exp.amount;
-            return acc;
-          }, {});
-          let topCat = "None";
-          let maxVal = 0;
-          Object.entries(categoriesMap).forEach(([cat, val]) => {
-            if (val > maxVal) {
-              maxVal = val;
-              topCat = cat;
-            }
-          });
+          const totalCapitalInjected = investmentRecords.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
 
           return (
             <section id="expenses-view" className="tab-view active">
               <header className="view-header">
                 <div>
-                  <h1>Expenses & Profit Analyzer</h1>
-                  <p className="subtitle">Record operational costs (transportation, salaries, petrol) and analyze net profits by order.</p>
+                  <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 800 }}>Capital & Investment Sourcing</h1>
+                  <p className="subtitle" style={{ margin: '4px 0 0 0', color: 'var(--color-text-secondary)' }}>
+                    Track order execution funding sources (e.g. CEO brought amount from MD to run order, Bank/Director loans).
+                  </p>
                 </div>
-                <button className="btn btn-primary" onClick={() => setIsExpenseModalOpen(true)}>
-                  <i className="ph ph-plus-circle"></i> Log Expense
+                <button className="btn btn-primary" onClick={() => setIsInvestmentModalOpen(true)} style={{ padding: '10px 20px', fontSize: '13.5px', fontWeight: 800, borderRadius: '12px', boxShadow: '0 4px 14px rgba(94, 106, 210, 0.35)', display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <i className="ph ph-plus-circle" style={{ fontSize: '18px' }}></i> + Log Investment / Capital
                 </button>
               </header>
 
-              <div className="sub-tab-bar" style={{ marginBottom: '20px' }}>
-                <button className={`sub-tab-btn ${expensesSubTab === 'all' ? 'active' : ''}`} onClick={() => setExpensesSubTab('all')}>
-                  <i className="ph ph-coins"></i> All Expenses
-                </button>
-                <button className={`sub-tab-btn ${expensesSubTab === 'investments' || expensesSubTab === 'funding' ? 'active' : ''}`} onClick={() => setExpensesSubTab('investments')}>
-                  <i className="ph ph-piggy-bank"></i> Owner Investments & Funding
-                </button>
-              </div>
-
-              {expensesSubTab === 'investments' ? (() => {
-                const totalCapitalInjected = investmentRecords.filter(r => r.amount > 0).reduce((sum, r) => sum + r.amount, 0);
-                const totalCapitalAllocated = Math.abs(investmentRecords.filter(r => r.amount < 0).reduce((sum, r) => sum + r.amount, 0));
-                const availableInvestmentBalance = Math.max(0, totalCapitalInjected - totalCapitalAllocated);
-
-                return (
-                  <div style={{ marginTop: '20px' }}>
-                    {/* Top KPI Grid with Top-Right Available Balance KPI Card */}
-                    <div className="metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
-                      <div className="metric-card" style={{ borderLeft: '4px solid #10B981', backgroundColor: '#F0FDF4' }}>
-                        <div className="metric-card-header">
-                          <span className="metric-label" style={{ color: '#047857', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                            💳 Available Investment Balance
-                          </span>
-                          <div className="metric-icon" style={{ color: '#10B981', backgroundColor: '#D1FAE5' }}>
-                            <i className="ph ph-wallet"></i>
-                          </div>
-                        </div>
-                        <div className="metric-value" style={{ color: '#065F46', fontWeight: 800 }}>{formatCurrency(availableInvestmentBalance)}</div>
-                        <div className="metric-footer">
-                          <span style={{ color: '#047857', fontWeight: 600 }}>Active capital ready for daily expenses & orders</span>
-                        </div>
-                      </div>
-
-                      <div className="metric-card">
-                        <div className="metric-card-header">
-                          <span className="metric-label">Total Capital Injected / Borrowed</span>
-                          <div className="metric-icon" style={{ color: 'var(--color-primary)', backgroundColor: 'rgba(94,106,210,0.1)' }}>
-                            <i className="ph ph-piggy-bank"></i>
-                          </div>
-                        </div>
-                        <div className="metric-value">{formatCurrency(totalCapitalInjected)}</div>
-                        <div className="metric-footer">
-                          <span>Owner & external funding brought in</span>
-                        </div>
-                      </div>
-
-                      <div className="metric-card">
-                        <div className="metric-card-header">
-                          <span className="metric-label">Spent / Allocated to Orders</span>
-                          <div className="metric-icon" style={{ color: '#6E56CF', backgroundColor: 'rgba(110,86,207,0.1)' }}>
-                            <i className="ph ph-shopping-bag"></i>
-                          </div>
-                        </div>
-                        <div className="metric-value">{formatCurrency(totalCapitalAllocated)}</div>
-                        <div className="metric-footer">
-                          <span>Directly allocated order expenses</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Main Investment Ledger Table Card */}
-                    <div className="table-card bg-surface border" style={{ padding: '20px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
-                        <div>
-                          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Owner Investments & Order Funding Ledger</h3>
-                          <p className="small text-muted" style={{ margin: '4px 0 0 0' }}>
-                            Record capital brought in by owner for daily expenses and allocate funds directly to specific client production orders.
-                          </p>
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                          <button className="btn btn-primary" onClick={() => setIsInvestmentModalOpen(true)} style={{ fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                            <i className="ph ph-piggy-bank" style={{ fontSize: '16px' }}></i> + Record Investment / Borrowed Capital
-                          </button>
-                          <button className="btn btn-secondary text-primary" onClick={() => setIsAllocateOrderModalOpen(true)} style={{ fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                            <i className="ph ph-shopping-bag-open" style={{ fontSize: '16px' }}></i> + Allocate Capital for Specific Order
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="table-responsive">
-                        <table className="data-table">
-                          <thead>
-                            <tr>
-                              <th>Date</th>
-                              <th>Funder / Investor Source</th>
-                              <th>Transaction Type</th>
-                              <th>Linked Order / Purpose</th>
-                              <th className="text-right">Capital Injected (₹)</th>
-                              <th className="text-right">Allocated / Spent (₹)</th>
-                              <th className="text-right">Action</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {investmentRecords.map((rec) => (
-                              <tr key={rec.id}>
-                                <td className="text-muted">{rec.date}</td>
-                                <td className="font-semibold">{rec.investorName}</td>
-                                <td>
-                                  <span className={`badge ${rec.amount > 0 ? 'badge-success' : 'badge-primary'}`}>
-                                    {rec.type}
-                                  </span>
-                                </td>
-                                <td>
-                                  <span className="font-semibold text-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                                    <i className="ph ph-tag" style={{ fontSize: '12px' }}></i> {rec.linkedOrder}
-                                  </span>
-                                </td>
-                                <td className="text-right font-semibold" style={{ color: '#10B981' }}>
-                                  {rec.amount > 0 ? `+ ${formatCurrency(rec.amount)}` : '-'}
-                                </td>
-                                <td className="text-right font-semibold" style={{ color: '#6E56CF' }}>
-                                  {rec.amount < 0 ? `- ${formatCurrency(Math.abs(rec.amount))}` : '-'}
-                                </td>
-                                <td className="text-right">
-                                  <button className="btn-icon text-red" onClick={() => {
-                                    setInvestmentRecords(prev => prev.filter(r => r.id !== rec.id));
-                                  }}>
-                                    <i className="ph ph-trash"></i>
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
-                            {investmentRecords.length === 0 && (
-                              <tr>
-                                <td colSpan="7" className="text-center text-muted" style={{ padding: '24px' }}>
-                                  No investment capital records logged yet. Click "+ Record Investment" to add capital brought by owner.
-                                </td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })() : (
-              <>
-
-              {/* Expenses Metrics Summary */}
+              {/* KPI Cards */}
               <div className="metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
-                <div className="metric-card">
+                <div className="metric-card" style={{ borderLeft: '4px solid #10B981', backgroundColor: '#F0FDF4' }}>
                   <div className="metric-card-header">
-                    <span className="metric-label">Total Expenses</span>
-                    <div className="metric-icon purple" style={{ color: 'var(--color-destructive)', backgroundColor: 'rgba(239,68,68,0.1)' }}><i className="ph ph-trend-down"></i></div>
+                    <span className="metric-label" style={{ color: '#047857', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      💳 Total Capital Sourced
+                    </span>
+                    <div className="metric-icon" style={{ color: '#10B981', backgroundColor: '#D1FAE5' }}>
+                      <i className="ph ph-wallet"></i>
+                    </div>
                   </div>
-                  <div className="metric-value">{formatCurrency(totalExpenseAmt)}</div>
+                  <div className="metric-value" style={{ color: '#065F46', fontWeight: 800 }}>{formatCurrency(totalCapitalInjected)}</div>
                   <div className="metric-footer">
-                    <span>Cumulative overhead</span>
+                    <span style={{ color: '#047857', fontWeight: 600 }}>Active capital ready for order execution</span>
                   </div>
                 </div>
+
                 <div className="metric-card">
                   <div className="metric-card-header">
-                    <span className="metric-label">Overall Net Margin</span>
-                    <div className="metric-icon purple" style={{ color: avgMargin >= 50 ? 'var(--color-success)' : avgMargin >= 25 ? 'var(--color-primary)' : 'var(--color-warning)', backgroundColor: 'rgba(16,185,129,0.1)' }}><i className="ph ph-chart-line-up"></i></div>
+                    <span className="metric-label">MD & Founder Infusions</span>
+                    <div className="metric-icon" style={{ color: 'var(--color-primary)', backgroundColor: 'rgba(94,106,210,0.1)' }}>
+                      <i className="ph ph-crown"></i>
+                    </div>
                   </div>
-                  <div className="metric-value">{avgMargin.toFixed(1)}%</div>
+                  <div className="metric-value">
+                    {formatCurrency(investmentRecords.filter(r => r.type?.includes('MD') || r.investorName?.includes('MD')).reduce((s, r) => s + (parseFloat(r.amount) || 0), 0))}
+                  </div>
                   <div className="metric-footer">
-                    <span>Revenue vs Expenses</span>
+                    <span>Capital brought from MD to run orders</span>
                   </div>
                 </div>
+
                 <div className="metric-card">
                   <div className="metric-card-header">
-                    <span className="metric-label">Top Expense Category</span>
-                    <div className="metric-icon gold"><i className="ph ph-tag"></i></div>
+                    <span className="metric-label">Loans & Credit Lines</span>
+                    <div className="metric-icon" style={{ color: '#6E56CF', backgroundColor: 'rgba(110,86,207,0.1)' }}>
+                      <i className="ph ph-bank"></i>
+                    </div>
                   </div>
-                  <div className="metric-value">{topCat}</div>
+                  <div className="metric-value">
+                    {formatCurrency(investmentRecords.filter(r => r.type?.includes('Loan') || r.investorName?.includes('Loan')).reduce((s, r) => s + (parseFloat(r.amount) || 0), 0))}
+                  </div>
                   <div className="metric-footer">
-                    <span>{formatCurrency(maxVal)} total spent</span>
+                    <span>Short-term loans & working capital lines</span>
                   </div>
                 </div>
               </div>
 
-              <div className="grid-layout-2" style={{ gridTemplateColumns: '1.4fr 1fr', gap: '24px' }}>
-                {/* Left Column: Expenses Ledger Book */}
-                <div className="table-card bg-surface border desktop-table-container" style={{ padding: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <h3 style={{ margin: 0 }}>Expenses Ledger Book</h3>
-                    <div className="search-filter-row" style={{ display: 'flex', gap: '12px', margin: 0 }}>
-                      <div className="search-input-wrapper" style={{ minWidth: '220px' }}>
-                        <i className="ph ph-magnifying-glass"></i>
-                        <input type="text" placeholder="Search expenses..." value={expenseSearch} onChange={(e) => setExpenseSearch(e.target.value)} />
-                      </div>
-                      <button className="btn btn-secondary" onClick={handleExportExpensesPDF} title="Export Expenses to PDF">
-                        <i className="ph ph-file-pdf"></i> Export PDF
-                      </button>
-                    </div>
+              {/* Main Ledger Table Card */}
+              <div className="table-card bg-surface border" style={{ padding: '20px', borderRadius: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Order Investment Ledger</h3>
+                    <p className="small text-muted" style={{ margin: '4px 0 0 0' }}>
+                      Audit breakdown of capital sources, investors, and target order allocations.
+                    </p>
                   </div>
+                  <button className="btn btn-primary btn-sm" onClick={() => setIsInvestmentModalOpen(true)} style={{ fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <i className="ph ph-plus"></i> Add New Source
+                  </button>
+                </div>
 
-                  <div className="table-responsive">
-                    <table className="data-table">
-                      <thead>
-                        <tr>
-                          <th>Date</th>
-                          <th>Category</th>
-                          <th>Description</th>
-                          <th>Linked Order</th>
-                          <th className="text-right">Amount</th>
-                          <th className="text-right">Actions</th>
+                <div className="table-responsive">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Source Category</th>
+                        <th>Provider / Investor</th>
+                        <th>Target Order / Purpose</th>
+                        <th className="text-right">Capital Amount (₹)</th>
+                        <th className="text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {investmentRecords.map((rec) => (
+                        <tr key={rec.id}>
+                          <td className="text-muted">{rec.date}</td>
+                          <td>
+                            <span className="badge badge-purple" style={{ fontSize: '11.5px', fontWeight: 700 }}>
+                              {rec.type || 'MD Infusion'}
+                            </span>
+                          </td>
+                          <td className="font-semibold">{rec.investorName || 'MD (Managing Director)'}</td>
+                          <td>
+                            <span className="font-semibold text-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              <i className="ph ph-tag" style={{ fontSize: '12px' }}></i> {rec.linkedOrder || 'Run Production Order'}
+                            </span>
+                          </td>
+                          <td className="text-right font-semibold" style={{ color: '#10B981', fontSize: '14px', fontFamily: 'var(--font-mono)' }}>
+                            + {formatCurrency(Math.abs(rec.amount))}
+                          </td>
+                          <td className="text-right">
+                            <button className="btn-icon text-red" onClick={() => {
+                              setInvestmentRecords(prev => prev.filter(r => r.id !== rec.id));
+                            }} title="Delete Record">
+                              <i className="ph ph-trash"></i>
+                            </button>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {expenses.filter(e => e.category.toLowerCase().includes(expenseSearch.toLowerCase()) || e.description.toLowerCase().includes(expenseSearch.toLowerCase())).map(exp => {
-                          const bill = bills.find(b => b._id === exp.billId);
-                          return (
-                            <tr key={exp._id}>
-                              <td>{formatDate(exp.date)}</td>
-                              <td>
-                                <span className={`badge ${
-                                  exp.category === 'Transportation' ? 'badge-gst' :
-                                  exp.category === 'Petrol' ? 'badge-neutral' :
-                                  exp.category === 'Employee Salaries' ? 'badge-success' : 'badge-primary'
-                                }`}>
-                                  {exp.category}
-                                </span>
-                              </td>
-                              <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={exp.description}>
-                                {exp.description}
-                              </td>
-                              <td>
-                                {bill ? (
-                                  <span className="font-semibold text-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                                    <i className="ph ph-receipt" style={{ fontSize: '12px' }}></i> {bill.billNumber}
-                                  </span>
-                                ) : (
-                                  <span className="text-muted" style={{ fontSize: '12px' }}>General Overhead</span>
-                                )}
-                              </td>
-                              <td className="text-right font-semibold text-red" style={{ color: 'var(--color-destructive)' }}>{formatCurrency(exp.amount)}</td>
-                              <td className="text-right">
-                                <button className="btn-icon" onClick={() => openEditExpense(exp)}><i className="ph ph-pencil-simple"></i></button>
-                                <button className="btn-icon text-red" onClick={() => deleteExpense(exp._id)}><i className="ph ph-trash"></i></button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                        {expenses.length === 0 && (
-                          <tr>
-                            <td colSpan="6" className="text-center text-muted">No expenses recorded. Log transportation, salaries, or petrol costs to calculate actual margins.</td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Right Column: Order Profitability Analyzer */}
-                <div className="table-card bg-surface border" style={{ padding: '24px', alignSelf: 'start' }}>
-                  <h3 style={{ marginBottom: '8px' }}>Order Profitability Analyzer</h3>
-                  <p className="small text-muted" style={{ marginBottom: '16px' }}>Select an invoice order to calculate net operational profits.</p>
-                  
-                  <div className="form-group" style={{ marginBottom: '20px' }}>
-                    <label htmlFor="profit-order-select">Choose Active Order / Invoice</label>
-                    <select
-                      id="profit-order-select"
-                      value={selectedOrderFilter}
-                      onChange={(e) => setSelectedOrderFilter(e.target.value)}
-                      style={{ fontSize: '15px', padding: '12px 14px', width: '100%', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-primary)' }}
-                    >
-                      <option value="all">-- Select Recorded Order --</option>
-                      {bills.map(b => {
-                        const c = clients.find(cl => cl._id === b.clientId);
-                        return (
-                          <option key={b._id} value={b._id}>
-                            {b.billNumber} ({c ? c.name : 'Unknown Client'})
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </div>
-
-                  {selectedOrderFilter === 'all' ? (
-                    <div className="text-center text-muted" style={{ padding: '32px 16px', border: '1px dashed var(--color-border)', borderRadius: 'var(--radius-md)' }}>
-                      <i className="ph ph-chart-pie" style={{ fontSize: '32px', color: 'var(--color-primary)', marginBottom: '12px', display: 'block' }}></i>
-                      <span>Select an invoice from the dropdown above to audit specific transportation, fuel, and operational margins.</span>
-                    </div>
-                  ) : (() => {
-                    const billObj = bills.find(b => b._id === selectedOrderFilter);
-                    if (!billObj) return null;
-                    const clientObj = clients.find(cl => cl._id === billObj.clientId);
-                    const linkedExpenses = expenses.filter(e => e.billId === billObj._id);
-                    const totalLinkedCost = linkedExpenses.reduce((sum, e) => sum + e.amount, 0);
-                    const netProfit = billObj.subtotal - totalLinkedCost;
-                    const profitPct = billObj.subtotal > 0 ? (netProfit / billObj.subtotal) * 100 : 0;
-                    
-                    return (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        <div style={{ padding: '16px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-muted)', border: '1px solid var(--color-border)' }}>
-                          <div style={{ fontSize: '11px', textTransform: 'uppercase', fontWeight: 700, color: 'var(--color-primary)', marginBottom: '8px' }}>Order Valuation Summary</div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                            <span className="text-muted">Client Name:</span>
-                            <span style={{ fontWeight: 600 }}>{clientObj ? clientObj.name : 'Unknown Client'}</span>
-                          </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                            <span className="text-muted">Order Date:</span>
-                            <span>{formatDate(billObj.date)}</span>
-                          </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span className="text-muted">Bill Number:</span>
-                            <span style={{ fontWeight: 600 }}>{billObj.billNumber}</span>
-                          </div>
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                            <span className="text-muted">Order Subtotal (A):</span>
-                            <strong className="text-primary">{formatCurrency(billObj.subtotal)}</strong>
-                          </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                            <span className="text-muted">Total Expenses Linked (B):</span>
-                            <strong style={{ color: 'var(--color-destructive)' }}>-{formatCurrency(totalLinkedCost)}</strong>
-                          </div>
-                          <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-                            <span className="font-semibold">Actual Net Profit:</span>
-                            <strong style={{ color: netProfit >= 0 ? 'var(--color-success)' : 'var(--color-destructive)', fontSize: '16px' }}>
-                              {formatCurrency(netProfit)}
-                            </strong>
-                          </div>
-                        </div>
-
-                        {/* Margin Progress Gauge */}
-                        <div style={{ marginTop: '8px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px' }}>
-                            <span className="font-medium">Net Profit Margin</span>
-                            <span style={{ fontWeight: 700, color: profitPct >= 50 ? 'var(--color-success)' : profitPct >= 20 ? 'var(--color-primary)' : 'var(--color-destructive)' }}>{profitPct.toFixed(1)}%</span>
-                          </div>
-                          <div className="progress-bar-container" style={{ height: '8px' }}>
-                            <div
-                              className="progress-bar"
-                              style={{
-                                width: `${Math.min(Math.max(0, profitPct), 100)}%`,
-                                backgroundColor: profitPct >= 50 ? 'var(--color-success)' : profitPct >= 20 ? 'var(--color-primary)' : 'var(--color-destructive)'
-                              }}
-                            ></div>
-                          </div>
-                          <div className="small text-muted" style={{ marginTop: '6px', fontSize: '11px', fontStyle: 'italic' }}>
-                            {profitPct >= 50 ? '🟢 Outstanding healthy profit margin!' : profitPct >= 20 ? '🟡 Moderate profit margin. Assess overhead costs.' : '🔴 Low/Negative margin. Operational expenses are critical!'}
-                          </div>
-                        </div>
-
-                        {/* Linked Expenses Breakdown List */}
-                        <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '16px' }}>
-                          <div style={{ fontSize: '11px', textTransform: 'uppercase', fontWeight: 700, color: 'var(--color-primary)', marginBottom: '10px' }}>Linked Expenses Breakdown</div>
-                          {linkedExpenses.length === 0 ? (
-                            <div className="small text-muted text-center" style={{ padding: '8px 0' }}>No expenses logged for this order. Use the Log Expense button to add transportation or petrol costs.</div>
-                          ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '180px', overflowY: 'auto', paddingRight: '4px' }}>
-                              {linkedExpenses.map(e => (
-                                <div key={e._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', padding: '6px 8px', borderRadius: '4px', backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
-                                  <div>
-                                    <span style={{ fontWeight: 600, display: 'block' }}>{e.category}</span>
-                                    <span className="text-muted" style={{ fontSize: '10px' }}>{e.description}</span>
-                                  </div>
-                                  <span style={{ fontWeight: 600, color: 'var(--color-destructive)' }}>-{formatCurrency(e.amount)}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })()}
+                      ))}
+                      {investmentRecords.length === 0 && (
+                        <tr>
+                          <td colSpan="6" className="text-center text-muted" style={{ padding: '32px' }}>
+                            No investment records logged. Click <strong>"+ Log Investment / Capital"</strong> to record capital sourcing.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-
-              {/* Mobile Cards rendering for expenses */}
-              <div className="mobile-cards-container">
-                {expenses.filter(e => e.category.toLowerCase().includes(expenseSearch.toLowerCase()) || e.description.toLowerCase().includes(expenseSearch.toLowerCase())).map(exp => {
-                  const bill = bills.find(b => b._id === exp.billId);
-                  return (
-                    <div key={exp._id} className="mobile-card">
-                      <div className="mobile-card-header">
-                        <div className="mobile-card-title">{exp.category}</div>
-                        <span style={{ fontWeight: 700, color: 'var(--color-destructive)', fontSize: '14px' }}>-{formatCurrency(exp.amount)}</span>
-                      </div>
-                      <div className="mobile-card-body">
-                        <div className="mobile-card-detail">
-                          <span className="mobile-card-detail-label">Date</span>
-                          <span className="mobile-card-detail-value">{formatDate(exp.date)}</span>
-                        </div>
-                        <div className="mobile-card-detail">
-                          <span className="mobile-card-detail-label">Linked Order</span>
-                          <span className="mobile-card-detail-value font-semibold text-primary">{bill ? bill.billNumber : 'General Overhead'}</span>
-                        </div>
-                        <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', padding: '0 4px', lineHeight: '1.4' }}>
-                          <strong>Details: </strong>{exp.description}
-                        </div>
-                      </div>
-                      <div className="mobile-card-footer">
-                        <button className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => openEditExpense(exp)}>
-                          <i className="ph ph-pencil-simple"></i> Edit
-                        </button>
-                        <button className="btn btn-secondary text-red" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => deleteExpense(exp._id)}>
-                          <i className="ph ph-trash"></i> Delete
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-                {expenses.length === 0 && (
-                  <div className="text-center text-muted" style={{ padding: '16px' }}>No expenses recorded.</div>
-                )}
-              </div>
-              </>
-            )}
             </section>
           );
         })()}
-
 
       </main>
 
@@ -6491,65 +6183,64 @@ export default function App() {
         <div className="modal-overlay active" onClick={() => setIsInvestmentModalOpen(false)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px' }}>
             <div className="modal-header">
-              <h3>🏦 Record Investment / Borrowed Capital</h3>
+              <h3>🏦 Log Investment / Capital Source</h3>
               <button className="btn-close" onClick={() => setIsInvestmentModalOpen(false)}><i className="ph ph-x"></i></button>
             </div>
             <form onSubmit={(e) => {
               e.preventDefault();
               const form = e.target;
+              const type = form.sourceType.value;
               const investorName = form.investorName.value.trim();
+              const linkedOrder = form.linkedOrder.value.trim();
               const amount = parseFloat(form.amount.value) || 0;
               const date = form.investmentDate.value;
-              const mode = form.mode.value;
-              const notes = form.notes.value.trim();
 
               const newRec = {
                 id: Date.now(),
-                investorName: investorName || "Balasubramainan (Owner)",
-                date,
-                type: "Capital Injection",
+                type: type || "MD Capital Infusion",
+                investorName: investorName || "Managing Director (MD)",
+                linkedOrder: linkedOrder || "Run Production Order",
                 amount,
-                linkedOrder: "General Fund",
-                notes: notes || "Owner capital for daily expenses",
-                mode
+                date
               };
 
               setInvestmentRecords(prev => [newRec, ...prev]);
-              alert(`🎉 Capital injection of ${formatCurrency(amount)} recorded!`);
               setIsInvestmentModalOpen(false);
             }}>
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px' }}>
                 <div className="form-group">
-                  <label htmlFor="inv-name">Funder / Investor Name *</label>
-                  <input type="text" id="inv-name" name="investorName" required defaultValue="Balasubramainan (Owner)" placeholder="e.g. Balasubramainan (Owner) or Private Lender" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }} />
-                </div>
-
-                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div className="form-group">
-                    <label htmlFor="inv-amount">Amount Injected (₹) *</label>
-                    <input type="number" id="inv-amount" name="amount" required step="any" placeholder="e.g. 150000" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%', fontWeight: 700 }} />
-                  </div>
-                  <LinearDatePickerInput 
-                    id="inv-date"
-                    name="investmentDate"
-                    label="Date Brought In *"
-                    defaultValue={new Date().toISOString().split('T')[0]}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="inv-mode">Payment Mode *</label>
-                  <select id="inv-mode" name="mode" required style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}>
-                    <option value="Bank Transfer">Bank Transfer / NEFT / RTGS</option>
-                    <option value="Cash">Cash</option>
-                    <option value="UPI">UPI / GPay / PhonePe</option>
+                  <label htmlFor="inv-type" style={{ fontWeight: 600 }}>Source Category *</label>
+                  <select id="inv-type" name="sourceType" required style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}>
+                    <option value="MD Capital Infusion">👑 MD Capital Infusion (CEO brought amount from MD)</option>
+                    <option value="Director Loan">🏦 Director / CEO Loan</option>
+                    <option value="Bank Loan">🏛️ Bank / NBFC Working Capital Loan</option>
+                    <option value="Partner Capital">💼 Partner Equity / Capital</option>
+                    <option value="Other Sourcing">💵 Other Capital Source</option>
                   </select>
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="inv-notes">Purpose / Notes *</label>
-                  <input type="text" id="inv-notes" name="notes" required defaultValue="Owner brought capital for today's operational expenses" placeholder="e.g. Emergency funds for raw material fabric & wages" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }} />
+                  <label htmlFor="inv-name" style={{ fontWeight: 600 }}>Provider / Investor Name *</label>
+                  <input type="text" id="inv-name" name="investorName" required defaultValue="Managing Director (MD)" placeholder="e.g. Managing Director (MD), HDFC Bank Loan" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }} />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="inv-order" style={{ fontWeight: 600 }}>Target Order / Purpose *</label>
+                  <input type="text" id="inv-order" name="linkedOrder" required placeholder="e.g. To run Style ST-2026-01 Order or Bulk Fabric Purchase" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }} />
+                </div>
+
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-group">
+                    <label htmlFor="inv-amount" style={{ fontWeight: 600 }}>Capital Amount (₹) *</label>
+                    <input type="number" id="inv-amount" name="amount" required step="any" placeholder="e.g. 200000" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%', fontWeight: 700 }} />
+                  </div>
+                  <LinearDatePickerInput 
+                    id="inv-date"
+                    name="investmentDate"
+                    label="Transaction Date *"
+                    defaultValue={new Date().toISOString().split('T')[0]}
+                    required
+                  />
                 </div>
               </div>
 
