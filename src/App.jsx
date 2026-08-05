@@ -7629,11 +7629,54 @@ export default function App() {
                     <input type="text" name="orderTitle" required placeholder="e.g. Cotton Polo T-Shirts (5,000 Pcs)" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
                   </div>
                   <div className="form-group">
-                    <label style={{ fontWeight: 600 }}>Customer / Buyer *</label>
-                    <input type="text" name="clientName" required placeholder="e.g. Apex Denim Exports Ltd" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} list="job-clients-list" />
-                    <datalist id="job-clients-list">
-                      {clients.map(c => <option key={c._id} value={c.name} />)}
-                    </datalist>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <label style={{ fontWeight: 600, margin: 0 }}>Customer / Buyer *</label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsCreateJobModalOpen(false);
+                          setActiveTab('clients');
+                          setIsClientModalOpen(true);
+                        }}
+                        style={{
+                          border: 'none',
+                          background: 'transparent',
+                          color: 'var(--color-primary)',
+                          fontSize: '11.5px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: 0
+                        }}
+                        title="Go to Clients Page to Register a New Buyer"
+                      >
+                        <i className="ph ph-user-plus"></i> Register Client
+                      </button>
+                    </div>
+                    <select
+                      name="clientName"
+                      required
+                      onChange={(e) => {
+                        if (e.target.value === 'REGISTER_NEW_CLIENT') {
+                          setIsCreateJobModalOpen(false);
+                          setActiveTab('clients');
+                          setIsClientModalOpen(true);
+                        }
+                      }}
+                      style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}
+                    >
+                      <option value="">-- Select Registered Client --</option>
+                      {clients.map(c => (
+                        <option key={c._id} value={c.name}>
+                          {c.name} {c.companyName ? `(${c.companyName})` : ''}
+                        </option>
+                      ))}
+                      <option value="REGISTER_NEW_CLIENT" style={{ fontWeight: 700, color: 'var(--color-primary)' }}>
+                        ➕ Register New Client (Redirect to Clients Page)...
+                      </option>
+                    </select>
                   </div>
                 </div>
 
