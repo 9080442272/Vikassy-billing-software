@@ -3947,7 +3947,7 @@ export default function App() {
             {jobsSubTab === 'details' ? (
               <div>
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', backgroundColor: 'var(--color-muted)', padding: '6px', borderRadius: '12px', overflowX: 'auto' }}>
-                  {['overview', 'timeline', 'staff', 'progress', 'expenses', 'files', 'logs'].map((tab) => (
+                  {['overview', 'timeline', 'staff', 'progress', 'expenses', 'logs'].map((tab) => (
                     <button 
                       key={tab}
                       className={`btn btn-sm ${jobDetailsTab === tab ? 'btn-primary' : 'btn-secondary'}`}
