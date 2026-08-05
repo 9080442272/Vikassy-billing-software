@@ -3230,25 +3230,21 @@ export default function App() {
             <i className="ph ph-layout"></i>
             <span>Dashboard</span>
           </button>
-          <button className={`nav-item ${activeTab === 'bills' ? 'active' : ''}`} onClick={() => handleTabChange('bills')}>
-            <i className="ph ph-receipt"></i>
-            <span>Invoice</span>
+          <button className={`nav-item ${activeTab === 'clients' ? 'active' : ''}`} onClick={() => handleTabChange('clients')}>
+            <i className="ph ph-users-three"></i>
+            <span>Clients</span>
           </button>
           <button className={`nav-item ${activeTab === 'jobs' ? 'active' : ''}`} onClick={() => handleTabChange('jobs')}>
             <i className="ph ph-briefcase"></i>
             <span>Jobs</span>
           </button>
-          <button className={`nav-item ${activeTab === 'clients' ? 'active' : ''}`} onClick={() => handleTabChange('clients')}>
-            <i className="ph ph-users-three"></i>
-            <span>Clients</span>
-          </button>
           <button className={`nav-item ${activeTab === 'employees' ? 'active' : ''}`} onClick={() => handleTabChange('employees')}>
             <i className="ph ph-user-list"></i>
             <span>Employees</span>
           </button>
-          <button className={`nav-item ${activeTab === 'fabrics' ? 'active' : ''}`} onClick={() => handleTabChange('fabrics')}>
-            <i className="ph ph-package"></i>
-            <span>Inventory</span>
+          <button className={`nav-item ${activeTab === 'bills' ? 'active' : ''}`} onClick={() => handleTabChange('bills')}>
+            <i className="ph ph-receipt"></i>
+            <span>Invoice</span>
           </button>
 
           <div style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '14px 8px 4px 8px' }}>
@@ -5838,217 +5834,7 @@ export default function App() {
           </section>
         )}
 
-        {/* ==================== FABRICS VIEW ==================== */}
-        {activeTab === 'fabrics' && (
-          <section id="fabrics-view" className="tab-view active">
-            <header className="view-header">
-              <div>
-                <h1>Fabric Stocks & Production</h1>
-                <p className="subtitle">Monitor inbound fabric rolls, supplier names, coloring details, and stitch allocations.</p>
-              </div>
-              <div className="header-actions">
-                <button className="btn btn-primary" onClick={() => setIsFabricModalOpen(true)}>
-                  <i className="ph ph-plus-circle"></i> Log Fabric Roll
-                </button>
-                <button className="btn btn-accent" onClick={() => { setSelectedFabricId(""); setIsStitchingModalOpen(true); }}>
-                  <i className="ph ph-scissors"></i> Stitch Allocation
-                </button>
-              </div>
-            </header>
 
-            <div className="search-filter-row" style={{ marginBottom: '20px', display: 'flex', gap: '12px' }}>
-              <div className="search-input-wrapper">
-                <i className="ph ph-magnifying-glass"></i>
-                <input type="text" placeholder="Search rolls by color, supplier, or fabric..." value={fabricSearch} onChange={(e) => setFabricSearch(e.target.value)} />
-              </div>
-              <button className="btn btn-secondary" onClick={handleExportFabricsPDF} title="Export Fabric Stocks to PDF">
-                <i className="ph ph-file-pdf"></i> Export PDF
-              </button>
-            </div>
-
-            <div className="grid-layout-2" style={{ gridTemplateColumns: '1.4fr 1fr', gap: '24px' }}>
-              {/* Left Side: Fabric list */}
-              <div className="table-card bg-surface border desktop-table-container" style={{ padding: '20px' }}>
-                <h3 style={{ marginBottom: '16px' }}>Fabric Roll Stock ledger</h3>
-                <div className="table-responsive">
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Fabric Type</th>
-                        <th>Color</th>
-                        <th className="text-right">Qty Received</th>
-                        <th className="text-right">Qty Remaining</th>
-                        <th>Supplier</th>
-                        <th>Status</th>
-                        <th className="text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {fabrics.filter(f => f.fabricType.toLowerCase().includes(fabricSearch.toLowerCase()) || f.color.toLowerCase().includes(fabricSearch.toLowerCase()) || f.supplier.toLowerCase().includes(fabricSearch.toLowerCase())).map(f => (
-                        <tr key={f._id}>
-                          <td>{formatDate(f.receivedDate)}</td>
-                          <td className="font-semibold">{f.fabricType}</td>
-                          <td>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: f.color.toLowerCase(), border: '1px solid rgba(255,255,255,0.1)' }}></span>
-                              {f.color}
-                            </div>
-                          </td>
-                          <td className="text-right font-medium">{f.quantityReceived} Pcs</td>
-                          <td className="text-right font-semibold text-primary">{getRemainingFabricQty(f._id, f.quantityReceived)} Pcs</td>
-                          <td>{f.supplier}</td>
-                          <td>
-                            <span className={`badge ${f.status === 'Completed' ? 'badge-success' : f.status === 'Stitching' ? 'badge-gst' : 'badge-neutral'}`}>
-                              {f.status}
-                            </span>
-                          </td>
-                          <td className="text-right">
-                            <button className="btn-icon" onClick={() => openEditFabric(f)}><i className="ph ph-pencil-simple"></i></button>
-                            <button className="btn-icon text-red" onClick={() => deleteFabric(f._id)}><i className="ph ph-trash"></i></button>
-                          </td>
-                        </tr>
-                      ))}
-                      {fabrics.length === 0 && (
-                        <tr>
-                          <td colSpan="8" className="text-center text-muted">No fabric rolls logged.</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <div className="mobile-cards-container">
-                {fabrics.filter(f => f.fabricType.toLowerCase().includes(fabricSearch.toLowerCase()) || f.color.toLowerCase().includes(fabricSearch.toLowerCase()) || f.supplier.toLowerCase().includes(fabricSearch.toLowerCase())).map(f => (
-                  <div key={f._id} className="mobile-card">
-                    <div className="mobile-card-header">
-                      <div className="mobile-card-title">{f.fabricType}</div>
-                      <span className={`badge ${f.status === 'Completed' ? 'badge-success' : f.status === 'Stitching' ? 'badge-gst' : 'badge-neutral'}`}>{f.status}</span>
-                    </div>
-                    <div className="mobile-card-body">
-                      <div className="mobile-card-detail">
-                        <span className="mobile-card-detail-label">Color</span>
-                        <span className="mobile-card-detail-value" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: f.color.toLowerCase(), border: '1px solid rgba(255,255,255,0.1)' }}></span>
-                          {f.color}
-                        </span>
-                      </div>
-                      <div className="mobile-card-detail">
-                        <span className="mobile-card-detail-label">Qty Received</span>
-                        <span className="mobile-card-detail-value">{f.quantityReceived} Pcs</span>
-                      </div>
-                      <div className="mobile-card-detail">
-                        <span className="mobile-card-detail-label">Qty Remaining</span>
-                        <span className="mobile-card-detail-value" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>{getRemainingFabricQty(f._id, f.quantityReceived)} Pcs</span>
-                      </div>
-                      <div className="mobile-card-detail">
-                        <span className="mobile-card-detail-label">Received Date</span>
-                        <span className="mobile-card-detail-value">{formatDate(f.receivedDate)}</span>
-                      </div>
-                      <div className="mobile-card-detail">
-                        <span className="mobile-card-detail-label">Supplier</span>
-                        <span className="mobile-card-detail-value">{f.supplier}</span>
-                      </div>
-                    </div>
-                    <div className="mobile-card-footer">
-                      <button className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => openEditFabric(f)}>
-                        <i className="ph ph-pencil-simple"></i> Edit
-                      </button>
-                      <button className="btn btn-secondary text-red" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => deleteFabric(f._id)}>
-                        <i className="ph ph-trash"></i> Delete
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {fabrics.length === 0 && (
-                  <div className="text-center text-muted" style={{ padding: '16px' }}>No fabric rolls logged.</div>
-                )}
-              </div>
-
-              {/* Right Side: Stitch allocations list */}
-              <div className="table-card bg-surface border desktop-table-container" style={{ padding: '20px' }}>
-                <h3 style={{ marginBottom: '16px' }}>Active Stitching Assignments</h3>
-                <div className="table-responsive">
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>Stitcher</th>
-                        <th>Qty</th>
-                        <th className="text-right">Rate</th>
-                        <th className="text-right">Payout</th>
-                        <th>Status</th>
-                        <th className="text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {stitching.map(s => {
-                        const emp = employees.find(e => e._id === s.employeeId);
-                        return (
-                          <tr key={s._id}>
-                            <td className="font-semibold">{emp ? emp.name : 'Unknown Staff'}</td>
-                            <td>{s.piecesStitched} pcs</td>
-                            <td className="text-right">{formatCurrency(s.ratePerPiece)}</td>
-                            <td className="text-right font-medium text-primary">{formatCurrency(s.totalPayment)}</td>
-                            <td><span className={`badge ${s.status === 'Completed' ? 'badge-success' : 'badge-gst'}`}>{s.status}</span></td>
-                            <td className="text-right">
-                              <button className="btn-icon" onClick={() => openEditStitching(s)}><i className="ph ph-pencil-simple"></i></button>
-                              <button className="btn-icon text-red" onClick={() => deleteStitching(s._id)}><i className="ph ph-trash"></i></button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                      {stitching.length === 0 && (
-                        <tr>
-                          <td colSpan="6" className="text-center text-muted">No active stitching assignments logged.</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <div className="mobile-cards-container">
-                {stitching.map(s => {
-                  const emp = employees.find(e => e._id === s.employeeId);
-                  return (
-                    <div key={s._id} className="mobile-card">
-                      <div className="mobile-card-header">
-                        <div className="mobile-card-title">{emp ? emp.name : 'Unknown Staff'}</div>
-                        <span className={`badge ${s.status === 'Completed' ? 'badge-success' : 'badge-gst'}`}>{s.status}</span>
-                      </div>
-                      <div className="mobile-card-body">
-                        <div className="mobile-card-detail">
-                          <span className="mobile-card-detail-label">Qty Stitched</span>
-                          <span className="mobile-card-detail-value">{s.piecesStitched} Pcs</span>
-                        </div>
-                        <div className="mobile-card-detail">
-                          <span className="mobile-card-detail-label">Total Payout</span>
-                          <span className="mobile-card-detail-value" style={{ color: 'var(--color-primary)' }}>{formatCurrency(s.totalPayment)}</span>
-                        </div>
-                        <div className="mobile-card-detail" style={{ gridColumn: 'span 2' }}>
-                          <span className="mobile-card-detail-label">Stitch Rate</span>
-                          <span className="mobile-card-detail-value">{formatCurrency(s.ratePerPiece)} / Pcs</span>
-                        </div>
-                      </div>
-                      <div className="mobile-card-footer">
-                        <button className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => openEditStitching(s)}>
-                          <i className="ph ph-pencil-simple"></i> Edit
-                        </button>
-                        <button className="btn btn-secondary text-red" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => deleteStitching(s._id)}>
-                          <i className="ph ph-trash"></i> Delete
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-                {stitching.length === 0 && (
-                  <div className="text-center text-muted" style={{ padding: '16px' }}>No active stitching assignments logged.</div>
-                )}
-              </div>
-            </div>
-          </section>
-        )}
 
         {/* ==================== CEO TRACKER VIEW ==================== */}
         {activeTab === 'ceo-tracker' && (
