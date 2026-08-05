@@ -677,10 +677,14 @@ export default function App() {
   const [createJobOrderQty, setCreateJobOrderQty] = useState(2500);
   const [createJobShipmentQty, setCreateJobShipmentQty] = useState(2500);
   const [isShipmentQtyTouched, setIsShipmentQtyTouched] = useState(false);
-  const [createJobStitchRate, setCreateJobStitchRate] = useState(12.00);
+  const [createJobPowerTableRate, setCreateJobPowerTableRate] = useState(12.00);
   const [createJobCuttingRate, setCreateJobCuttingRate] = useState(3.50);
   const [createJobSingerRate, setCreateJobSingerRate] = useState(8.50);
   const [createJobOverlockRate, setCreateJobOverlockRate] = useState(4.50);
+  const [createJobCheckingRate, setCreateJobCheckingRate] = useState(2.00);
+  const [createJobThreadRate, setCreateJobThreadRate] = useState(1.50);
+  const [createJobIroningRate, setCreateJobIroningRate] = useState(3.00);
+  const [createJobPackingRate, setCreateJobPackingRate] = useState(2.50);
 
   // --- Invoice creation state values ---
   const [billClient, setBillClient] = useState('');
@@ -7318,10 +7322,14 @@ export default function App() {
               const styleNo = form.styleNumber.value.trim();
               const orderQty = parseInt(createJobOrderQty, 10) || 0;
               const shipmentQty = parseInt(createJobShipmentQty, 10) || 0;
-              const totalRatePerPc = (parseFloat(createJobStitchRate) || 0) + 
+              const totalRatePerPc = (parseFloat(createJobPowerTableRate) || 0) + 
                                      (parseFloat(createJobCuttingRate) || 0) + 
                                      (parseFloat(createJobSingerRate) || 0) + 
                                      (parseFloat(createJobOverlockRate) || 0) + 
+                                     (parseFloat(createJobCheckingRate) || 0) + 
+                                     (parseFloat(createJobThreadRate) || 0) + 
+                                     (parseFloat(createJobIroningRate) || 0) + 
+                                     (parseFloat(createJobPackingRate) || 0) + 
                                      jobCustomRatesList.reduce((sum, r) => sum + (parseFloat(r.val) || 0), 0);
               const calcJobTotalCost = Math.round(orderQty * totalRatePerPc);
 
@@ -7604,15 +7612,15 @@ export default function App() {
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                     <div className="form-group">
-                      <label htmlFor="job-stitch-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Stitching Rate (₹ / Pc)</label>
+                      <label htmlFor="job-power-table-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Power Table Rate (₹ / Pc)</label>
                       <input 
                         type="number" 
-                        id="job-stitch-rate" 
-                        name="stitchRate" 
+                        id="job-power-table-rate" 
+                        name="powerTableRate" 
                         step="any" 
                         placeholder="e.g. 12.00" 
-                        value={createJobStitchRate}
-                        onChange={(e) => setCreateJobStitchRate(e.target.value)}
+                        value={createJobPowerTableRate}
+                        onChange={(e) => setCreateJobPowerTableRate(e.target.value)}
                         style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} 
                       />
                     </div>
@@ -7655,6 +7663,62 @@ export default function App() {
                         placeholder="e.g. 4.50" 
                         value={createJobOverlockRate}
                         onChange={(e) => setCreateJobOverlockRate(e.target.value)}
+                        style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} 
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="job-checking-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Checking Rate (₹ / Pc)</label>
+                      <input 
+                        type="number" 
+                        id="job-checking-rate" 
+                        name="checkingRate" 
+                        step="any" 
+                        placeholder="e.g. 2.00" 
+                        value={createJobCheckingRate}
+                        onChange={(e) => setCreateJobCheckingRate(e.target.value)}
+                        style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} 
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="job-thread-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Thread Trimming Rate (₹ / Pc)</label>
+                      <input 
+                        type="number" 
+                        id="job-thread-rate" 
+                        name="threadRate" 
+                        step="any" 
+                        placeholder="e.g. 1.50" 
+                        value={createJobThreadRate}
+                        onChange={(e) => setCreateJobThreadRate(e.target.value)}
+                        style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} 
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="job-ironing-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Ironing Rate (₹ / Pc)</label>
+                      <input 
+                        type="number" 
+                        id="job-ironing-rate" 
+                        name="ironingRate" 
+                        step="any" 
+                        placeholder="e.g. 3.00" 
+                        value={createJobIroningRate}
+                        onChange={(e) => setCreateJobIroningRate(e.target.value)}
+                        style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} 
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="job-packing-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Packing Rate (₹ / Pc)</label>
+                      <input 
+                        type="number" 
+                        id="job-packing-rate" 
+                        name="packingRate" 
+                        step="any" 
+                        placeholder="e.g. 2.50" 
+                        value={createJobPackingRate}
+                        onChange={(e) => setCreateJobPackingRate(e.target.value)}
                         style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} 
                       />
                     </div>
@@ -7730,10 +7794,14 @@ export default function App() {
 
               <div className="modal-footer" style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                 {(() => {
-                  const totalRatePerPc = (parseFloat(createJobStitchRate) || 0) + 
+                  const totalRatePerPc = (parseFloat(createJobPowerTableRate) || 0) + 
                                          (parseFloat(createJobCuttingRate) || 0) + 
                                          (parseFloat(createJobSingerRate) || 0) + 
                                          (parseFloat(createJobOverlockRate) || 0) + 
+                                         (parseFloat(createJobCheckingRate) || 0) + 
+                                         (parseFloat(createJobThreadRate) || 0) + 
+                                         (parseFloat(createJobIroningRate) || 0) + 
+                                         (parseFloat(createJobPackingRate) || 0) + 
                                          jobCustomRatesList.reduce((sum, r) => sum + (parseFloat(r.val) || 0), 0);
                   const orderQty = parseInt(createJobOrderQty, 10) || 0;
                   const shipmentQty = parseInt(createJobShipmentQty, 10) || 0;
