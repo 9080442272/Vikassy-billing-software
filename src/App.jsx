@@ -697,6 +697,28 @@ export default function App() {
   const [billGrandTotal, setBillGrandTotal] = useState('0');
   const [billAttachmentData, setBillAttachmentData] = useState(null);
   const [billAttachmentName, setBillAttachmentName] = useState('');
+
+  const handleClientSelectForInvoice = (clientId) => {
+    setBillClient(clientId);
+    const clientObj = clients.find(c => c._id === clientId);
+    if (!clientObj) return;
+
+    // Search for matching job order in upcomingOrders
+    const matchedJob = upcomingOrders.find(job => 
+      job.clientName === clientObj.name || 
+      (clientObj.companyName && job.clientName === clientObj.companyName) ||
+      job.clientName?.toLowerCase() === clientObj.name?.toLowerCase()
+    );
+
+    if (matchedJob && matchedJob.estimatedValue > 0) {
+      const subtotalVal = matchedJob.estimatedValue;
+      setBillSubtotal(subtotalVal.toString());
+      
+      const gstVal = billWithGst ? Math.round(subtotalVal * 0.05) : 0;
+      setBillGstAmount(gstVal.toString());
+      setBillGrandTotal((subtotalVal + gstVal - (parseFloat(billDiscount) || 0)).toString());
+    }
+  };
   const [selectedFabricId, setSelectedFabricId] = useState('');
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
@@ -3210,7 +3232,7 @@ export default function App() {
           </button>
           <button className={`nav-item ${activeTab === 'bills' ? 'active' : ''}`} onClick={() => handleTabChange('bills')}>
             <i className="ph ph-receipt"></i>
-            <span>Bills</span>
+            <span>Invoice</span>
           </button>
           <button className={`nav-item ${activeTab === 'jobs' ? 'active' : ''}`} onClick={() => handleTabChange('jobs')}>
             <i className="ph ph-briefcase"></i>
@@ -6911,12 +6933,36 @@ export default function App() {
               <div className="modal-body" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div className="form-group">
                   <label htmlFor="bill-client">Select Client *</label>
-                  <select id="bill-client" required value={billClient} onChange={(e) => setBillClient(e.target.value)} style={{ fontSize: '15px', padding: '12px 14px' }}>
+                  <select id="bill-client" required value={billClient} onChange={(e) => handleClientSelectForInvoice(e.target.value)} style={{ fontSize: '15px', padding: '12px 14px' }}>
                     <option value="">-- Choose Client --</option>
                     {clients.map(c => (
                       <option key={c._id} value={c._id}>{c.name} {c.companyName ? `(${c.companyName})` : ''}</option>
                     ))}
                   </select>
+
+                  {/* Autofill Job Banner */}
+                  {(() => {
+                    const clientObj = clients.find(c => c._id === billClient);
+                    const matchedJob = clientObj ? upcomingOrders.find(j => 
+                      j.clientName === clientObj.name || 
+                      (clientObj.companyName && j.clientName === clientObj.companyName) ||
+                      j.clientName?.toLowerCase() === clientObj.name?.toLowerCase()
+                    ) : null;
+
+                    if (!matchedJob) return null;
+
+                    return (
+                      <div style={{ marginTop: '10px', padding: '12px 14px', backgroundColor: '#F5F3FF', border: '1.5px solid #DDD6FE', borderRadius: '10px', fontSize: '12.5px', color: '#5E6AD2', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <i className="ph ph-magic-wand" style={{ fontSize: '20px', color: '#6E56CF' }}></i>
+                        <div>
+                          <div style={{ fontWeight: 700 }}>⚡ Autofilled from Production Job Order</div>
+                          <div style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)' }}>
+                            Style: <strong>{matchedJob.styleNumber || 'ST-2026-88'}</strong> • Order Qty: <strong>{(matchedJob.orderQty || matchedJob.quantity || 2500).toLocaleString()} Pcs</strong> • Total Valuation: <strong>{formatCurrency(matchedJob.estimatedValue)}</strong>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 <div className="form-row">
