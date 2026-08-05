@@ -5715,9 +5715,6 @@ export default function App() {
               <button className={`sub-tab-btn ${employeesSubTab === 'directory' ? 'active' : ''}`} onClick={() => setEmployeesSubTab('directory')}>
                 <i className="ph ph-users"></i> Employee Directory
               </button>
-              <button className={`sub-tab-btn ${employeesSubTab === 'pc-rate' || employeesSubTab === 'piece-rate' ? 'active' : ''}`} onClick={() => setEmployeesSubTab('pc-rate')}>
-                <i className="ph ph-scissors"></i> Piece-Rate Master (PC Rate)
-              </button>
               <button className={`sub-tab-btn ${employeesSubTab === 'attendance' ? 'active' : ''}`} onClick={() => setEmployeesSubTab('attendance')}>
                 <i className="ph ph-clock-afternoon"></i> Daily Attendance
               </button>
@@ -5729,127 +5726,7 @@ export default function App() {
               </button>
             </div>
 
-            {employeesSubTab === 'pc-rate' || employeesSubTab === 'piece-rate' ? (() => {
-              const avgStitchingRate = pieceRateOperations.filter(op => op.department === 'Stitching').reduce((acc, op, _, arr) => acc + op.ratePerPiece / (arr.length || 1), 0);
-              const cuttingRate = pieceRateOperations.find(op => op.department === 'Cutting')?.ratePerPiece || 3.50;
-              const finishingRate = pieceRateOperations.find(op => op.department === 'Packing' || op.department === 'Finishing')?.ratePerPiece || 2.50;
-
-              return (
-                <div style={{ marginTop: '20px' }}>
-                  {/* Top KPI Metrics Row */}
-                  <div className="metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
-                    <div className="metric-card" style={{ borderLeft: '4px solid var(--color-primary)' }}>
-                      <div className="metric-card-header">
-                        <span className="metric-label">Cutting Master Rate</span>
-                        <div className="metric-icon" style={{ color: 'var(--color-primary)', backgroundColor: 'rgba(94,106,210,0.1)' }}><i className="ph ph-scissors"></i></div>
-                      </div>
-                      <div className="metric-value">{formatCurrency(cuttingRate)} <span style={{ fontSize: '13px', fontWeight: 500 }}>/ Pc</span></div>
-                      <div className="metric-footer"><span>Pattern & Bulk Fabric Cutting</span></div>
-                    </div>
-
-                    <div className="metric-card" style={{ borderLeft: '4px solid #10B981' }}>
-                      <div className="metric-card-header">
-                        <span className="metric-label">Avg Stitching Rate</span>
-                        <div className="metric-icon" style={{ color: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)' }}><i className="ph ph-needle"></i></div>
-                      </div>
-                      <div className="metric-value" style={{ color: '#10B981' }}>{formatCurrency(avgStitchingRate)} <span style={{ fontSize: '13px', fontWeight: 500 }}>/ Pc</span></div>
-                      <div className="metric-footer"><span>Body Stitching & Overlock Seaming</span></div>
-                    </div>
-
-                    <div className="metric-card" style={{ borderLeft: '4px solid #6E56CF' }}>
-                      <div className="metric-card-header">
-                        <span className="metric-label">Finishing & Packing Rate</span>
-                        <div className="metric-icon" style={{ color: '#6E56CF', backgroundColor: 'rgba(110,86,207,0.1)' }}><i className="ph ph-package"></i></div>
-                      </div>
-                      <div className="metric-value">{formatCurrency(finishingRate)} <span style={{ fontSize: '13px', fontWeight: 500 }}>/ Pc</span></div>
-                      <div className="metric-footer"><span>Ironing, Tagging & Carton Packing</span></div>
-                    </div>
-
-                    <div className="metric-card" style={{ borderLeft: '4px solid #F59E0B' }}>
-                      <div className="metric-card-header">
-                        <span className="metric-label">Total Operations Managed</span>
-                        <div className="metric-icon" style={{ color: '#F59E0B', backgroundColor: 'rgba(245,158,11,0.1)' }}><i className="ph ph-list-numbers"></i></div>
-                      </div>
-                      <div className="metric-value">{pieceRateOperations.length} Operations</div>
-                      <div className="metric-footer"><span>Garment production rate card</span></div>
-                    </div>
-                  </div>
-
-                  {/* Main Piece Rate Table Card */}
-                  <div className="table-card bg-surface border" style={{ padding: '20px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
-                      <div>
-                        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Garment Production Piece-Rate Master Card (PC Rate)</h3>
-                        <p className="small text-muted" style={{ margin: '4px 0 0 0' }}>Define operation-wise piece rates for cutting, stitching, overlock, buttoning, and packing.</p>
-                      </div>
-
-                      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                        <button className="btn btn-primary" onClick={() => setIsAddPcRateModalOpen(true)} style={{ fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                          <i className="ph ph-plus-circle" style={{ fontSize: '16px' }}></i> + Add Operation Piece-Rate
-                        </button>
-                        <button className="btn btn-secondary text-primary" onClick={() => setIsCalcPcRateModalOpen(true)} style={{ fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                          <i className="ph ph-calculator" style={{ fontSize: '16px' }}></i> 🧮 PC Rate Wage Calculator
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="table-responsive">
-                      <table className="data-table">
-                        <thead>
-                          <tr>
-                            <th>Code</th>
-                            <th>Garment Operation Name</th>
-                            <th>Department Stage</th>
-                            <th className="text-right">Piece Rate (₹/Pc)</th>
-                            <th className="text-right">Standard Daily Target</th>
-                            <th>Assigned Staff Role</th>
-                            <th className="text-right">Est. Daily Earning @ Target</th>
-                            <th className="text-right">Action</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {pieceRateOperations.map(op => (
-                            <tr key={op.id}>
-                              <td><span className="badge badge-neutral" style={{ fontWeight: 700 }}>{op.code}</span></td>
-                              <td className="font-semibold">{op.name}</td>
-                              <td>
-                                <span className={`badge ${
-                                  op.department === 'Cutting' ? 'badge-primary' :
-                                  op.department === 'Stitching' ? 'badge-success' :
-                                  op.department === 'Finishing' ? 'badge-purple' : 'badge-gst'
-                                }`}>
-                                  {op.department}
-                                </span>
-                              </td>
-                              <td className="text-right font-semibold text-primary" style={{ fontSize: '15px' }}>
-                                {formatCurrency(op.ratePerPiece)} / Pc
-                              </td>
-                              <td className="text-right font-semibold">{op.targetPerDay} Pcs/Day</td>
-                              <td className="text-muted">{op.assignedRole}</td>
-                              <td className="text-right font-semibold" style={{ color: '#10B981' }}>
-                                {formatCurrency(op.ratePerPiece * op.targetPerDay)} / Day
-                              </td>
-                              <td className="text-right">
-                                <button className="btn-icon text-red" onClick={() => setPieceRateOperations(prev => prev.filter(o => o.id !== op.id))}>
-                                  <i className="ph ph-trash"></i>
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                          {pieceRateOperations.length === 0 && (
-                            <tr>
-                              <td colSpan="8" className="text-center text-muted" style={{ padding: '24px' }}>
-                                No garment operation piece-rates configured yet. Click "+ Add Operation Piece-Rate" to set rates.
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              );
-            })() : employeesSubTab === 'tree' ? (
+            {employeesSubTab === 'tree' ? (
               <div style={{ marginTop: '20px', position: 'relative', overflowX: 'auto', padding: '10px 0' }}>
                 {/* Interactive Holi/Linear Dotted Canvas Container */}
                 <div style={{
