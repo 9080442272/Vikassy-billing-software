@@ -674,7 +674,9 @@ export default function App() {
   const [customUnitInputVal, setCustomUnitInputVal] = useState("");
 
   // Create Job Live Calculation States
-  const [createJobQuantity, setCreateJobQuantity] = useState(2500);
+  const [createJobOrderQty, setCreateJobOrderQty] = useState(2500);
+  const [createJobShipmentQty, setCreateJobShipmentQty] = useState(2500);
+  const [isShipmentQtyTouched, setIsShipmentQtyTouched] = useState(false);
   const [createJobStitchRate, setCreateJobStitchRate] = useState(12.00);
   const [createJobCuttingRate, setCreateJobCuttingRate] = useState(3.50);
   const [createJobSingerRate, setCreateJobSingerRate] = useState(8.50);
@@ -4471,6 +4473,7 @@ export default function App() {
                         <th>Job Title / Order Description</th>
                         <th>Style #</th>
                         <th>Client Name</th>
+                        <th>Order & Shipment Qty</th>
                         <th>Delivery Target Date</th>
                         <th>Estimated Budget (₹)</th>
                         <th>Status</th>
@@ -4494,6 +4497,14 @@ export default function App() {
                               </span>
                             </td>
                             <td>{order.clientName}</td>
+                            <td>
+                              <div style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                                {order.orderQty ? order.orderQty.toLocaleString() : (order.quantity || 2500).toLocaleString()} Pcs
+                              </div>
+                              <div style={{ fontSize: '10.5px', color: 'var(--color-text-secondary)' }}>
+                                Ship Qty: {order.shipmentQty ? order.shipmentQty.toLocaleString() : (order.quantity || 2500).toLocaleString()} Pcs
+                              </div>
+                            </td>
                             <td>{formatDate(order.deliveryDate)}</td>
                             <td className="font-bold text-primary" style={{ fontFamily: 'var(--font-mono)' }}>{formatCurrency(order.estimatedValue)}</td>
                             <td>
@@ -7305,13 +7316,14 @@ export default function App() {
               e.preventDefault();
               const form = e.target;
               const styleNo = form.styleNumber.value.trim();
-              const qty = parseInt(createJobQuantity, 10) || 0;
+              const orderQty = parseInt(createJobOrderQty, 10) || 0;
+              const shipmentQty = parseInt(createJobShipmentQty, 10) || 0;
               const totalRatePerPc = (parseFloat(createJobStitchRate) || 0) + 
                                      (parseFloat(createJobCuttingRate) || 0) + 
                                      (parseFloat(createJobSingerRate) || 0) + 
                                      (parseFloat(createJobOverlockRate) || 0) + 
                                      jobCustomRatesList.reduce((sum, r) => sum + (parseFloat(r.val) || 0), 0);
-              const calcJobTotalCost = Math.round(qty * totalRatePerPc);
+              const calcJobTotalCost = Math.round(orderQty * totalRatePerPc);
 
               const newJob = {
                 _id: `job-${Date.now()}`,
@@ -7319,7 +7331,9 @@ export default function App() {
                 styleNumber: styleNo,
                 product: styleNo ? `Style ${styleNo}` : 'Garment Batch',
                 clientName: form.clientName.value,
-                quantity: qty,
+                quantity: orderQty,
+                orderQty: orderQty,
+                shipmentQty: shipmentQty,
                 deliveryDate: form.deliveryDate.value,
                 priority: form.priority.value,
                 productionUnit: form.productionUnit.value,
@@ -7417,17 +7431,38 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Row 2: Quantity & Due Date */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                {/* Row 2: Order Qty, Shipment Qty & Due Date */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                   <div className="form-group">
-                    <label style={{ fontWeight: 600 }}>Quantity (Pieces) *</label>
+                    <label style={{ fontWeight: 600 }}>Order Qty (Pieces) *</label>
                     <input 
                       type="number" 
-                      name="quantity" 
+                      name="orderQty" 
                       required 
-                      value={createJobQuantity} 
-                      onChange={(e) => setCreateJobQuantity(e.target.value)}
+                      value={createJobOrderQty} 
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setCreateJobOrderQty(val);
+                        if (!isShipmentQtyTouched) {
+                          setCreateJobShipmentQty(val);
+                        }
+                      }}
                       placeholder="e.g. 2500" 
+                      style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} 
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label style={{ fontWeight: 600 }}>Shipment Qty (Pieces) *</label>
+                    <input 
+                      type="number" 
+                      name="shipmentQty" 
+                      required 
+                      value={createJobShipmentQty} 
+                      onChange={(e) => {
+                        setCreateJobShipmentQty(e.target.value);
+                        setIsShipmentQtyTouched(true);
+                      }}
+                      placeholder="e.g. 2450" 
                       style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} 
                     />
                   </div>
@@ -7700,8 +7735,9 @@ export default function App() {
                                          (parseFloat(createJobSingerRate) || 0) + 
                                          (parseFloat(createJobOverlockRate) || 0) + 
                                          jobCustomRatesList.reduce((sum, r) => sum + (parseFloat(r.val) || 0), 0);
-                  const qty = parseInt(createJobQuantity, 10) || 0;
-                  const calcTotalJobCost = Math.round(qty * totalRatePerPc);
+                  const orderQty = parseInt(createJobOrderQty, 10) || 0;
+                  const shipmentQty = parseInt(createJobShipmentQty, 10) || 0;
+                  const calcTotalJobCost = Math.round(orderQty * totalRatePerPc);
 
                   return (
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -7709,7 +7745,7 @@ export default function App() {
                         Total Job Value
                       </span>
                       <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-primary)', fontFamily: 'var(--font-mono)' }}>
-                        {formatCurrency(calcTotalJobCost)} <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontWeight: 600 }}>({qty.toLocaleString()} Pcs @ {formatCurrency(totalRatePerPc)}/Pc)</span>
+                        {formatCurrency(calcTotalJobCost)} <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontWeight: 600 }}>({orderQty.toLocaleString()} Pcs | Ship: {shipmentQty.toLocaleString()} Pcs @ {formatCurrency(totalRatePerPc)}/Pc)</span>
                       </span>
                     </div>
                   );
