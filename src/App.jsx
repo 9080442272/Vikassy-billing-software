@@ -558,6 +558,7 @@ export default function App() {
   const [jobDetailsTab, setJobDetailsTab] = useState('overview'); // 'overview' | 'timeline' | 'staff' | 'progress' | 'expenses' | 'files' | 'logs'
   const [selectedJob, setSelectedJob] = useState(null);
   const [selectedJobModal, setSelectedJobModal] = useState(null); // Interactive Job Modal Overlay
+  const [isCreateJobModalOpen, setIsCreateJobModalOpen] = useState(false);
   const [kanbanSearchQuery, setKanbanSearchQuery] = useState('');
   const [kanbanPriorityFilter, setKanbanPriorityFilter] = useState('All'); // 'All' | 'Urgent' | 'High' | 'Medium' | 'Low'
 
@@ -637,6 +638,20 @@ export default function App() {
   ]);
   const [isInvestmentModalOpen, setIsInvestmentModalOpen] = useState(false);
   const [isAllocateOrderModalOpen, setIsAllocateOrderModalOpen] = useState(false);
+
+  // Piece-Rate Master (PC Rate) States
+  const [pieceRateOperations, setPieceRateOperations] = useState([
+    { id: 1, code: "OP-01", name: "Garment Pattern Cutting", department: "Cutting", ratePerPiece: 3.50, targetPerDay: 300, assignedRole: "Cutting Master" },
+    { id: 2, code: "OP-02", name: "Front & Back Body Stitching", department: "Stitching", ratePerPiece: 12.00, targetPerDay: 80, assignedRole: "Senior Stitcher" },
+    { id: 3, code: "OP-03", name: "Overlock Safety Seaming", department: "Stitching", ratePerPiece: 4.50, targetPerDay: 150, assignedRole: "Overlock Operator" },
+    { id: 4, code: "OP-04", name: "Collar & Cuff Attachment", department: "Stitching", ratePerPiece: 6.00, targetPerDay: 100, assignedRole: "Specialist Stitcher" },
+    { id: 5, code: "OP-05", name: "Button Hole & Buttoning", department: "Finishing", ratePerPiece: 2.00, targetPerDay: 250, assignedRole: "Finishing Helper" },
+    { id: 6, code: "OP-06", name: "Ironing, Tagging & Packing", department: "Packing", ratePerPiece: 2.50, targetPerDay: 200, assignedRole: "Packing Staff" }
+  ]);
+  const [isAddPcRateModalOpen, setIsAddPcRateModalOpen] = useState(false);
+  const [isCalcPcRateModalOpen, setIsCalcPcRateModalOpen] = useState(false);
+  const [calcSelectedOpId, setCalcSelectedOpId] = useState(2);
+  const [calcPcsCount, setCalcPcsCount] = useState(150);
 
   const [attendanceSubTab, setAttendanceSubTab] = useState('daily'); // 'daily' | 'shifts' | 'approvals' | 'reports'
   const [payrollSubTab, setPayrollSubTab] = useState('monthly'); // 'monthly' | 'calculation' | 'incentives' | 'advances' | 'payslips' | 'history'
@@ -3961,7 +3976,7 @@ export default function App() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <button 
                   className="btn btn-primary" 
-                  onClick={() => setJobsSubTab('create')}
+                  onClick={() => setIsCreateJobModalOpen(true)}
                   style={{ padding: '10px 20px', fontSize: '13.5px', fontWeight: 800, borderRadius: '12px', boxShadow: '0 4px 14px rgba(94, 106, 210, 0.35)', display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
                 >
                   <i className="ph ph-plus-circle" style={{ fontSize: '18px' }}></i> + Create New Job Order
@@ -3998,153 +4013,7 @@ export default function App() {
               </div>
             </div>
 
-            {jobsSubTab === 'create' ? (
-              <div className="card bg-surface border" style={{ padding: '24px', borderRadius: '16px', maxWidth: '750px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: 'var(--color-accent-light)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
-                    <i className="ph ph-plus-circle"></i>
-                  </div>
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Create New Production Job</h3>
-                    <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: 'var(--color-text-secondary)' }}>Job will be added directly to Column 1 (Backlog & Cutting).</p>
-                  </div>
-                </div>
-
-                <form onSubmit={async (e) => {
-                  e.preventDefault();
-                  const form = e.target;
-                  const newJob = {
-                    _id: `job-${Date.now()}`,
-                    orderTitle: form.orderTitle.value,
-                    product: form.orderTitle.value,
-                    clientName: form.clientName.value,
-                    quantity: parseInt(form.quantity.value, 10) || 1000,
-                    deliveryDate: form.deliveryDate.value,
-                    priority: form.priority.value,
-                    productionUnit: form.productionUnit.value,
-                    estimatedValue: parseFloat(form.estimatedValue.value) || 0,
-                    assignedWorker: form.assignedWorker.value || 'Kartick (Master Tailor)',
-                    status: "Pending",
-                    stage: "Backlog & Cutting",
-                    notes: form.notes.value
-                  };
-
-                  // 1. Instantly update local state so job reflects on Kanban board immediately
-                  setCustomLocalJobs(prev => [newJob, ...prev]);
-
-                  // 2. Add entry to Activity Audit Stream
-                  setActivityAuditLogs(prev => [
-                    { 
-                      id: Date.now(), 
-                      user: "Production Manager", 
-                      action: `Created & Launched Job #${newJob._id}`, 
-                      target: `${newJob.orderTitle} (${newJob.quantity.toLocaleString()} Pcs)`, 
-                      time: "Just now", 
-                      icon: "ph-scissors", 
-                      color: "#5E6AD2" 
-                    },
-                    ...prev
-                  ]);
-
-                  // 3. Asynchronously sync with Convex cloud database
-                  try {
-                    await addUpcomingOrderMutation({
-                      clientName: newJob.clientName,
-                      orderTitle: newJob.orderTitle,
-                      deliveryDate: newJob.deliveryDate,
-                      estimatedValue: newJob.estimatedValue,
-                      status: "Pending",
-                      notes: newJob.notes
-                    });
-                  } catch (err) {
-                    console.log("Convex cloud sync skipped, active on local state", err);
-                  }
-
-                  alert("Production Job created successfully and added to Backlog & Cutting!");
-                  setJobsSubTab('all');
-                  setJobsViewMode('board');
-                }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  
-                  {/* Row 1: Product & Customer */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <div className="form-group">
-                      <label style={{ fontWeight: 600 }}>Product / Order Description</label>
-                      <input type="text" name="orderTitle" required placeholder="e.g. Cotton Polo T-Shirts (5,000 Pcs)" />
-                    </div>
-                    <div className="form-group">
-                      <label style={{ fontWeight: 600 }}>Customer / Buyer</label>
-                      <input type="text" name="clientName" required placeholder="e.g. Apex Denim Exports Ltd" />
-                    </div>
-                  </div>
-
-                  {/* Row 2: Quantity & Due Date */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <div className="form-group">
-                      <label style={{ fontWeight: 600 }}>Quantity (Pieces)</label>
-                      <input type="number" name="quantity" required defaultValue={2500} placeholder="e.g. 5000" />
-                    </div>
-                    <div className="form-group">
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
-                        <i className="ph ph-calendar" style={{ color: 'var(--color-primary)', fontSize: '16px' }}></i> Target Due Date
-                      </label>
-                      <input 
-                        type="date" 
-                        name="deliveryDate" 
-                        required 
-                        defaultValue={new Date().toISOString().split('T')[0]} 
-                        style={{ cursor: 'pointer', fontFamily: 'inherit' }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Row 3: Priority & Production Unit */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <div className="form-group">
-                      <label style={{ fontWeight: 600 }}>Order Priority</label>
-                      <select name="priority" defaultValue="High">
-                        <option value="Urgent">🔴 Urgent Priority</option>
-                        <option value="High">🟠 High Priority</option>
-                        <option value="Medium">🟡 Medium Priority</option>
-                        <option value="Low">🔵 Low Priority</option>
-                      </select>
-                    </div>
-                    <div className="form-group">
-                      <label style={{ fontWeight: 600 }}>Assign Production Unit</label>
-                      <select name="productionUnit" defaultValue="Cutting Unit A">
-                        <option value="Cutting Unit A">Cutting Unit A</option>
-                        <option value="Stitching Floor 1">Stitching Floor 1</option>
-                        <option value="Stitching Floor 2">Stitching Floor 2</option>
-                        <option value="QC Room B">QC Room B</option>
-                        <option value="Packing & Carton Unit">Packing & Carton Unit</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Row 4: Estimated Cost & Assigned Worker */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <div className="form-group">
-                      <label style={{ fontWeight: 600 }}>Estimated Job Cost (₹)</label>
-                      <input type="number" name="estimatedValue" required placeholder="e.g. 150000" defaultValue={125000} />
-                    </div>
-                    <div className="form-group">
-                      <label style={{ fontWeight: 600 }}>Assign Worker / Lead</label>
-                      <input type="text" name="assignedWorker" defaultValue="Kartick (Master Tailor)" placeholder="e.g. Kartick (Master Tailor)" />
-                    </div>
-                  </div>
-
-                  {/* Row 5: Notes & Specifications */}
-                  <div className="form-group">
-                    <label style={{ fontWeight: 600 }}>Production Notes & Fabric Specifications</label>
-                    <textarea name="notes" rows="3" placeholder="Specify fabric quality, GSM rating, stitching thread type, piece rates..."></textarea>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
-                    <button type="button" className="btn btn-secondary" onClick={() => setJobsSubTab('all')}>Cancel</button>
-                    <button type="submit" className="btn btn-primary"><i className="ph ph-check"></i> Save & Launch Job</button>
-                  </div>
-                </form>
-              </div>
-            ) : jobsSubTab === 'details' ? (
+            {jobsSubTab === 'details' ? (
               <div>
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', backgroundColor: 'var(--color-muted)', padding: '6px', borderRadius: '12px', overflowX: 'auto' }}>
                   {['overview', 'timeline', 'staff', 'progress', 'expenses', 'files', 'logs'].map((tab) => (
@@ -5866,6 +5735,9 @@ export default function App() {
               <button className={`sub-tab-btn ${employeesSubTab === 'directory' ? 'active' : ''}`} onClick={() => setEmployeesSubTab('directory')}>
                 <i className="ph ph-users"></i> Employee Directory
               </button>
+              <button className={`sub-tab-btn ${employeesSubTab === 'pc-rate' || employeesSubTab === 'piece-rate' ? 'active' : ''}`} onClick={() => setEmployeesSubTab('pc-rate')}>
+                <i className="ph ph-scissors"></i> Piece-Rate Master (PC Rate)
+              </button>
               <button className={`sub-tab-btn ${employeesSubTab === 'attendance' ? 'active' : ''}`} onClick={() => setEmployeesSubTab('attendance')}>
                 <i className="ph ph-clock-afternoon"></i> Daily Attendance
               </button>
@@ -5877,7 +5749,127 @@ export default function App() {
               </button>
             </div>
 
-            {employeesSubTab === 'tree' ? (
+            {employeesSubTab === 'pc-rate' || employeesSubTab === 'piece-rate' ? (() => {
+              const avgStitchingRate = pieceRateOperations.filter(op => op.department === 'Stitching').reduce((acc, op, _, arr) => acc + op.ratePerPiece / (arr.length || 1), 0);
+              const cuttingRate = pieceRateOperations.find(op => op.department === 'Cutting')?.ratePerPiece || 3.50;
+              const finishingRate = pieceRateOperations.find(op => op.department === 'Packing' || op.department === 'Finishing')?.ratePerPiece || 2.50;
+
+              return (
+                <div style={{ marginTop: '20px' }}>
+                  {/* Top KPI Metrics Row */}
+                  <div className="metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+                    <div className="metric-card" style={{ borderLeft: '4px solid var(--color-primary)' }}>
+                      <div className="metric-card-header">
+                        <span className="metric-label">Cutting Master Rate</span>
+                        <div className="metric-icon" style={{ color: 'var(--color-primary)', backgroundColor: 'rgba(94,106,210,0.1)' }}><i className="ph ph-scissors"></i></div>
+                      </div>
+                      <div className="metric-value">{formatCurrency(cuttingRate)} <span style={{ fontSize: '13px', fontWeight: 500 }}>/ Pc</span></div>
+                      <div className="metric-footer"><span>Pattern & Bulk Fabric Cutting</span></div>
+                    </div>
+
+                    <div className="metric-card" style={{ borderLeft: '4px solid #10B981' }}>
+                      <div className="metric-card-header">
+                        <span className="metric-label">Avg Stitching Rate</span>
+                        <div className="metric-icon" style={{ color: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)' }}><i className="ph ph-needle"></i></div>
+                      </div>
+                      <div className="metric-value" style={{ color: '#10B981' }}>{formatCurrency(avgStitchingRate)} <span style={{ fontSize: '13px', fontWeight: 500 }}>/ Pc</span></div>
+                      <div className="metric-footer"><span>Body Stitching & Overlock Seaming</span></div>
+                    </div>
+
+                    <div className="metric-card" style={{ borderLeft: '4px solid #6E56CF' }}>
+                      <div className="metric-card-header">
+                        <span className="metric-label">Finishing & Packing Rate</span>
+                        <div className="metric-icon" style={{ color: '#6E56CF', backgroundColor: 'rgba(110,86,207,0.1)' }}><i className="ph ph-package"></i></div>
+                      </div>
+                      <div className="metric-value">{formatCurrency(finishingRate)} <span style={{ fontSize: '13px', fontWeight: 500 }}>/ Pc</span></div>
+                      <div className="metric-footer"><span>Ironing, Tagging & Carton Packing</span></div>
+                    </div>
+
+                    <div className="metric-card" style={{ borderLeft: '4px solid #F59E0B' }}>
+                      <div className="metric-card-header">
+                        <span className="metric-label">Total Operations Managed</span>
+                        <div className="metric-icon" style={{ color: '#F59E0B', backgroundColor: 'rgba(245,158,11,0.1)' }}><i className="ph ph-list-numbers"></i></div>
+                      </div>
+                      <div className="metric-value">{pieceRateOperations.length} Operations</div>
+                      <div className="metric-footer"><span>Garment production rate card</span></div>
+                    </div>
+                  </div>
+
+                  {/* Main Piece Rate Table Card */}
+                  <div className="table-card bg-surface border" style={{ padding: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Garment Production Piece-Rate Master Card (PC Rate)</h3>
+                        <p className="small text-muted" style={{ margin: '4px 0 0 0' }}>Define operation-wise piece rates for cutting, stitching, overlock, buttoning, and packing.</p>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                        <button className="btn btn-primary" onClick={() => setIsAddPcRateModalOpen(true)} style={{ fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                          <i className="ph ph-plus-circle" style={{ fontSize: '16px' }}></i> + Add Operation Piece-Rate
+                        </button>
+                        <button className="btn btn-secondary text-primary" onClick={() => setIsCalcPcRateModalOpen(true)} style={{ fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                          <i className="ph ph-calculator" style={{ fontSize: '16px' }}></i> 🧮 PC Rate Wage Calculator
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="table-responsive">
+                      <table className="data-table">
+                        <thead>
+                          <tr>
+                            <th>Code</th>
+                            <th>Garment Operation Name</th>
+                            <th>Department Stage</th>
+                            <th className="text-right">Piece Rate (₹/Pc)</th>
+                            <th className="text-right">Standard Daily Target</th>
+                            <th>Assigned Staff Role</th>
+                            <th className="text-right">Est. Daily Earning @ Target</th>
+                            <th className="text-right">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {pieceRateOperations.map(op => (
+                            <tr key={op.id}>
+                              <td><span className="badge badge-neutral" style={{ fontWeight: 700 }}>{op.code}</span></td>
+                              <td className="font-semibold">{op.name}</td>
+                              <td>
+                                <span className={`badge ${
+                                  op.department === 'Cutting' ? 'badge-primary' :
+                                  op.department === 'Stitching' ? 'badge-success' :
+                                  op.department === 'Finishing' ? 'badge-purple' : 'badge-gst'
+                                }`}>
+                                  {op.department}
+                                </span>
+                              </td>
+                              <td className="text-right font-semibold text-primary" style={{ fontSize: '15px' }}>
+                                {formatCurrency(op.ratePerPiece)} / Pc
+                              </td>
+                              <td className="text-right font-semibold">{op.targetPerDay} Pcs/Day</td>
+                              <td className="text-muted">{op.assignedRole}</td>
+                              <td className="text-right font-semibold" style={{ color: '#10B981' }}>
+                                {formatCurrency(op.ratePerPiece * op.targetPerDay)} / Day
+                              </td>
+                              <td className="text-right">
+                                <button className="btn-icon text-red" onClick={() => setPieceRateOperations(prev => prev.filter(o => o.id !== op.id))}>
+                                  <i className="ph ph-trash"></i>
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                          {pieceRateOperations.length === 0 && (
+                            <tr>
+                              <td colSpan="8" className="text-center text-muted" style={{ padding: '24px' }}>
+                                No garment operation piece-rates configured yet. Click "+ Add Operation Piece-Rate" to set rates.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              );
+            })() : employeesSubTab === 'tree' ? (
               <div style={{ marginTop: '20px', position: 'relative', overflowX: 'auto', padding: '10px 0' }}>
                 {/* Interactive Holi/Linear Dotted Canvas Container */}
                 <div style={{
@@ -7620,6 +7612,299 @@ export default function App() {
               <div className="modal-footer" style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                 <button type="button" className="btn btn-secondary" onClick={closeBillModal}>Cancel</button>
                 <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 600 }}>Save Invoice Record</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== ADD OPERATION PIECE-RATE MODAL ==================== */}
+      {isAddPcRateModalOpen && (
+        <div className="modal-overlay active" onClick={() => setIsAddPcRateModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px' }}>
+            <div className="modal-header">
+              <h3>✂️ Add Garment Operation Piece-Rate</h3>
+              <button className="btn-close" onClick={() => setIsAddPcRateModalOpen(false)}><i className="ph ph-x"></i></button>
+            </div>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const form = e.target;
+              const code = form.code.value.trim().toUpperCase();
+              const name = form.name.value.trim();
+              const department = form.department.value;
+              const ratePerPiece = parseFloat(form.ratePerPiece.value) || 0;
+              const targetPerDay = parseInt(form.targetPerDay.value, 10) || 100;
+              const assignedRole = form.assignedRole.value.trim();
+
+              const newOp = {
+                id: Date.now(),
+                code: code || `OP-0${pieceRateOperations.length + 1}`,
+                name,
+                department,
+                ratePerPiece,
+                targetPerDay,
+                assignedRole: assignedRole || `${department} Specialist`
+              };
+
+              setPieceRateOperations(prev => [...prev, newOp]);
+              alert(`🎉 Piece-Rate for "${name}" added at ${formatCurrency(ratePerPiece)} / Pc!`);
+              setIsAddPcRateModalOpen(false);
+            }}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px' }}>
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '12px' }}>
+                  <div className="form-group">
+                    <label htmlFor="pc-code">Op Code *</label>
+                    <input type="text" id="pc-code" name="code" required defaultValue={`OP-0${pieceRateOperations.length + 1}`} placeholder="e.g. OP-07" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="pc-name">Garment Operation Name *</label>
+                    <input type="text" id="pc-name" name="name" required placeholder="e.g. Collar Stitching / Pocket Attachment" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
+                  </div>
+                </div>
+
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-group">
+                    <label htmlFor="pc-dept">Department / Process *</label>
+                    <select id="pc-dept" name="department" required style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }}>
+                      <option value="Cutting">Cutting Unit</option>
+                      <option value="Stitching">Stitching Floor</option>
+                      <option value="Finishing">Finishing & Trimming</option>
+                      <option value="Packing">Ironing & Packing</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="pc-rate">Piece Rate (₹ / Pc) *</label>
+                    <input type="number" id="pc-rate" name="ratePerPiece" required step="any" placeholder="e.g. 12.50" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', fontWeight: 700 }} />
+                  </div>
+                </div>
+
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-group">
+                    <label htmlFor="pc-target">Daily Target (Pcs/Day) *</label>
+                    <input type="number" id="pc-target" name="targetPerDay" required defaultValue="150" placeholder="e.g. 150" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="pc-role">Assigned Staff Role *</label>
+                    <input type="text" id="pc-role" name="assignedRole" required defaultValue="Senior Stitcher" placeholder="e.g. Overlock Operator" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer" style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setIsAddPcRateModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 700, borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                  <i className="ph ph-check" style={{ fontSize: '16px' }}></i> Save Operation Rate
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== PIECE-RATE WAGE CALCULATOR MODAL ==================== */}
+      {isCalcPcRateModalOpen && (
+        <div className="modal-overlay active" onClick={() => setIsCalcPcRateModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+            <div className="modal-header">
+              <h3>🧮 Piece-Rate Wage Calculator</h3>
+              <button className="btn-close" onClick={() => setIsCalcPcRateModalOpen(false)}><i className="ph ph-x"></i></button>
+            </div>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px' }}>
+              <div className="form-group">
+                <label>Select Garment Operation *</label>
+                <select 
+                  value={calcSelectedOpId} 
+                  onChange={(e) => setCalcSelectedOpId(Number(e.target.value))}
+                  style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}
+                >
+                  {pieceRateOperations.map(op => (
+                    <option key={op.id} value={op.id}>
+                      {op.code} — {op.name} ({formatCurrency(op.ratePerPiece)} / Pc)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {(() => {
+                const selectedOp = pieceRateOperations.find(op => op.id === calcSelectedOpId) || pieceRateOperations[0];
+                const totalWage = (selectedOp?.ratePerPiece || 0) * (calcPcsCount || 0);
+
+                return (
+                  <>
+                    <div className="form-group">
+                      <label>Number of Pieces Completed *</label>
+                      <input 
+                        type="number" 
+                        value={calcPcsCount} 
+                        onChange={(e) => setCalcPcsCount(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                        placeholder="e.g. 250" 
+                        style={{ fontSize: '16px', padding: '12px 14px', borderRadius: '10px', width: '100%', fontWeight: 700 }} 
+                      />
+                    </div>
+
+                    <div style={{ backgroundColor: '#F0FDF4', border: '1.5px solid #10B981', padding: '16px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 700, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Calculated Total Wage</div>
+                      <div style={{ fontSize: '28px', fontWeight: 900, color: '#065F46' }}>
+                        {formatCurrency(totalWage)}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#047857', fontWeight: 500 }}>
+                        Formula: {calcPcsCount} Pcs × {formatCurrency(selectedOp?.ratePerPiece || 0)} / Pc
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+
+            <div className="modal-footer" style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end' }}>
+              <button type="button" className="btn btn-primary" onClick={() => setIsCalcPcRateModalOpen(false)}>Done</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {isCreateJobModalOpen && (
+        <div className="modal-overlay active" onClick={() => setIsCreateJobModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '640px', width: '92%' }}>
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: 'var(--color-accent-light)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                  <i className="ph ph-plus-circle"></i>
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Create New Production Job</h3>
+                  <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: 'var(--color-text-secondary)' }}>Job will be added directly to Column 1 (Backlog & Cutting).</p>
+                </div>
+              </div>
+              <button className="btn-close" onClick={() => setIsCreateJobModalOpen(false)}><i className="ph ph-x"></i></button>
+            </div>
+
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const form = e.target;
+              const newJob = {
+                _id: `job-${Date.now()}`,
+                orderTitle: form.orderTitle.value,
+                product: form.orderTitle.value,
+                clientName: form.clientName.value,
+                quantity: parseInt(form.quantity.value, 10) || 1000,
+                deliveryDate: form.deliveryDate.value,
+                priority: form.priority.value,
+                productionUnit: form.productionUnit.value,
+                estimatedValue: parseFloat(form.estimatedValue.value) || 0,
+                assignedWorker: form.assignedWorker.value || 'Kartick (Master Tailor)',
+                status: "Pending",
+                stage: "Backlog & Cutting",
+                notes: form.notes.value
+              };
+
+              setCustomLocalJobs(prev => [newJob, ...prev]);
+
+              setActivityAuditLogs(prev => [
+                { 
+                  id: Date.now(), 
+                  user: "Production Manager", 
+                  action: `Created & Launched Job #${newJob._id}`, 
+                  target: `${newJob.orderTitle} (${newJob.quantity.toLocaleString()} Pcs)`, 
+                  time: "Just now", 
+                  icon: "ph-scissors", 
+                  color: "#5E6AD2" 
+                },
+                ...prev
+              ]);
+
+              try {
+                await addUpcomingOrderMutation({
+                  clientName: newJob.clientName,
+                  orderTitle: newJob.orderTitle,
+                  deliveryDate: newJob.deliveryDate,
+                  estimatedValue: newJob.estimatedValue,
+                  status: "Pending",
+                  notes: newJob.notes
+                });
+              } catch (err) {}
+
+              alert("🎉 Production Job created successfully and added to Backlog & Cutting!");
+              setIsCreateJobModalOpen(false);
+            }}>
+              <div className="modal-body" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {/* Row 1: Product & Customer */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-group">
+                    <label style={{ fontWeight: 600 }}>Product / Order Description *</label>
+                    <input type="text" name="orderTitle" required placeholder="e.g. Cotton Polo T-Shirts (5,000 Pcs)" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
+                  </div>
+                  <div className="form-group">
+                    <label style={{ fontWeight: 600 }}>Customer / Buyer *</label>
+                    <input type="text" name="clientName" required placeholder="e.g. Apex Denim Exports Ltd" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} list="job-clients-list" />
+                    <datalist id="job-clients-list">
+                      {clients.map(c => <option key={c._id} value={c.name} />)}
+                    </datalist>
+                  </div>
+                </div>
+
+                {/* Row 2: Quantity & Due Date */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-group">
+                    <label style={{ fontWeight: 600 }}>Quantity (Pieces) *</label>
+                    <input type="number" name="quantity" required defaultValue="2500" placeholder="e.g. 2500" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
+                  </div>
+                  <LinearDatePickerInput 
+                    id="job-target-due-date"
+                    name="deliveryDate"
+                    label="Target Due Date *"
+                    defaultValue={new Date().toISOString().split('T')[0]}
+                    required
+                  />
+                </div>
+
+                {/* Row 3: Priority & Production Unit */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-group">
+                    <label style={{ fontWeight: 600 }}>Order Priority *</label>
+                    <select name="priority" defaultValue="High Priority" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }}>
+                      <option value="Normal">🟢 Normal Priority</option>
+                      <option value="High Priority">🟠 High Priority</option>
+                      <option value="Urgent Dispatch">🔴 Urgent Dispatch</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label style={{ fontWeight: 600 }}>Assign Production Unit *</label>
+                    <select name="productionUnit" defaultValue="Cutting Unit A" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }}>
+                      <option value="Cutting Unit A">Cutting Unit A</option>
+                      <option value="Stitching Floor B">Stitching Floor B</option>
+                      <option value="Embroidery & Finishing">Embroidery & Finishing</option>
+                      <option value="Quality Inspection & Packing">Quality Inspection & Packing</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Row 4: Estimated Cost & Assigned Worker */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-group">
+                    <label style={{ fontWeight: 600 }}>Estimated Job Cost (₹) *</label>
+                    <input type="number" name="estimatedValue" step="any" required defaultValue="125000" placeholder="e.g. 125000" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
+                  </div>
+                  <div className="form-group">
+                    <label style={{ fontWeight: 600 }}>Assign Worker / Lead *</label>
+                    <select name="assignedWorker" defaultValue="Kartick (Master Tailor)" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }}>
+                      {employees.map(e => <option key={e._id} value={`${e.name} (${e.role})`}>{e.name} ({e.role})</option>)}
+                      {employees.length === 0 && <option value="Kartick (Master Tailor)">Kartick (Master Tailor)</option>}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Row 5: Notes & Fabric Specifications */}
+                <div className="form-group">
+                  <label style={{ fontWeight: 600 }}>Production Notes & Fabric Specifications</label>
+                  <textarea name="notes" rows="2" placeholder="e.g. Requires 220 GSM Combed Cotton fabric. Double-needle stitch on collar." style={{ fontSize: '13.5px', padding: '10px 12px', borderRadius: '10px' }} />
+                </div>
+              </div>
+
+              <div className="modal-footer" style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setIsCreateJobModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 700, borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                  <i className="ph ph-rocket-launch" style={{ fontSize: '16px' }}></i> Create & Launch Production Job
+                </button>
               </div>
             </form>
           </div>
