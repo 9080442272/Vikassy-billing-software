@@ -3508,9 +3508,6 @@ export default function App() {
                   <button className="btn btn-primary" onClick={() => setIsBillModalOpen(true)} style={{ backgroundColor: '#6E56CF', color: '#fff', border: 'none', borderRadius: '12px', padding: '10px 18px', fontWeight: 600, fontSize: '13px', boxShadow: '0 4px 14px rgba(110,86,207,0.25)' }}>
                     <i className="ph ph-plus" style={{ fontSize: '15px' }}></i> New Bill
                   </button>
-                  <button className="btn-ghost" onClick={() => setIsScanModalOpen(true)} style={{ padding: '9px 14px', fontSize: '13px' }}>
-                    <i className="ph ph-scan" style={{ fontSize: '14px' }}></i> Scan Receipt
-                  </button>
                   <button className="btn-ghost" onClick={() => setIsClientModalOpen(true)} style={{ padding: '9px 14px', fontSize: '13px' }}>
                     <i className="ph ph-user-plus" style={{ fontSize: '14px' }}></i> Add Client
                   </button>
