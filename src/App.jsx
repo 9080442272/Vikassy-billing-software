@@ -7872,7 +7872,7 @@ export default function App() {
                         }}
                       >
                         <i className={`ph ${isCustomUnitActive ? 'ph-list' : 'ph-plus-circle'}`}></i>
-                        {isCustomUnitActive ? 'Select Unit' : '+ Add Custom Unit'}
+                        {isCustomUnitActive ? 'Select Unit' : 'Add Custom Unit'}
                       </button>
                     </div>
 
@@ -7966,7 +7966,7 @@ export default function App() {
                       }}
                     >
                       <i className={`ph ${isJobCustomRateActive ? 'ph-minus-circle' : 'ph-plus-circle'}`}></i>
-                      {isJobCustomRateActive ? 'Hide Custom Rate Input' : '+ Add Custom Operation Rate'}
+                      {isJobCustomRateActive ? 'Hide Custom Rate Input' : 'Add Custom Operation Rate'}
                     </button>
                   </div>
 
@@ -8117,7 +8117,7 @@ export default function App() {
                         }}
                       >
                         <i className={`ph ${isCustomRoleActive ? 'ph-list' : 'ph-plus-circle'}`}></i>
-                        {isCustomRoleActive ? 'Select Existing Role' : '+ Add Custom Role'}
+                        {isCustomRoleActive ? 'Select Existing Role' : 'Add Custom Role'}
                       </button>
                     </div>
 
@@ -8202,7 +8202,7 @@ export default function App() {
                       }}
                     >
                       <i className={`ph ${isCustomEmpRateActive ? 'ph-minus-circle' : 'ph-plus-circle'}`}></i>
-                      {isCustomEmpRateActive ? 'Hide Custom Rate Input' : '+ Add Custom Operation Rate'}
+                      {isCustomEmpRateActive ? 'Hide Custom Rate Input' : 'Add Custom Operation Rate'}
                     </button>
                   </div>
 
@@ -8596,7 +8596,7 @@ export default function App() {
                         }}
                       >
                         <i className={`ph ${isCustomExpenseCatActive ? 'ph-list' : 'ph-plus-circle'}`}></i>
-                        {isCustomExpenseCatActive ? 'Select Existing Category' : '+ Add Custom Category'}
+                        {isCustomExpenseCatActive ? 'Select Existing Category' : 'Add Custom Category'}
                       </button>
                     </div>
 
