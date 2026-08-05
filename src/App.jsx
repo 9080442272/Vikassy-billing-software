@@ -653,6 +653,12 @@ export default function App() {
   const [calcSelectedOpId, setCalcSelectedOpId] = useState(2);
   const [calcPcsCount, setCalcPcsCount] = useState(150);
 
+  // Employee Modal Custom Piece-Rates States
+  const [isCustomEmpRateActive, setIsCustomEmpRateActive] = useState(false);
+  const [customEmpRatesList, setCustomEmpRatesList] = useState([]);
+  const [customEmpRateNameInput, setCustomEmpRateNameInput] = useState('');
+  const [customEmpRateValInput, setCustomEmpRateValInput] = useState('');
+
   const [attendanceSubTab, setAttendanceSubTab] = useState('daily'); // 'daily' | 'shifts' | 'approvals' | 'reports'
   const [payrollSubTab, setPayrollSubTab] = useState('monthly'); // 'monthly' | 'calculation' | 'incentives' | 'advances' | 'payslips' | 'history'
   const [expensesSubTab, setExpensesSubTab] = useState('all'); // 'all' | 'add' | 'categories' | 'pending' | 'approved' | 'summary'
@@ -2015,20 +2021,28 @@ export default function App() {
       role = roleElem.value;
     }
 
-    const subCategory = document.getElementById('employee-subcategory').value.trim();
+    const subCategory = document.getElementById('employee-subcategory')?.value.trim() || '';
     const stitchRate = parseFloat(document.getElementById('employee-stitch-rate')?.value) || 0;
+    const cuttingRate = parseFloat(document.getElementById('employee-cutting-rate')?.value) || 0;
+    const singerRate = parseFloat(document.getElementById('employee-singer-rate')?.value) || 0;
+    const overlockRate = parseFloat(document.getElementById('employee-overlock-rate')?.value) || 0;
     const salary = parseFloat(document.getElementById('employee-salary')?.value) || 0;
+
+    const payload = {
+      name, phone, role, subCategory, stitchRate, cuttingRate, singerRate, overlockRate, salary,
+      customRates: customEmpRatesList
+    };
 
     try {
       if (editingEmployee) {
         await updateEmployeeMutation({
           id: editingEmployee._id,
-          name, phone, role, subCategory, stitchRate, salary,
+          ...payload,
           createdAt: editingEmployee.createdAt
         });
         alert("Employee updated successfully!");
       } else {
-        await addEmployeeMutation({ name, phone, role, subCategory, stitchRate, salary });
+        await addEmployeeMutation(payload);
         alert("Employee registered successfully!");
       }
       closeEmployeeModal();
@@ -2038,18 +2052,17 @@ export default function App() {
   };
 
   const deleteEmployee = (id, empObj) => {
-    const empName = typeof empObj === 'object' ? empObj.name : empObj || '';
+    const empTitle = typeof empObj === 'object' ? `${empObj.name} (${empObj.role})` : empObj || '';
     
     requestDeleteConfirmation({
-      heading: 'Are you sure you want to remove this staff member?',
-      subheading: 'Removing this staff profile will delete them from active factory attendance rosters and payroll calculations.',
-      itemName: empName || 'Employee Profile',
+      heading: 'Are you sure you want to delete this employee?',
+      subheading: 'Deleting this staff record will remove them from directory & attendance records.',
+      itemName: empTitle || 'Employee Record',
       impactType: 'employee',
-      impactAmount: '- 1 Staff Profile',
+      impactAmount: '- 1 Staff Member',
       impactList: [
-        '📉 Active Staff Attendance count will update on Dashboard.',
-        '🧵 Piece-rate stitching rate assignments will be cleared.',
-        '💵 Monthly payroll disburse list will automatically minus this staff.'
+        '👥 Total Staff count on Dashboard will minus 1 Employee.',
+        '📅 Attendance logs & weekly payout history will be unlinked.'
       ],
       onConfirm: async () => {
         await deleteEmployeeMutation({ id });
@@ -2065,12 +2078,16 @@ export default function App() {
     }
     setSelectedStaffRole(emp.role || 'Stitcher');
     setIsCustomRoleActive(false);
+    if (emp.customRates) setCustomEmpRatesList(emp.customRates);
     setTimeout(() => {
       if (document.getElementById('employee-name')) document.getElementById('employee-name').value = emp.name;
       if (document.getElementById('employee-phone')) document.getElementById('employee-phone').value = emp.phone || '';
       if (document.getElementById('employee-role')) document.getElementById('employee-role').value = emp.role || 'Stitcher';
       if (document.getElementById('employee-subcategory')) document.getElementById('employee-subcategory').value = emp.subCategory || '';
-      if (document.getElementById('employee-stitch-rate')) document.getElementById('employee-stitch-rate').value = emp.stitchRate || 0;
+      if (document.getElementById('employee-stitch-rate')) document.getElementById('employee-stitch-rate').value = emp.stitchRate || 12;
+      if (document.getElementById('employee-cutting-rate')) document.getElementById('employee-cutting-rate').value = emp.cuttingRate || 3.5;
+      if (document.getElementById('employee-singer-rate')) document.getElementById('employee-singer-rate').value = emp.singerRate || 8.5;
+      if (document.getElementById('employee-overlock-rate')) document.getElementById('employee-overlock-rate').value = emp.overlockRate || 4.5;
       if (document.getElementById('employee-salary')) document.getElementById('employee-salary').value = emp.salary || 0;
     }, 50);
   };
@@ -8015,8 +8032,118 @@ export default function App() {
 
                   <div className="form-group">
                     <label htmlFor="employee-subcategory">Sub Category / Specialization</label>
-                    <input type="text" id="employee-subcategory" placeholder="e.g. Signer / Overlock / Flatlock" />
+                    <input type="text" id="employee-subcategory" placeholder="e.g. Singer / Overlock / Flatlock" />
                   </div>
+                </div>
+
+                {/* Garment Piece-Rates Section */}
+                <div style={{ marginTop: '6px', paddingTop: '14px', borderTop: '1px dashed var(--color-border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <label style={{ margin: 0, fontWeight: 700, fontSize: '13px', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <i className="ph ph-scissors"></i> Operation Piece-Rates (PC Rates)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setIsCustomEmpRateActive(!isCustomEmpRateActive)}
+                      style={{
+                        border: 'none',
+                        background: 'transparent',
+                        color: 'var(--color-primary)',
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: 0
+                      }}
+                    >
+                      <i className={`ph ${isCustomEmpRateActive ? 'ph-minus-circle' : 'ph-plus-circle'}`}></i>
+                      {isCustomEmpRateActive ? 'Hide Custom Rate Input' : '+ Add Custom Operation Rate'}
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div className="form-group">
+                      <label htmlFor="employee-stitch-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Stitching Rate (₹ / Pc)</label>
+                      <input type="number" id="employee-stitch-rate" step="any" placeholder="e.g. 12.00" defaultValue={editingEmployee?.stitchRate || 12} style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="employee-cutting-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Cutting Rate (₹ / Pc)</label>
+                      <input type="number" id="employee-cutting-rate" step="any" placeholder="e.g. 3.50" defaultValue={editingEmployee?.cuttingRate || 3.5} style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="employee-singer-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Singer Machine Rate (₹ / Pc)</label>
+                      <input type="number" id="employee-singer-rate" step="any" placeholder="e.g. 8.50" defaultValue={editingEmployee?.singerRate || 8.5} style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="employee-overlock-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Overlock Rate (₹ / Pc)</label>
+                      <input type="number" id="employee-overlock-rate" step="any" placeholder="e.g. 4.50" defaultValue={editingEmployee?.overlockRate || 4.5} style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} />
+                    </div>
+                  </div>
+
+                  {/* Dynamic Custom Rates List */}
+                  {customEmpRatesList.length > 0 && (
+                    <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {customEmpRatesList.map((rateObj, idx) => (
+                        <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <span style={{ fontSize: '12px', fontWeight: 600, minWidth: '130px', color: 'var(--color-text-secondary)' }}>{rateObj.name} (₹/Pc):</span>
+                          <input 
+                            type="number" 
+                            step="any"
+                            value={rateObj.val} 
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setCustomEmpRatesList(prev => prev.map((r, i) => i === idx ? { ...r, val } : r));
+                            }} 
+                            style={{ fontSize: '13px', padding: '7px 10px', borderRadius: '8px', flex: 1 }} 
+                          />
+                          <button type="button" className="btn-icon text-red" onClick={() => setCustomEmpRatesList(prev => prev.filter((_, i) => i !== idx))}>
+                            <i className="ph ph-x"></i>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Inline Custom Rate Add Box */}
+                  {isCustomEmpRateActive && (
+                    <div style={{ marginTop: '10px', padding: '10px', backgroundColor: 'var(--color-muted)', borderRadius: '10px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <input 
+                        type="text" 
+                        placeholder="Custom Rate Name (e.g. Ironing Rate, Pocket Rate)" 
+                        value={customEmpRateNameInput}
+                        onChange={(e) => setCustomEmpRateNameInput(e.target.value)}
+                        style={{ fontSize: '12.5px', padding: '8px 10px', flex: 2, borderRadius: '8px', border: '1px solid var(--color-border)' }}
+                      />
+                      <input 
+                        type="number" 
+                        step="any"
+                        placeholder="Rate (₹)" 
+                        value={customEmpRateValInput}
+                        onChange={(e) => setCustomEmpRateValInput(e.target.value)}
+                        style={{ fontSize: '12.5px', padding: '8px 10px', flex: 1, borderRadius: '8px', border: '1px solid var(--color-border)' }}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={() => {
+                          if (customEmpRateNameInput.trim() && customEmpRateValInput) {
+                            setCustomEmpRatesList(prev => [...prev, { name: customEmpRateNameInput.trim(), val: parseFloat(customEmpRateValInput) || 0 }]);
+                            setCustomEmpRateNameInput('');
+                            setCustomEmpRateValInput('');
+                            setIsCustomEmpRateActive(false);
+                          }
+                        }}
+                        style={{ padding: '8px 12px', fontSize: '12px', whiteSpace: 'nowrap' }}
+                      >
+                        <i className="ph ph-check"></i> Add Rate
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="modal-footer" style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
