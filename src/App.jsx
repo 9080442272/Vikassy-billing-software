@@ -685,6 +685,39 @@ export default function App() {
   const [createJobThreadRate, setCreateJobThreadRate] = useState(1.50);
   const [createJobIroningRate, setCreateJobIroningRate] = useState(3.00);
   const [createJobPackingRate, setCreateJobPackingRate] = useState(2.50);
+  const [editingJobOrder, setEditingJobOrder] = useState(null);
+
+  const openCreateJobModal = () => {
+    setEditingJobOrder(null);
+    setCreateJobOrderQty(2500);
+    setCreateJobShipmentQty(2500);
+    setIsShipmentQtyTouched(false);
+    setCreateJobPowerTableRate(12.00);
+    setCreateJobCuttingRate(3.50);
+    setCreateJobSingerRate(8.50);
+    setCreateJobOverlockRate(4.50);
+    setCreateJobCheckingRate(2.00);
+    setCreateJobThreadRate(1.50);
+    setCreateJobIroningRate(3.00);
+    setCreateJobPackingRate(2.50);
+    setIsCreateJobModalOpen(true);
+  };
+
+  const openViewEditJobModal = (job) => {
+    setEditingJobOrder(job);
+    setCreateJobOrderQty(job.orderQty || job.quantity || 2500);
+    setCreateJobShipmentQty(job.shipmentQty || job.quantity || 2500);
+    setIsShipmentQtyTouched(true);
+    if (job.powerTableRate !== undefined) setCreateJobPowerTableRate(job.powerTableRate);
+    if (job.cuttingRate !== undefined) setCreateJobCuttingRate(job.cuttingRate);
+    if (job.singerRate !== undefined) setCreateJobSingerRate(job.singerRate);
+    if (job.overlockRate !== undefined) setCreateJobOverlockRate(job.overlockRate);
+    if (job.checkingRate !== undefined) setCreateJobCheckingRate(job.checkingRate);
+    if (job.threadRate !== undefined) setCreateJobThreadRate(job.threadRate);
+    if (job.ironingRate !== undefined) setCreateJobIroningRate(job.ironingRate);
+    if (job.packingRate !== undefined) setCreateJobPackingRate(job.packingRate);
+    setIsCreateJobModalOpen(true);
+  };
 
   // --- Invoice creation state values ---
   const [billClient, setBillClient] = useState('');
@@ -3951,7 +3984,7 @@ export default function App() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <button 
                   className="btn btn-primary" 
-                  onClick={() => setIsCreateJobModalOpen(true)}
+                  onClick={openCreateJobModal}
                   style={{ padding: '10px 20px', fontSize: '13.5px', fontWeight: 800, borderRadius: '12px', boxShadow: '0 4px 14px rgba(94, 106, 210, 0.35)', display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
                 >
                   <i className="ph ph-plus-circle" style={{ fontSize: '18px' }}></i> + Create New Job Order
@@ -4365,7 +4398,7 @@ export default function App() {
                           return true;
                         })
                         .map(order => (
-                          <tr key={order._id} style={{ cursor: 'pointer' }} onClick={() => setSelectedJobModal(order)}>
+                          <tr key={order._id} style={{ cursor: 'pointer' }} onClick={() => openViewEditJobModal(order)}>
                             <td className="font-semibold">{order.orderTitle}</td>
                             <td>
                               <span className="badge badge-purple" style={{ fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
@@ -4393,7 +4426,7 @@ export default function App() {
                                 <button 
                                   type="button"
                                   className="btn btn-secondary btn-sm" 
-                                  onClick={(e) => { e.stopPropagation(); setSelectedJobModal(order); }}
+                                  onClick={(e) => { e.stopPropagation(); openViewEditJobModal(order); }}
                                   title="View Job Order Details"
                                   style={{ padding: '5px 12px', fontSize: '12px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '5px', borderRadius: '8px' }}
                                 >
@@ -6942,17 +6975,19 @@ export default function App() {
             <div className="modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: 'var(--color-accent-light)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
-                  <i className="ph ph-plus-circle"></i>
+                  <i className={`ph ${editingJobOrder ? 'ph-pencil-simple' : 'ph-plus-circle'}`}></i>
                 </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Create New Production Job</h3>
-                  <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: 'var(--color-text-secondary)' }}>Job will be added directly to Column 1 (Backlog & Cutting).</p>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>{editingJobOrder ? 'Job Order Details & Settings' : 'Create New Production Job'}</h3>
+                  <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                    {editingJobOrder ? 'View or update specifications, quantities, and piece-rates for this job order.' : 'Job will be added directly to Column 1 (Backlog & Cutting).'}
+                  </p>
                 </div>
               </div>
               <button className="btn-close" onClick={() => setIsCreateJobModalOpen(false)}><i className="ph ph-x"></i></button>
             </div>
 
-            <form onSubmit={async (e) => {
+            <form key={editingJobOrder ? editingJobOrder._id : 'new-job-form'} onSubmit={async (e) => {
               e.preventDefault();
               const form = e.target;
               const styleNo = form.styleNumber.value.trim();
@@ -6969,50 +7004,64 @@ export default function App() {
                                      jobCustomRatesList.reduce((sum, r) => sum + (parseFloat(r.val) || 0), 0);
               const calcJobTotalCost = Math.round(orderQty * totalRatePerPc);
 
-              const newJob = {
-                _id: `job-${Date.now()}`,
-                orderTitle: styleNo ? `Style ${styleNo}` : 'Custom Production Job',
-                styleNumber: styleNo,
-                product: styleNo ? `Style ${styleNo}` : 'Garment Batch',
-                clientName: form.clientName.value,
-                quantity: orderQty,
-                orderQty: orderQty,
-                shipmentQty: shipmentQty,
-                deliveryDate: form.deliveryDate.value,
-                priority: form.priority.value,
-                productionUnit: form.productionUnit.value,
-                estimatedValue: calcJobTotalCost,
-                assignedWorker: form.assignedWorker.value || 'Kartick (Master Tailor)',
-                status: "Pending",
-                stage: "Backlog & Cutting",
-                notes: form.notes.value
-              };
+              if (editingJobOrder) {
+                // Update existing job order
+                const updatedJob = {
+                  ...editingJobOrder,
+                  orderTitle: styleNo ? `Style ${styleNo}` : editingJobOrder.orderTitle,
+                  styleNumber: styleNo,
+                  clientName: form.clientName.value,
+                  quantity: orderQty,
+                  orderQty: orderQty,
+                  shipmentQty: shipmentQty,
+                  deliveryDate: form.deliveryDate.value,
+                  priority: form.priority.value,
+                  productionUnit: form.productionUnit.value,
+                  estimatedValue: calcJobTotalCost,
+                  assignedWorker: form.assignedWorker.value,
+                  notes: form.notes.value,
+                  powerTableRate: parseFloat(createJobPowerTableRate) || 0,
+                  cuttingRate: parseFloat(createJobCuttingRate) || 0,
+                  singerRate: parseFloat(createJobSingerRate) || 0,
+                  overlockRate: parseFloat(createJobOverlockRate) || 0,
+                  checkingRate: parseFloat(createJobCheckingRate) || 0,
+                  threadRate: parseFloat(createJobThreadRate) || 0,
+                  ironingRate: parseFloat(createJobIroningRate) || 0,
+                  packingRate: parseFloat(createJobPackingRate) || 0,
+                };
 
-              setCustomLocalJobs(prev => [newJob, ...prev]);
-
-              setActivityAuditLogs(prev => [
-                { 
-                  id: Date.now(), 
-                  user: "Production Manager", 
-                  action: `Created & Launched Job #${newJob._id}`, 
-                  target: `${newJob.orderTitle} (${newJob.quantity.toLocaleString()} Pcs)`, 
-                  time: "Just now", 
-                  icon: "ph-scissors", 
-                  color: "#5E6AD2" 
-                },
-                ...prev
-              ]);
-
-              try {
-                await addUpcomingOrderMutation({
-                  clientName: newJob.clientName,
-                  orderTitle: newJob.orderTitle,
-                  deliveryDate: newJob.deliveryDate,
-                  estimatedValue: newJob.estimatedValue,
+                setCustomLocalJobs(prev => prev.map(j => j._id === editingJobOrder._id ? updatedJob : j));
+              } else {
+                // Create new job order
+                const newJob = {
+                  _id: `job-${Date.now()}`,
+                  orderTitle: styleNo ? `Style ${styleNo}` : 'Custom Production Job',
+                  styleNumber: styleNo,
+                  product: styleNo ? `Style ${styleNo}` : 'Garment Batch',
+                  clientName: form.clientName.value,
+                  quantity: orderQty,
+                  orderQty: orderQty,
+                  shipmentQty: shipmentQty,
+                  deliveryDate: form.deliveryDate.value,
+                  priority: form.priority.value,
+                  productionUnit: form.productionUnit.value,
+                  estimatedValue: calcJobTotalCost,
+                  assignedWorker: form.assignedWorker.value || 'Kartick (Master Tailor)',
                   status: "Pending",
-                  notes: newJob.notes
-                });
-              } catch (err) {}
+                  stage: "Backlog & Cutting",
+                  notes: form.notes.value,
+                  powerTableRate: parseFloat(createJobPowerTableRate) || 0,
+                  cuttingRate: parseFloat(createJobCuttingRate) || 0,
+                  singerRate: parseFloat(createJobSingerRate) || 0,
+                  overlockRate: parseFloat(createJobOverlockRate) || 0,
+                  checkingRate: parseFloat(createJobCheckingRate) || 0,
+                  threadRate: parseFloat(createJobThreadRate) || 0,
+                  ironingRate: parseFloat(createJobIroningRate) || 0,
+                  packingRate: parseFloat(createJobPackingRate) || 0,
+                };
+
+                setCustomLocalJobs(prev => [newJob, ...prev]);
+              }
 
               setIsCreateJobModalOpen(false);
             }}>
@@ -7021,7 +7070,7 @@ export default function App() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div className="form-group">
                     <label style={{ fontWeight: 600 }}>Style Number *</label>
-                    <input type="text" name="styleNumber" required placeholder="e.g. ST-2026-88" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
+                    <input type="text" name="styleNumber" required defaultValue={editingJobOrder?.styleNumber || ''} placeholder="e.g. ST-2026-88" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
                   </div>
                   <div className="form-group">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
@@ -7053,6 +7102,7 @@ export default function App() {
                     <select
                       name="clientName"
                       required
+                      defaultValue={editingJobOrder?.clientName || ''}
                       onChange={(e) => {
                         if (e.target.value === 'REGISTER_NEW_CLIENT') {
                           setIsCreateJobModalOpen(false);
@@ -7123,7 +7173,7 @@ export default function App() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div className="form-group">
                     <label style={{ fontWeight: 600 }}>Order Priority *</label>
-                    <select name="priority" defaultValue="High Priority" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }}>
+                    <select name="priority" defaultValue={editingJobOrder?.priority || "High Priority"} style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }}>
                       <option value="Normal">🟢 Normal Priority</option>
                       <option value="High Priority">🟠 High Priority</option>
                       <option value="Urgent Dispatch">🔴 Urgent Dispatch</option>
@@ -7161,7 +7211,7 @@ export default function App() {
                     {!isCustomUnitActive ? (
                       <select 
                         name="productionUnit" 
-                        value={selectedProductionUnit}
+                        defaultValue={editingJobOrder?.productionUnit || selectedProductionUnit}
                         onChange={(e) => {
                           if (e.target.value === 'ADD_CUSTOM') {
                             setIsCustomUnitActive(true);
@@ -7213,7 +7263,7 @@ export default function App() {
                 {/* Row 4: Assigned Worker */}
                 <div className="form-group">
                   <label style={{ fontWeight: 600 }}>Assign Worker / Lead *</label>
-                  <select name="assignedWorker" defaultValue="Kartick (Master Tailor)" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}>
+                  <select name="assignedWorker" defaultValue={editingJobOrder?.assignedWorker || "Kartick (Master Tailor)"} style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}>
                     {employees.map(e => <option key={e._id} value={`${e.name} (${e.role})`}>{e.name} ({e.role})</option>)}
                     {employees.length === 0 && <option value="Kartick (Master Tailor)">Kartick (Master Tailor)</option>}
                   </select>
@@ -7424,7 +7474,7 @@ export default function App() {
                 {/* Row 5: Notes & Fabric Specifications */}
                 <div className="form-group">
                   <label style={{ fontWeight: 600 }}>Production Notes & Fabric Specifications</label>
-                  <textarea name="notes" rows="2" placeholder="e.g. Requires 220 GSM Combed Cotton fabric. Double-needle stitch on collar." style={{ fontSize: '13.5px', padding: '10px 12px', borderRadius: '10px' }} />
+                  <textarea name="notes" rows="2" defaultValue={editingJobOrder?.notes || ''} placeholder="e.g. Requires 220 GSM Combed Cotton fabric. Double-needle stitch on collar." style={{ fontSize: '13.5px', padding: '10px 12px', borderRadius: '10px' }} />
                 </div>
               </div>
 
