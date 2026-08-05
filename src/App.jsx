@@ -311,68 +311,7 @@ function LinearDatePickerInput({ id, name, label, defaultValue, value, onChange,
 
 export default function App() {
   // Custom Local Jobs State (Production Manager Kanban Suite)
-  const [customLocalJobs, setCustomLocalJobs] = useState([
-    { 
-      _id: 'job-101', 
-      orderTitle: 'Cotton Polo T-Shirts Batch A', 
-      product: 'Cotton Polo T-Shirts',
-      clientName: 'Apex Denim Exports', 
-      quantity: 5000,
-      deliveryDate: '2026-08-15', 
-      estimatedValue: 145000, 
-      priority: 'High',
-      productionUnit: 'Cutting Unit A',
-      assignedWorker: 'Kartick (Master Tailor)',
-      status: 'Pending', 
-      stage: 'Backlog & Cutting',
-      notes: '100% Combed Cotton, 180 GSM GSM specifications.' 
-    },
-    { 
-      _id: 'job-102', 
-      orderTitle: 'Denim Jackets Heavy Stitching', 
-      product: 'Denim Jackets',
-      clientName: 'Sri Varahi Garments', 
-      quantity: 2500,
-      deliveryDate: '2026-08-02', // Overdue for testing alert!
-      estimatedValue: 210000, 
-      priority: 'Urgent',
-      productionUnit: 'Stitching Floor 2',
-      assignedWorker: 'Murugan (Stitching Supervisor)',
-      status: 'In Production', 
-      stage: 'Stitching Assembly',
-      notes: 'Double needle heavy duty thread sewing.' 
-    },
-    { 
-      _id: 'job-103', 
-      orderTitle: 'Woven Formal Shirts Export Batch', 
-      product: 'Woven Formal Shirts',
-      clientName: 'Royal Fabrics Corp', 
-      quantity: 3200,
-      deliveryDate: '2026-08-08', 
-      estimatedValue: 98500, 
-      priority: 'Medium',
-      productionUnit: 'QC Inspection Room B',
-      assignedWorker: 'Sangeetha (QC Manager)',
-      status: 'QC Inspection', 
-      stage: 'QC Inspection',
-      notes: 'Stain resistance check and collar buttoning test.' 
-    },
-    { 
-      _id: 'job-104', 
-      orderTitle: 'Kidswear Garment Export Sets', 
-      product: 'Kidswear Export Sets',
-      clientName: 'Blue Sky Retailers', 
-      quantity: 1800,
-      deliveryDate: '2026-08-10', 
-      estimatedValue: 65000, 
-      priority: 'Low',
-      productionUnit: 'Packing & Carton Unit',
-      assignedWorker: 'Ramesh (Packing Head)',
-      status: 'Ready', 
-      stage: 'Packing & Ready',
-      notes: 'Individual polybag packing with barcodes.' 
-    }
-  ]);
+  const [customLocalJobs, setCustomLocalJobs] = useState([]);
 
   // --- Convex Real-time Cloud Queries ---
   const clients = useQuery(api.clients.getAll) || [];
