@@ -662,6 +662,17 @@ export default function App() {
   const [fabricSearch, setFabricSearch] = useState('');
   const [stitchingSearch, setStitchingSearch] = useState('');
 
+  // Custom Production Units States
+  const [productionUnitsList, setProductionUnitsList] = useState([
+    "Cutting Unit A",
+    "Stitching Floor B",
+    "Embroidery & Finishing",
+    "Quality Inspection & Packing"
+  ]);
+  const [selectedProductionUnit, setSelectedProductionUnit] = useState("Cutting Unit A");
+  const [isCustomUnitActive, setIsCustomUnitActive] = useState(false);
+  const [customUnitInputVal, setCustomUnitInputVal] = useState("");
+
   // --- Invoice creation state values ---
   const [billClient, setBillClient] = useState('');
   const [billNumber, setBillNumber] = useState('');
@@ -7837,13 +7848,83 @@ export default function App() {
                     </select>
                   </div>
                   <div className="form-group">
-                    <label style={{ fontWeight: 600 }}>Assign Production Unit *</label>
-                    <select name="productionUnit" defaultValue="Cutting Unit A" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }}>
-                      <option value="Cutting Unit A">Cutting Unit A</option>
-                      <option value="Stitching Floor B">Stitching Floor B</option>
-                      <option value="Embroidery & Finishing">Embroidery & Finishing</option>
-                      <option value="Quality Inspection & Packing">Quality Inspection & Packing</option>
-                    </select>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <label style={{ fontWeight: 600, margin: 0 }}>Assign Production Unit *</label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsCustomUnitActive(!isCustomUnitActive);
+                          if (!isCustomUnitActive) {
+                            setSelectedProductionUnit("ADD_CUSTOM");
+                          }
+                        }}
+                        style={{
+                          border: 'none',
+                          background: 'transparent',
+                          color: 'var(--color-primary)',
+                          fontSize: '11.5px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: 0
+                        }}
+                      >
+                        <i className={`ph ${isCustomUnitActive ? 'ph-list' : 'ph-plus-circle'}`}></i>
+                        {isCustomUnitActive ? 'Select Unit' : '+ Add Custom Unit'}
+                      </button>
+                    </div>
+
+                    {!isCustomUnitActive ? (
+                      <select 
+                        name="productionUnit" 
+                        value={selectedProductionUnit}
+                        onChange={(e) => {
+                          if (e.target.value === 'ADD_CUSTOM') {
+                            setIsCustomUnitActive(true);
+                          } else {
+                            setSelectedProductionUnit(e.target.value);
+                          }
+                        }}
+                        style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}
+                      >
+                        {productionUnitsList.map(u => (
+                          <option key={u} value={u}>{u}</option>
+                        ))}
+                        <option value="ADD_CUSTOM">✏️ + Add Custom Unit...</option>
+                      </select>
+                    ) : (
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <input 
+                          type="text"
+                          name="productionUnit"
+                          required
+                          placeholder="e.g. Dyeing Unit 3, Sewing Line C..."
+                          value={customUnitInputVal}
+                          onChange={(e) => setCustomUnitInputVal(e.target.value)}
+                          style={{ fontSize: '13.5px', padding: '9px 12px', flex: 1, borderRadius: '10px', border: '1.5px solid var(--color-primary)' }}
+                        />
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          onClick={() => {
+                            if (customUnitInputVal.trim()) {
+                              const newUnit = customUnitInputVal.trim();
+                              if (!productionUnitsList.includes(newUnit)) {
+                                setProductionUnitsList(prev => [...prev, newUnit]);
+                              }
+                              setSelectedProductionUnit(newUnit);
+                              setIsCustomUnitActive(false);
+                              setCustomUnitInputVal("");
+                            }
+                          }}
+                          style={{ padding: '9px 12px', fontSize: '12px', fontWeight: 700, borderRadius: '10px', whiteSpace: 'nowrap' }}
+                        >
+                          Add
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
