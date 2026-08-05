@@ -5753,56 +5753,58 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Payment Received Status Option */}
-                <div className="form-group" style={{ backgroundColor: '#F8FAFC', padding: '12px 16px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
-                  <label style={{ marginBottom: '8px', display: 'block', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', color: '#1C1C21' }}>
-                    Payment Settlement Status *
-                  </label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                    <button
-                      type="button"
-                      onClick={() => setBillPaymentStatus('Paid')}
-                      style={{
-                        padding: '10px 14px',
-                        fontSize: '13px',
-                        fontWeight: 700,
-                        backgroundColor: billPaymentStatus === 'Paid' ? '#10B981' : '#F1F5F9',
-                        color: billPaymentStatus === 'Paid' ? '#FFFFFF' : '#475569',
-                        border: billPaymentStatus === 'Paid' ? '1px solid #059669' : '1px solid #CBD5E1',
-                        borderRadius: '10px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <i className="ph ph-check-circle" style={{ fontSize: '16px' }}></i> Payment Received
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setBillPaymentStatus('Pending')}
-                      style={{
-                        padding: '10px 14px',
-                        fontSize: '13px',
-                        fontWeight: 700,
-                        backgroundColor: billPaymentStatus === 'Pending' ? '#F59E0B' : '#F1F5F9',
-                        color: billPaymentStatus === 'Pending' ? '#FFFFFF' : '#475569',
-                        border: billPaymentStatus === 'Pending' ? '1px solid #D97706' : '1px solid #CBD5E1',
-                        borderRadius: '10px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <i className="ph ph-clock-countdown" style={{ fontSize: '16px' }}></i> Payment Pending
-                    </button>
+                {/* Payment Received Status Option (Visible ONLY when Editing Invoice) */}
+                {editingBill && (
+                  <div className="form-group" style={{ backgroundColor: '#F8FAFC', padding: '12px 16px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+                    <label style={{ marginBottom: '8px', display: 'block', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', color: '#1C1C21' }}>
+                      Payment Settlement Status *
+                    </label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setBillPaymentStatus('Paid')}
+                        style={{
+                          padding: '10px 14px',
+                          fontSize: '13px',
+                          fontWeight: 700,
+                          backgroundColor: billPaymentStatus === 'Paid' ? '#10B981' : '#F1F5F9',
+                          color: billPaymentStatus === 'Paid' ? '#FFFFFF' : '#475569',
+                          border: billPaymentStatus === 'Paid' ? '1px solid #059669' : '1px solid #CBD5E1',
+                          borderRadius: '10px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <i className="ph ph-check-circle" style={{ fontSize: '16px' }}></i> Payment Received
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBillPaymentStatus('Pending')}
+                        style={{
+                          padding: '10px 14px',
+                          fontSize: '13px',
+                          fontWeight: 700,
+                          backgroundColor: billPaymentStatus === 'Pending' ? '#F59E0B' : '#F1F5F9',
+                          color: billPaymentStatus === 'Pending' ? '#FFFFFF' : '#475569',
+                          border: billPaymentStatus === 'Pending' ? '1px solid #D97706' : '1px solid #CBD5E1',
+                          borderRadius: '10px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <i className="ph ph-clock-countdown" style={{ fontSize: '16px' }}></i> Payment Pending
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="form-group">
                   <label htmlFor="bill-subtotal-input">Taxable Value / Subtotal (₹) *</label>
