@@ -1103,28 +1103,28 @@ export default function App() {
   // Client CRUD
   const handleClientSubmit = async (e) => {
     e.preventDefault();
-    const name = document.getElementById('client-name').value.trim();
-    const companyName = document.getElementById('client-company').value.trim();
-    const email = document.getElementById('client-email').value.trim();
-    const phone = document.getElementById('client-phone').value.trim();
-    const gstin = document.getElementById('client-gstin').value.trim();
-    const address = document.getElementById('client-address').value.trim();
+    const clientData = {
+      name: document.getElementById('client-name').value.trim(),
+      companyName: document.getElementById('client-company').value.trim(),
+      email: document.getElementById('client-email').value.trim(),
+      phone: document.getElementById('client-phone').value.trim(),
+      gstin: document.getElementById('client-gstin').value.trim(),
+      address: document.getElementById('client-address').value.trim()
+    };
 
     try {
       if (editingClient) {
         await updateClientMutation({
           id: editingClient._id,
-          name, companyName, email, phone, gstin, address,
+          ...clientData,
           createdAt: editingClient.createdAt
         });
-        alert("Client updated successfully!");
       } else {
-        await addClientMutation({ name, companyName, email, phone, gstin, address });
-        alert("Client registered successfully!");
+        await addClientMutation(clientData);
       }
       closeClientModal();
     } catch (err) {
-      alert("Error saving client: " + err.message);
+      console.error("Error saving client:", err);
     }
   };
 
@@ -1369,7 +1369,6 @@ export default function App() {
       setVoiceStatus('success');
       setVoiceMessage("Downloading PDF Summary Report...");
       speakText("Downloading PDF Summary Report.");
-      alert("Downloading PDF Summary Report for Varahi Exports...");
       return;
     } else if (parsed.intent === 'open_filter') {
       setActiveTab('jobs');
@@ -1848,25 +1847,22 @@ export default function App() {
   const handleBillSubmit = async (e) => {
     e.preventDefault();
     if (!billClient) {
-      alert("Please select a client!");
       return;
     }
 
-    const items = [{
-      name: billWithGst ? "Fabric Stitching & Checking Summary" : "Fabric Production Services (Tax-exempt)",
-      price: parseFloat(billSubtotal),
-      qty: 1,
-      gstRate: billWithGst ? 5 : 0,
-      gstAmount: parseFloat(billGstAmount) || 0,
-      total: parseFloat(billGrandTotal)
-    }];
-
-    const billPayload = {
+    const billData = {
       clientId: billClient,
       billNumber,
       date: billDate,
       billType: billWithGst ? 'with-gst' : 'without-gst',
-      items,
+      items: [{
+        name: billWithGst ? "Fabric Stitching & Checking Summary" : "Fabric Production Services (Tax-exempt)",
+        price: parseFloat(billSubtotal),
+        qty: 1,
+        gstRate: billWithGst ? 5 : 0,
+        gstAmount: parseFloat(billGstAmount) || 0,
+        total: parseFloat(billGrandTotal)
+      }],
       discount: parseFloat(billDiscount) || 0,
       subtotal: parseFloat(billSubtotal),
       totalGst: parseFloat(billGstAmount) || 0,
@@ -1879,17 +1875,15 @@ export default function App() {
       if (editingBill) {
         await updateBillMutation({
           id: editingBill._id,
-          ...billPayload,
+          ...billData,
           createdAt: editingBill.createdAt
         });
-        alert("Invoice updated successfully!");
       } else {
-        await addBillMutation(billPayload);
-        alert("Invoice recorded successfully!");
+        await addBillMutation(billData);
       }
       closeBillModal();
     } catch (err) {
-      alert("Error saving invoice: " + err.message);
+      console.error("Error saving invoice:", err);
     }
   };
 
@@ -1996,14 +1990,12 @@ export default function App() {
           ...payload,
           createdAt: editingEmployee.createdAt
         });
-        alert("Employee updated successfully!");
       } else {
         await addEmployeeMutation(payload);
-        alert("Employee registered successfully!");
       }
       closeEmployeeModal();
     } catch (err) {
-      alert("Error saving employee: " + err.message);
+      console.error("Error saving employee:", err);
     }
   };
 
@@ -2058,28 +2050,28 @@ export default function App() {
   // Fabric Rolls CRUD
   const handleFabricSubmit = async (e) => {
     e.preventDefault();
-    const fabricType = document.getElementById('fabric-type').value.trim();
-    const quantityReceived = parseFloat(document.getElementById('fabric-qty').value) || 0;
-    const color = document.getElementById('fabric-color').value.trim();
-    const receivedDate = document.getElementById('fabric-date').value;
-    const supplier = document.getElementById('fabric-supplier').value.trim();
-    const status = document.getElementById('fabric-status').value;
+    const fabricData = {
+      fabricType: document.getElementById('fabric-type').value.trim(),
+      quantityReceived: parseFloat(document.getElementById('fabric-qty').value) || 0,
+      color: document.getElementById('fabric-color').value.trim(),
+      receivedDate: document.getElementById('fabric-date').value,
+      supplier: document.getElementById('fabric-supplier').value.trim(),
+      status: document.getElementById('fabric-status').value
+    };
 
     try {
       if (editingFabric) {
         await updateFabricMutation({
           id: editingFabric._id,
-          fabricType, quantityReceived, color, receivedDate, supplier, status,
+          ...fabricData,
           createdAt: editingFabric.createdAt
         });
-        alert("Fabric roll details updated!");
       } else {
-        await addFabricMutation({ fabricType, quantityReceived, color, receivedDate, supplier, status });
-        alert("Fabric roll logged successfully!");
+        await addFabricMutation(fabricData);
       }
       closeFabricModal();
     } catch (err) {
-      alert("Error saving fabric roll: " + err.message);
+      console.error("Error saving fabric roll:", err);
     }
   };
 
@@ -2138,14 +2130,12 @@ export default function App() {
           date, focusArea, hoursSpent, productivityLevel, description, isCritical,
           createdAt: editingCeo.createdAt
         });
-        alert("CEO Log updated!");
       } else {
         await addCeoActivityMutation({ date, focusArea, hoursSpent, productivityLevel, description, isCritical });
-        alert("CEO activity logged!");
       }
       closeCeoModal();
     } catch (err) {
-      alert("Error saving CEO log: " + err.message);
+      console.error("Error saving CEO log:", err);
     }
   };
 
@@ -2202,26 +2192,27 @@ export default function App() {
       }
     }
 
-    const amount = parseFloat(document.getElementById('expense-amount').value) || 0;
-    const description = document.getElementById('expense-desc').value.trim();
-    const billIdVal = document.getElementById('expense-bill-id').value;
-    const billId = billIdVal ? billIdVal : undefined;
+    const expenseData = {
+      date,
+      category,
+      amount: parseFloat(document.getElementById('expense-amount').value) || 0,
+      description: document.getElementById('expense-desc').value.trim(),
+      billId: document.getElementById('expense-bill-id').value || undefined
+    };
 
     try {
       if (editingExpense) {
         await updateExpenseMutation({
           id: editingExpense._id,
-          date, category, amount, description, billId,
+          ...expenseData,
           createdAt: editingExpense.createdAt
         });
-        alert("Expense record updated!");
       } else {
-        await addExpenseMutation({ date, category, amount, description, billId });
-        alert("Expense logged successfully!");
+        await addExpenseMutation(expenseData);
       }
       closeExpenseModal();
     } catch (err) {
-      alert("Error saving expense: " + err.message);
+      console.error("Error saving expense:", err);
     }
   };
 
@@ -2272,33 +2263,31 @@ export default function App() {
   const handleUpcomingOrderSubmit = async (e) => {
     e.preventDefault();
     const clientName = document.getElementById('up-client-name').value.trim();
-    const orderTitle = document.getElementById('up-order-title').value.trim();
-    const deliveryDate = document.getElementById('up-delivery-date').value;
-    const estimatedValue = parseFloat(document.getElementById('up-val').value) || 0;
-    const status = document.getElementById('up-status').value;
-    const notes = document.getElementById('up-notes').value.trim();
-
-    // Link client ID if matching existing
     const matchingClient = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase());
-    const clientId = matchingClient ? matchingClient._id : undefined;
+    
+    const orderData = {
+      clientId: matchingClient ? matchingClient._id : undefined,
+      clientName: clientName,
+      orderTitle: document.getElementById('up-order-title').value.trim(),
+      deliveryDate: document.getElementById('up-delivery-date').value,
+      estimatedValue: parseFloat(document.getElementById('up-val').value) || 0,
+      status: document.getElementById('up-status').value,
+      notes: document.getElementById('up-notes').value.trim()
+    };
 
     try {
       if (editingUpcomingOrder) {
         await updateUpcomingOrderMutation({
           id: editingUpcomingOrder._id,
-          clientId, clientName, orderTitle, deliveryDate, estimatedValue, status, notes,
+          ...orderData,
           createdAt: editingUpcomingOrder.createdAt
         });
-        alert("Upcoming order updated!");
       } else {
-        await addUpcomingOrderMutation({
-          clientId, clientName, orderTitle, deliveryDate, estimatedValue, status, notes
-        });
-        alert("Upcoming order scheduled successfully!");
+        await addUpcomingOrderMutation(orderData);
       }
       closeUpcomingOrderModal();
     } catch (err) {
-      alert("Error scheduling order: " + err.message);
+      console.error("Error scheduling order:", err);
     }
   };
 
@@ -7677,7 +7666,6 @@ export default function App() {
                 });
               } catch (err) {}
 
-              alert("🎉 Production Job created successfully and added to Backlog & Cutting!");
               setIsCreateJobModalOpen(false);
             }}>
               <div className="modal-body" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -9209,7 +9197,6 @@ export default function App() {
               };
 
               setAttendanceRecords(prev => [newRecord, ...prev]);
-              alert(`✅ Daily attendance logged for ${empName} (${status})!`);
               setIsAttendanceModalOpen(false);
             }}>
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -9299,7 +9286,6 @@ export default function App() {
                 });
               } catch (err) {}
 
-              alert(`🎉 Advance of ${formatCurrency(amount)} recorded for ${empName}!`);
               setIsAdvanceModalOpen(false);
             }}>
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -9408,7 +9394,6 @@ export default function App() {
                 });
               } catch (err) {}
 
-              alert(`🎉 Weekly payout of ${formatCurrency(netPayable)} completed for ${empName}!`);
               setIsDisbursePayrollModalOpen(false);
             }}>
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
