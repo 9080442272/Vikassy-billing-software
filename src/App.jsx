@@ -5455,9 +5455,6 @@ export default function App() {
                       Audit breakdown of capital sources, investors, and target order allocations.
                     </p>
                   </div>
-                  <button className="btn btn-primary btn-sm" onClick={() => setIsInvestmentModalOpen(true)} style={{ fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                    <i className="ph ph-plus"></i> Add New Source
-                  </button>
                 </div>
 
                 <div className="table-responsive">
