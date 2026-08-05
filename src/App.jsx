@@ -363,23 +363,14 @@ export default function App() {
   // --- State hooks ---
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('lastActiveTab') || 'dashboard');
   
-  // Linear Design System Theme Mode (Dark Mode Default)
-  const [theme, setTheme] = useState(() => localStorage.getItem('linear_theme') || 'dark');
+  // Linear Design System Theme Mode (Light Mode Only)
+  const [theme] = useState('light');
 
   useEffect(() => {
-    localStorage.setItem('linear_theme', theme);
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.documentElement.setAttribute('data-theme', 'light');
-    }
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-  };
+    localStorage.setItem('linear_theme', 'light');
+    document.documentElement.classList.remove('dark');
+    document.documentElement.setAttribute('data-theme', 'light');
+  }, []);
 
   // Linear Cmd + K Command Palette State
   const [isCmdPaletteOpen, setIsCmdPaletteOpen] = useState(false);
@@ -3526,13 +3517,6 @@ export default function App() {
           </div>
 
           <div className="linear-header-right">
-            <button 
-              className="theme-toggle-btn" 
-              onClick={toggleTheme} 
-              title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
-            >
-              {theme === 'dark' ? <i className="ph-fill ph-sun" style={{ color: '#F59E0B' }}></i> : <i className="ph-fill ph-moon" style={{ color: '#5E6AD2' }}></i>}
-            </button>
           </div>
         </header>
 
@@ -9091,7 +9075,6 @@ export default function App() {
                 { id: 'act-client', name: 'Register New Buyer Client', icon: 'ph-user-plus', action: () => setIsClientModalOpen(true) },
                 { id: 'act-job', name: 'New Stitching / Fabric Order', icon: 'ph-scissors', action: () => setIsStitchingModalOpen(true) },
                 { id: 'act-expense', name: 'Record Operating Expense', icon: 'ph-wallet', action: () => setIsExpenseModalOpen(true) },
-                { id: 'act-theme', name: `Toggle Theme (${theme === 'dark' ? 'Switch to Light' : 'Switch to Dark'})`, icon: theme === 'dark' ? 'ph-sun-dim' : 'ph-moon-stars', action: toggleTheme },
                 { id: 'act-ai', name: 'Launch AI Financial Health Advisor', icon: 'ph-sparkle', action: () => setIsChatOpen(true) },
               ].filter(item => item.name.toLowerCase().includes(cmdSearchQuery.toLowerCase()))
               .map(item => (
