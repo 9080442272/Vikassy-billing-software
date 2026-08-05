@@ -7684,36 +7684,6 @@ export default function App() {
                       </button>
                     </div>
                   )}
-
-                  {/* Live Calculated Total Job Amount Box */}
-                  {(() => {
-                    const totalRatePerPc = (parseFloat(createJobStitchRate) || 0) + 
-                                           (parseFloat(createJobCuttingRate) || 0) + 
-                                           (parseFloat(createJobSingerRate) || 0) + 
-                                           (parseFloat(createJobOverlockRate) || 0) + 
-                                           jobCustomRatesList.reduce((sum, r) => sum + (parseFloat(r.val) || 0), 0);
-                    const qty = parseInt(createJobQuantity, 10) || 0;
-                    const calcTotalJobCost = Math.round(qty * totalRatePerPc);
-
-                    return (
-                      <div style={{ marginTop: '16px', padding: '16px', borderRadius: '12px', backgroundColor: '#F5F3FF', border: '1.5px solid #DDD6FE', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                        <div>
-                          <div style={{ fontSize: '11px', fontWeight: 800, color: '#6E56CF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Calculated Total Job Amount</div>
-                          <div style={{ fontSize: '24px', fontWeight: 800, color: '#5E6AD2', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
-                            {formatCurrency(calcTotalJobCost)}
-                          </div>
-                        </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#1E293B' }}>
-                            {qty.toLocaleString()} Pcs × {formatCurrency(totalRatePerPc)} / Pc
-                          </div>
-                          <div style={{ fontSize: '11px', color: '#10B981', fontWeight: 700, marginTop: '2px' }}>
-                            ⚡ Auto-calculated from Stitching + Cutting + Machine Rates
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
                 </div>
 
                 {/* Row 5: Notes & Fabric Specifications */}
