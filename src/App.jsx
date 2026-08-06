@@ -6361,9 +6361,9 @@ export default function App() {
                   shipmentQty: shipmentQty,
                   deliveryDate: form.deliveryDate.value,
                   priority: form.priority.value,
-                  productionUnit: form.productionUnit.value,
+                  productionUnit: editingJobOrder?.productionUnit || 'Cutting Unit A',
                   estimatedValue: calcJobTotalCost,
-                  assignedWorker: form.assignedWorker.value,
+                  assignedWorker: editingJobOrder?.assignedWorker || 'Factory Team',
                   notes: form.notes.value,
                   powerTableRate: parseFloat(createJobPowerTableRate) || 0,
                   cuttingRate: parseFloat(createJobCuttingRate) || 0,
@@ -6389,9 +6389,9 @@ export default function App() {
                   shipmentQty: shipmentQty,
                   deliveryDate: form.deliveryDate.value,
                   priority: form.priority.value,
-                  productionUnit: form.productionUnit.value,
+                  productionUnit: 'Cutting Unit A',
                   estimatedValue: calcJobTotalCost,
-                  assignedWorker: form.assignedWorker.value || 'Kartick (Master Tailor)',
+                  assignedWorker: 'Factory Team',
                   status: "Pending",
                   stage: "Backlog & Cutting",
                   notes: form.notes.value,
@@ -6493,103 +6493,13 @@ export default function App() {
                   />
                 </div>
 
-                {/* Row 3: Priority & Production Unit */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div className="form-group">
-                    <label style={{ fontWeight: 600 }}>Order Priority *</label>
-                    <select name="priority" defaultValue={editingJobOrder?.priority || "High Priority"} style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }}>
-                      <option value="Normal">🟢 Normal Priority</option>
-                      <option value="High Priority">🟠 High Priority</option>
-                      <option value="Urgent Dispatch">🔴 Urgent Dispatch</option>
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <label style={{ fontWeight: 600, margin: 0 }}>Assign Production Unit *</label>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsCustomUnitActive(!isCustomUnitActive);
-                          if (!isCustomUnitActive) {
-                            setSelectedProductionUnit("ADD_CUSTOM");
-                          }
-                        }}
-                        style={{
-                          border: 'none',
-                          background: 'transparent',
-                          color: 'var(--color-primary)',
-                          fontSize: '11.5px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          padding: 0
-                        }}
-                      >
-                        <i className={`ph ${isCustomUnitActive ? 'ph-list' : 'ph-plus-circle'}`}></i>
-                        {isCustomUnitActive ? 'Select Unit' : 'Add Custom Unit'}
-                      </button>
-                    </div>
-
-                    {!isCustomUnitActive ? (
-                      <select 
-                        name="productionUnit" 
-                        defaultValue={editingJobOrder?.productionUnit || selectedProductionUnit}
-                        onChange={(e) => {
-                          if (e.target.value === 'ADD_CUSTOM') {
-                            setIsCustomUnitActive(true);
-                          } else {
-                            setSelectedProductionUnit(e.target.value);
-                          }
-                        }}
-                        style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}
-                      >
-                        {productionUnitsList.map(u => (
-                          <option key={u} value={u}>{u}</option>
-                        ))}
-                        <option value="ADD_CUSTOM">✏️ + Add Custom Unit...</option>
-                      </select>
-                    ) : (
-                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                        <input 
-                          type="text"
-                          name="productionUnit"
-                          required
-                          placeholder="e.g. Dyeing Unit 3, Sewing Line C..."
-                          value={customUnitInputVal}
-                          onChange={(e) => setCustomUnitInputVal(e.target.value)}
-                          style={{ fontSize: '13.5px', padding: '9px 12px', flex: 1, borderRadius: '10px', border: '1.5px solid var(--color-primary)' }}
-                        />
-                        <button
-                          type="button"
-                          className="btn btn-primary"
-                          onClick={() => {
-                            if (customUnitInputVal.trim()) {
-                              const newUnit = customUnitInputVal.trim();
-                              if (!productionUnitsList.includes(newUnit)) {
-                                setProductionUnitsList(prev => [...prev, newUnit]);
-                              }
-                              setSelectedProductionUnit(newUnit);
-                              setIsCustomUnitActive(false);
-                              setCustomUnitInputVal("");
-                            }
-                          }}
-                          style={{ padding: '9px 12px', fontSize: '12px', fontWeight: 700, borderRadius: '10px', whiteSpace: 'nowrap' }}
-                        >
-                          Add
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Row 4: Assigned Worker */}
+                {/* Row 3: Priority */}
                 <div className="form-group">
-                  <label style={{ fontWeight: 600 }}>Assign Worker / Lead *</label>
-                  <select name="assignedWorker" defaultValue={editingJobOrder?.assignedWorker || "Kartick (Master Tailor)"} style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}>
-                    {employees.map(e => <option key={e._id} value={`${e.name} (${e.role})`}>{e.name} ({e.role})</option>)}
-                    {employees.length === 0 && <option value="Kartick (Master Tailor)">Kartick (Master Tailor)</option>}
+                  <label style={{ fontWeight: 600 }}>Order Priority *</label>
+                  <select name="priority" defaultValue={editingJobOrder?.priority || "High Priority"} style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}>
+                    <option value="Normal">🟢 Normal Priority</option>
+                    <option value="High Priority">🟠 High Priority</option>
+                    <option value="Urgent Dispatch">🔴 Urgent Dispatch</option>
                   </select>
                 </div>
 
