@@ -800,6 +800,7 @@ export default function App() {
   const [billDate, setBillDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [billWithGst, setBillWithGst] = useState(true);
   const [billSubtotal, setBillSubtotal] = useState('');
+  const [billShipmentQty, setBillShipmentQty] = useState('2500');
   const [billGstAmount, setBillGstAmount] = useState('');
   const [billDiscount, setBillDiscount] = useState('0');
   const [billGrandTotal, setBillGrandTotal] = useState('0');
@@ -819,13 +820,18 @@ export default function App() {
       job.clientName?.toLowerCase() === clientObj.name?.toLowerCase()
     );
 
-    if (matchedJob && matchedJob.estimatedValue > 0) {
-      const subtotalVal = matchedJob.estimatedValue;
-      setBillSubtotal(subtotalVal.toString());
-      
-      const gstVal = billWithGst ? Math.round(subtotalVal * 0.05) : 0;
-      setBillGstAmount(gstVal.toString());
-      setBillGrandTotal((subtotalVal + gstVal - (parseFloat(billDiscount) || 0)).toString());
+    if (matchedJob) {
+      if (matchedJob.shipmentQty || matchedJob.quantity || matchedJob.orderQty) {
+        setBillShipmentQty((matchedJob.shipmentQty || matchedJob.quantity || matchedJob.orderQty).toString());
+      }
+      if (matchedJob.estimatedValue > 0) {
+        const subtotalVal = matchedJob.estimatedValue;
+        setBillSubtotal(subtotalVal.toString());
+        
+        const gstVal = billWithGst ? Math.round(subtotalVal * 0.05) : 0;
+        setBillGstAmount(gstVal.toString());
+        setBillGrandTotal((subtotalVal + gstVal - (parseFloat(billDiscount) || 0)).toString());
+      }
     }
   };
   const [selectedFabricId, setSelectedFabricId] = useState('');
@@ -2007,15 +2013,17 @@ export default function App() {
       return;
     }
 
+    const parsedShipmentQty = parseInt(billShipmentQty, 10) || 2500;
     const billData = {
       clientId: billClient,
       billNumber,
       date: billDate,
       billType: billWithGst ? 'with-gst' : 'without-gst',
+      shipmentQty: parsedShipmentQty,
       items: [{
         name: billWithGst ? "Fabric Stitching & Checking Summary" : "Fabric Production Services (Tax-exempt)",
         price: parseFloat(billSubtotal),
-        qty: 1,
+        qty: parsedShipmentQty,
         gstRate: billWithGst ? 5 : 0,
         gstAmount: parseFloat(billGstAmount) || 0,
         total: parseFloat(billGrandTotal)
@@ -2079,6 +2087,7 @@ export default function App() {
           totalAmount: bill.totalAmount,
           paymentStatus: newStatus,
           status: newStatus,
+          shipmentQty: bill.shipmentQty,
           fileData: bill.fileData,
           fileName: bill.fileName,
           createdAt: bill.createdAt
@@ -2135,6 +2144,7 @@ export default function App() {
     setBillDate(b.date);
     setBillWithGst(b.billType === 'with-gst');
     setBillSubtotal(b.subtotal.toString());
+    setBillShipmentQty((b.shipmentQty || b.items?.[0]?.qty || 2500).toString());
     setBillGstAmount(b.totalGst.toString());
     setBillDiscount(b.discount.toString());
     setBillGrandTotal(b.totalAmount.toString());
@@ -2152,6 +2162,7 @@ export default function App() {
     setBillDate(new Date().toISOString().split('T')[0]);
     setBillWithGst(true);
     setBillSubtotal('');
+    setBillShipmentQty('2500');
     setBillGstAmount('');
     setBillDiscount('0');
     setBillGrandTotal('0');
@@ -6005,9 +6016,24 @@ export default function App() {
                   </div>
                 )}
 
-                <div className="form-group">
-                  <label htmlFor="bill-subtotal-input">Taxable Value / Subtotal (₹) *</label>
-                  <input type="number" id="bill-subtotal-input" min="0" step="any" required placeholder="0.00" value={billSubtotal} onChange={(e) => handleSubtotalChange(e.target.value)} style={{ fontSize: '16px', padding: '12px 14px', fontWeight: 600 }} />
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-group">
+                    <label htmlFor="bill-shipment-qty">Shipment Quantity (Pcs) *</label>
+                    <input 
+                      type="number" 
+                      id="bill-shipment-qty" 
+                      min="1" 
+                      required 
+                      placeholder="e.g. 2500" 
+                      value={billShipmentQty} 
+                      onChange={(e) => setBillShipmentQty(e.target.value)} 
+                      style={{ fontSize: '15px', padding: '12px 14px', fontWeight: 600 }} 
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="bill-subtotal-input">Taxable Value / Subtotal (₹) *</label>
+                    <input type="number" id="bill-subtotal-input" min="0" step="any" required placeholder="0.00" value={billSubtotal} onChange={(e) => handleSubtotalChange(e.target.value)} style={{ fontSize: '15px', padding: '12px 14px', fontWeight: 600 }} />
+                  </div>
                 </div>
 
                 {billWithGst && (
@@ -6372,8 +6398,8 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Row 2: Order Qty, Shipment Qty & Due Date */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                {/* Row 2: Order Qty & Due Date */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div className="form-group">
                     <label style={{ fontWeight: 600 }}>Order Qty (Pieces) *</label>
                     <input 
@@ -6381,29 +6407,8 @@ export default function App() {
                       name="orderQty" 
                       required 
                       value={createJobOrderQty} 
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setCreateJobOrderQty(val);
-                        if (!isShipmentQtyTouched) {
-                          setCreateJobShipmentQty(val);
-                        }
-                      }}
+                      onChange={(e) => setCreateJobOrderQty(e.target.value)}
                       placeholder="e.g. 2500" 
-                      style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} 
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label style={{ fontWeight: 600 }}>Shipment Qty (Pieces) *</label>
-                    <input 
-                      type="number" 
-                      name="shipmentQty" 
-                      required 
-                      value={createJobShipmentQty} 
-                      onChange={(e) => {
-                        setCreateJobShipmentQty(e.target.value);
-                        setIsShipmentQtyTouched(true);
-                      }}
-                      placeholder="e.g. 2450" 
                       style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} 
                     />
                   </div>
@@ -7662,18 +7667,22 @@ export default function App() {
                     </tr>
                   </thead>
                   <tbody>
-                    {viewingInvoice.items.map((item, idx) => (
-                      <tr key={idx}>
-                        <td style={{ borderRight: '1px solid #000', padding: '6px', textAlign: 'center' }}>{idx + 1}</td>
-                        <td style={{ borderRight: '1px solid #000', padding: '6px', fontWeight: 500 }}>{item.name}</td>
-                        <td style={{ borderRight: '1px solid #000', padding: '6px', textAlign: 'center' }}>6205</td>
-                        <td style={{ borderRight: '1px solid #000', padding: '6px', textAlign: 'center' }}>{viewingInvoice.billType === 'with-gst' ? item.gstRate + '%' : '0%'}</td>
-                        <td style={{ borderRight: '1px solid #000', padding: '6px', textAlign: 'right' }}>{item.qty} pcs</td>
-                        <td style={{ borderRight: '1px solid #000', padding: '6px', textAlign: 'right' }}>{item.price.toFixed(2)}</td>
-                        <td style={{ borderRight: '1px solid #000', padding: '6px', textAlign: 'center' }}>pcs</td>
-                        <td style={{ padding: '6px', textAlign: 'right' }}>{(item.price * item.qty).toFixed(2)}</td>
-                      </tr>
-                    ))}
+                    {viewingInvoice.items.map((item, idx) => {
+                      const shipQty = viewingInvoice.shipmentQty || item.qty || 2500;
+                      const ratePerPc = item.price > 0 && shipQty > 0 ? (item.price / shipQty) : item.price;
+                      return (
+                        <tr key={idx}>
+                          <td style={{ borderRight: '1px solid #000', padding: '6px', textAlign: 'center' }}>{idx + 1}</td>
+                          <td style={{ borderRight: '1px solid #000', padding: '6px', fontWeight: 500 }}>{item.name}</td>
+                          <td style={{ borderRight: '1px solid #000', padding: '6px', textAlign: 'center' }}>6205</td>
+                          <td style={{ borderRight: '1px solid #000', padding: '6px', textAlign: 'center' }}>{viewingInvoice.billType === 'with-gst' ? item.gstRate + '%' : '0%'}</td>
+                          <td style={{ borderRight: '1px solid #000', padding: '6px', textAlign: 'right', fontWeight: 'bold' }}>{shipQty.toLocaleString()} pcs</td>
+                          <td style={{ borderRight: '1px solid #000', padding: '6px', textAlign: 'right' }}>{ratePerPc.toFixed(2)}</td>
+                          <td style={{ borderRight: '1px solid #000', padding: '6px', textAlign: 'center' }}>pcs</td>
+                          <td style={{ padding: '6px', textAlign: 'right', fontWeight: 'bold' }}>{item.price.toFixed(2)}</td>
+                        </tr>
+                      );
+                    })}
 
                     {/* Tax splits rows */}
                     {viewingInvoice.billType === 'with-gst' && viewingInvoice.totalGst > 0 && (
