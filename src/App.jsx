@@ -6777,6 +6777,12 @@ export default function App() {
 
             <form key={editingJobOrder ? editingJobOrder._id : 'new-job-form'} onSubmit={async (e) => {
               e.preventDefault();
+              const form = e.target;
+              const styleNo = (form.styleNumber?.value || '').trim();
+              const clientName = form.clientName?.value || '';
+              const deliveryDate = form.deliveryDate?.value || '';
+              const priority = form.priority?.value || 'High Priority';
+              const notes = form.notes?.value || '';
               const orderQty = parseInt(createJobOrderQty, 10) || 0;
               const shipmentQty = parseInt(createJobShipmentQty, 10) || 0;
               const calcJobTotalCost = createJobCombos.reduce((total, combo) => {
@@ -6800,16 +6806,16 @@ export default function App() {
                   ...editingJobOrder,
                   orderTitle: styleNo ? `Style ${styleNo}` : editingJobOrder.orderTitle,
                   styleNumber: styleNo,
-                  clientName: form.clientName.value,
+                  clientName: clientName,
                   quantity: orderQty,
                   orderQty: orderQty,
                   shipmentQty: shipmentQty,
-                  deliveryDate: form.deliveryDate.value,
-                  priority: form.priority.value,
+                  deliveryDate: deliveryDate,
+                  priority: priority,
                   productionUnit: editingJobOrder?.productionUnit || 'Cutting Unit A',
                   estimatedValue: calcJobTotalCost,
                   assignedWorker: editingJobOrder?.assignedWorker || 'Factory Team',
-                  notes: form.notes.value,
+                  notes: notes,
                   comboType: createJobComboType,
                   combos: createJobCombos,
                   powerTableRate: parseFloat(createJobPowerTableRate) || 0,
@@ -6830,18 +6836,18 @@ export default function App() {
                   orderTitle: styleNo ? `Style ${styleNo}` : 'Custom Production Job',
                   styleNumber: styleNo,
                   product: styleNo ? `Style ${styleNo}` : 'Garment Batch',
-                  clientName: form.clientName.value,
+                  clientName: clientName,
                   quantity: orderQty,
                   orderQty: orderQty,
                   shipmentQty: shipmentQty,
-                  deliveryDate: form.deliveryDate.value,
-                  priority: form.priority.value,
+                  deliveryDate: deliveryDate,
+                  priority: priority,
                   productionUnit: 'Cutting Unit A',
                   estimatedValue: calcJobTotalCost,
                   assignedWorker: 'Factory Team',
                   status: "Pending",
                   stage: "Backlog & Cutting",
-                  notes: form.notes.value,
+                  notes: notes,
                   comboType: createJobComboType,
                   combos: createJobCombos,
                   powerTableRate: parseFloat(createJobPowerTableRate) || 0,
