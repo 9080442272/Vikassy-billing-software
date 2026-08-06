@@ -7453,18 +7453,19 @@ export default function App() {
                   </div>
                   {(() => {
                     const isPaid = (viewingInvoice.paymentStatus === 'Paid' || viewingInvoice.status === 'Paid');
+                    if (!isPaid) return null;
                     return (
                       <div style={{
                         fontSize: '11px',
                         fontWeight: 800,
                         textTransform: 'uppercase',
                         letterSpacing: '0.5px',
-                        color: isPaid ? '#047857' : '#B45309',
-                        border: isPaid ? '1.5px solid #047857' : '1.5px solid #B45309',
+                        color: '#047857',
+                        border: '1.5px solid #047857',
                         padding: '2px 8px',
                         borderRadius: '4px'
                       }}>
-                        {isPaid ? '✓ PAYMENT RECEIVED' : '⏳ PAYMENT PENDING'}
+                        ✓ PAYMENT RECEIVED
                       </div>
                     );
                   })()}
