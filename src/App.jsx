@@ -623,6 +623,8 @@ export default function App() {
   // Employee Action Modals & Records
   const [isAttendanceModalOpen, setIsAttendanceModalOpen] = useState(false);
   const [isAdvanceModalOpen, setIsAdvanceModalOpen] = useState(false);
+  const [advSelectedJob, setAdvSelectedJob] = useState('');
+  const [advSelectedClient, setAdvSelectedClient] = useState('');
   const [isDisbursePayrollModalOpen, setIsDisbursePayrollModalOpen] = useState(false);
 
   const [advanceRecords, setAdvanceRecords] = useState([
@@ -8671,6 +8673,8 @@ export default function App() {
               const mode = form.mode.value;
               const notes = form.notes.value;
               const date = form.date.value;
+              const linkedJobOrder = form.linkedJobOrder?.value || '';
+              const linkedClient = form.linkedClient?.value || '';
 
               const newAdv = {
                 id: Date.now(),
@@ -8679,6 +8683,8 @@ export default function App() {
                 type,
                 amount,
                 mode,
+                linkedJobOrder,
+                linkedClient,
                 notes
               };
 
@@ -8686,10 +8692,11 @@ export default function App() {
 
               // Automatically log as expense entry
               try {
+                const linkMeta = [linkedJobOrder, linkedClient].filter(Boolean).join(' • ');
                 await addExpenseMutation({
                   category: "Employee Salary Advances",
                   amount: amount,
-                  description: `${type} for ${empName} (${notes || 'Advance payment'})`,
+                  description: `${type} for ${empName} ${linkMeta ? `[${linkMeta}]` : ''} (${notes || 'Advance payment'})`,
                   date
                 });
               } catch (err) {}
@@ -8706,6 +8713,52 @@ export default function App() {
                     {employees.length === 0 && <option value="Balasubramainan">Balasubramainan (CEO)</option>}
                   </select>
                 </div>
+
+                {/* Job Order & Client Linking Options */}
+                <div className="form-group">
+                  <label style={{ fontWeight: 600 }}>Link to Production Job Order / Style (Optional)</label>
+                  <select 
+                    name="linkedJobOrder"
+                    value={advSelectedJob}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setAdvSelectedJob(val);
+                      const foundJob = customLocalJobs.find(j => (j.styleNumber ? `Style ${j.styleNumber}` : j.orderTitle) === val);
+                      if (foundJob && foundJob.clientName) {
+                        setAdvSelectedClient(foundJob.clientName);
+                      }
+                    }}
+                    style={{ fontSize: '13.5px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}
+                  >
+                    <option value="">-- Select Linked Job Order (General Advance) --</option>
+                    {customLocalJobs.map(j => {
+                      const title = j.styleNumber ? `Style ${j.styleNumber}` : j.orderTitle;
+                      return (
+                        <option key={j._id} value={title}>
+                          📦 {title} {j.clientName ? `(${j.clientName})` : ''} — {(j.orderQty || j.quantity || 0).toLocaleString()} Pcs
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label style={{ fontWeight: 600 }}>Link to Customer / Buyer (Optional)</label>
+                  <select 
+                    name="linkedClient"
+                    value={advSelectedClient}
+                    onChange={(e) => setAdvSelectedClient(e.target.value)}
+                    style={{ fontSize: '13.5px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}
+                  >
+                    <option value="">-- Select Customer / Buyer --</option>
+                    {clients.map(c => (
+                      <option key={c._id} value={c.name}>
+                        🏢 {c.name} {c.companyName ? `(${c.companyName})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div className="form-group">
                     <label htmlFor="adv-amount">Advance Amount (₹) *</label>
@@ -8738,7 +8791,7 @@ export default function App() {
                 </div>
                 <div className="form-group">
                   <label>Notes / Purpose</label>
-                  <input type="text" name="notes" placeholder="e.g. Festival advance for Aadi" />
+                  <input type="text" name="notes" placeholder="e.g. Advance for ST-2026-88 order execution" />
                 </div>
               </div>
               <div className="modal-footer">
