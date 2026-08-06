@@ -427,7 +427,9 @@ export default function App() {
   const deleteExpenseMutation = useMutation(api.expenses.remove);
   const addUpcomingOrderMutation = useMutation(api.upcomingOrders.add);
   const updateUpcomingOrderMutation = useMutation(api.upcomingOrders.update);
-  const deleteUpcomingOrderMutation = useMutation(api.upcomingOrders.remove);
+  const addInvestmentMutation = api.investments && api.investments.add ? useMutation(api.investments.add) : null;
+  const updateInvestmentMutation = api.investments && api.investments.update ? useMutation(api.investments.update) : null;
+  const deleteInvestmentMutation = api.investments && api.investments.remove ? useMutation(api.investments.remove) : null;
   const clearAllDataMutation = useMutation(api.system.clearAllData);
 
   // Set to true to temporarily bypass authentication for dev / client reviews
@@ -727,6 +729,7 @@ export default function App() {
   const [editingFabric, setEditingFabric] = useState(null);
   const [editingStitching, setEditingStitching] = useState(null);
   const [editingCeo, setEditingCeo] = useState(null);
+  const [editingInvestment, setEditingInvestment] = useState(null);
   const [viewingInvoice, setViewingInvoice] = useState(null);
   const [selectedCeoDetail, setSelectedCeoDetail] = useState(null);
 
@@ -2288,6 +2291,40 @@ export default function App() {
           }
         } catch (err) {
           console.warn("Convex delete attendance fallback:", err);
+        }
+      }
+    });
+  };
+
+  const openEditInvestment = (rec) => {
+    setEditingInvestment(rec);
+    setIsInvestmentModalOpen(true);
+  };
+
+  const deleteInvestmentRecord = (rec) => {
+    if (!rec) return;
+    const cat = rec.type || 'Capital Investment';
+    const amountStr = formatCurrency(rec.amount || 0);
+
+    requestDeleteConfirmation({
+      heading: `Are you sure you want to delete this capital investment entry?`,
+      subheading: `Deleting this entry (${cat}) will adjust your order investment ledger balance.`,
+      itemName: `${cat} (${amountStr})`,
+      impactType: 'item',
+      impactAmount: `- ${amountStr}`,
+      impactList: [
+        '🏦 Order Investment Ledger total will decrease automatically.',
+        '📊 Financial report capital balances will be updated.'
+      ],
+      onConfirm: async () => {
+        const idToRemove = rec._id || rec.id;
+        setInvestmentRecords(prev => prev.filter(r => (r._id || r.id) !== idToRemove));
+        try {
+          if (deleteInvestmentMutation && rec._id && !rec._id.startsWith('inv_')) {
+            await deleteInvestmentMutation({ id: rec._id });
+          }
+        } catch (err) {
+          console.warn("Convex delete investment fallback:", err);
         }
       }
     });
@@ -5628,12 +5665,23 @@ export default function App() {
                           <td className="text-right font-semibold" style={{ color: '#10B981', fontSize: '14px', fontFamily: 'var(--font-mono)' }}>
                             + {formatCurrency(Math.abs(rec.amount))}
                           </td>
-                          <td className="text-right">
-                            <button className="btn-icon text-red" onClick={() => {
-                              setInvestmentRecords(prev => prev.filter(r => r.id !== rec.id));
-                            }} title="Delete Record">
-                              <i className="ph ph-trash"></i>
-                            </button>
+                          <td className="text-right" onClick={(e) => e.stopPropagation()}>
+                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                              <button 
+                                className="btn-icon text-primary" 
+                                onClick={() => openEditInvestment(rec)} 
+                                title="Edit Investment Record"
+                              >
+                                <i className="ph ph-pencil-simple"></i>
+                              </button>
+                              <button 
+                                className="btn-icon text-red" 
+                                onClick={() => deleteInvestmentRecord(rec)} 
+                                title="Delete Record"
+                              >
+                                <i className="ph ph-trash"></i>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -5656,13 +5704,13 @@ export default function App() {
 
       {/* ==================== OWNER INVESTMENT / BORROWED CAPITAL MODAL ==================== */}
       {isInvestmentModalOpen && (
-        <div className="modal-overlay active" onClick={() => setIsInvestmentModalOpen(false)}>
+        <div className="modal-overlay active" onClick={() => { setIsInvestmentModalOpen(false); setEditingInvestment(null); }}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px' }}>
             <div className="modal-header">
-              <h3>🏦 Log Investment / Capital Source</h3>
-              <button className="btn-close" onClick={() => setIsInvestmentModalOpen(false)}><i className="ph ph-x"></i></button>
+              <h3>{editingInvestment ? '✏️ Edit Investment Record' : '🏦 Log Investment / Capital Source'}</h3>
+              <button className="btn-close" onClick={() => { setIsInvestmentModalOpen(false); setEditingInvestment(null); }}><i className="ph ph-x"></i></button>
             </div>
-            <form onSubmit={(e) => {
+            <form key={editingInvestment ? editingInvestment._id || editingInvestment.id : 'new-inv'} onSubmit={async (e) => {
               e.preventDefault();
               const form = e.target;
               const type = form.sourceType.value.trim();
@@ -5670,16 +5718,55 @@ export default function App() {
               const amount = parseFloat(form.amount.value) || 0;
               const date = form.investmentDate.value;
 
-              const newRec = {
-                id: Date.now(),
-                type: type || "CEO brought amount from MD",
-                linkedOrder: linkedOrder || "General Factory Operational Fund",
-                amount,
-                date
-              };
-
-              setInvestmentRecords(prev => [newRec, ...prev]);
+              if (editingInvestment) {
+                const targetId = editingInvestment._id || editingInvestment.id;
+                const updatedRec = {
+                  ...editingInvestment,
+                  type: type || "CEO brought amount from MD",
+                  linkedOrder: linkedOrder || "General Factory Operational Fund",
+                  amount,
+                  date
+                };
+                setInvestmentRecords(prev => prev.map(r => (r._id || r.id) === targetId ? updatedRec : r));
+                try {
+                  if (updateInvestmentMutation && editingInvestment._id && !editingInvestment._id.startsWith('inv_')) {
+                    await updateInvestmentMutation({
+                      id: editingInvestment._id,
+                      type: type || "CEO brought amount from MD",
+                      linkedOrder: linkedOrder || "General Factory Operational Fund",
+                      amount,
+                      date,
+                      createdAt: editingInvestment.createdAt || new Date().toISOString()
+                    });
+                  }
+                } catch (err) {
+                  console.warn("Convex update investment fallback:", err);
+                }
+              } else {
+                const newRec = {
+                  _id: 'inv_' + Date.now(),
+                  id: Date.now(),
+                  type: type || "CEO brought amount from MD",
+                  linkedOrder: linkedOrder || "General Factory Operational Fund",
+                  amount,
+                  date
+                };
+                setInvestmentRecords(prev => [newRec, ...prev]);
+                try {
+                  if (addInvestmentMutation) {
+                    await addInvestmentMutation({
+                      type: type || "CEO brought amount from MD",
+                      linkedOrder: linkedOrder || "General Factory Operational Fund",
+                      amount,
+                      date
+                    });
+                  }
+                } catch (err) {
+                  console.warn("Convex add investment fallback:", err);
+                }
+              }
               setIsInvestmentModalOpen(false);
+              setEditingInvestment(null);
             }}>
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px' }}>
                 <div className="form-group">
@@ -5689,6 +5776,7 @@ export default function App() {
                     id="inv-type" 
                     name="sourceType" 
                     required 
+                    defaultValue={editingInvestment ? editingInvestment.type : ''}
                     placeholder="e.g. CEO brought amount from MD to run an order, CEO brought loan..." 
                     style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }} 
                   />
@@ -5696,7 +5784,7 @@ export default function App() {
 
                 <div className="form-group">
                   <label htmlFor="inv-order" style={{ fontWeight: 600 }}>Target Order (From Jobs) *</label>
-                  <select id="inv-order" name="linkedOrder" required style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}>
+                  <select id="inv-order" name="linkedOrder" required defaultValue={editingInvestment ? editingInvestment.linkedOrder : ''} style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}>
                     <option value="">-- Choose Job Order --</option>
                     {upcomingOrders.map(j => (
                       <option key={j._id} value={`${j.styleNumber ? `Style #${j.styleNumber}` : j.orderTitle} (${j.clientName})`}>
@@ -5710,22 +5798,22 @@ export default function App() {
                 <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div className="form-group">
                     <label htmlFor="inv-amount" style={{ fontWeight: 600 }}>Capital Amount (₹) *</label>
-                    <input type="number" id="inv-amount" name="amount" required step="any" placeholder="e.g. 200000" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%', fontWeight: 700 }} />
+                    <input type="number" id="inv-amount" name="amount" required step="any" defaultValue={editingInvestment ? editingInvestment.amount : ''} placeholder="e.g. 200000" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%', fontWeight: 700 }} />
                   </div>
                   <LinearDatePickerInput 
                     id="inv-date"
                     name="investmentDate"
                     label="Transaction Date *"
-                    defaultValue={new Date().toISOString().split('T')[0]}
+                    defaultValue={editingInvestment ? editingInvestment.date : new Date().toISOString().split('T')[0]}
                     required
                   />
                 </div>
               </div>
 
               <div className="modal-footer" style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setIsInvestmentModalOpen(false)}>Cancel</button>
+                <button type="button" className="btn btn-secondary" onClick={() => { setIsInvestmentModalOpen(false); setEditingInvestment(null); }}>Cancel</button>
                 <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 700, borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                  <i className="ph ph-check" style={{ fontSize: '16px' }}></i> Save Capital Record
+                  <i className="ph ph-check" style={{ fontSize: '16px' }}></i> {editingInvestment ? 'Update Capital Record' : 'Save Capital Record'}
                 </button>
               </div>
             </form>
