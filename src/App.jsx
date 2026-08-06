@@ -828,7 +828,39 @@ export default function App() {
         checkingRate: sourceCombo.checkingRate,
         threadRate: sourceCombo.threadRate,
         ironingRate: sourceCombo.ironingRate,
-        packingRate: sourceCombo.packingRate
+        packingRate: sourceCombo.packingRate,
+        customRates: (sourceCombo.customRates || []).map(r => ({ ...r }))
+      };
+    }));
+  };
+
+  const handleAddCustomRateToCombo = (comboIndex) => {
+    setCreateJobCombos(prev => prev.map((item, i) => {
+      if (i !== comboIndex) return item;
+      const currentCustom = item.customRates || [];
+      return {
+        ...item,
+        customRates: [...currentCustom, { name: `Custom Operation ${currentCustom.length + 1}`, val: 2.0 }]
+      };
+    }));
+  };
+
+  const handleRemoveCustomRateFromCombo = (comboIndex, rateIdx) => {
+    setCreateJobCombos(prev => prev.map((item, i) => {
+      if (i !== comboIndex) return item;
+      return {
+        ...item,
+        customRates: (item.customRates || []).filter((_, rIdx) => rIdx !== rateIdx)
+      };
+    }));
+  };
+
+  const handleUpdateCustomRateInCombo = (comboIndex, rateIdx, field, val) => {
+    setCreateJobCombos(prev => prev.map((item, i) => {
+      if (i !== comboIndex) return item;
+      return {
+        ...item,
+        customRates: (item.customRates || []).map((r, rIdx) => rIdx === rateIdx ? { ...r, [field]: val } : r)
       };
     }));
   };
@@ -6720,10 +6752,11 @@ export default function App() {
 
             <form key={editingJobOrder ? editingJobOrder._id : 'new-job-form'} onSubmit={async (e) => {
               e.preventDefault();
-              const form = e.target;
-              const styleNo = form.styleNumber.value.trim();
+              const orderQty = parseInt(createJobOrderQty, 10) || 0;
+              const shipmentQty = parseInt(createJobShipmentQty, 10) || 0;
               const calcJobTotalCost = createJobCombos.reduce((total, combo) => {
                 const pCount = combo.pcsCount || orderQty;
+                const customSum = (combo.customRates || []).reduce((s, r) => s + (parseFloat(r.val) || 0), 0);
                 const pRate = (parseFloat(combo.powerTableRate !== undefined ? combo.powerTableRate : createJobPowerTableRate) || 0) +
                               (parseFloat(combo.cuttingRate !== undefined ? combo.cuttingRate : createJobCuttingRate) || 0) +
                               (parseFloat(combo.singerRate !== undefined ? combo.singerRate : createJobSingerRate) || 0) +
@@ -6731,7 +6764,8 @@ export default function App() {
                               (parseFloat(combo.checkingRate !== undefined ? combo.checkingRate : createJobCheckingRate) || 0) +
                               (parseFloat(combo.threadRate !== undefined ? combo.threadRate : createJobThreadRate) || 0) +
                               (parseFloat(combo.ironingRate !== undefined ? combo.ironingRate : createJobIroningRate) || 0) +
-                              (parseFloat(combo.packingRate !== undefined ? combo.packingRate : createJobPackingRate) || 0);
+                              (parseFloat(combo.packingRate !== undefined ? combo.packingRate : createJobPackingRate) || 0) +
+                              customSum;
                 return total + Math.round(pCount * pRate);
               }, 0);
 
@@ -7015,6 +7049,9 @@ export default function App() {
                     
                     const getItemRate = (field, fallback) => activeCombo[field] !== undefined ? activeCombo[field] : fallback;
 
+                    const customRatesList = activeCombo.customRates || [];
+                    const customRatesSum = customRatesList.reduce((sum, r) => sum + (parseFloat(r.val) || 0), 0);
+
                     const activePartTotalRate = (
                       (parseFloat(getItemRate('powerTableRate', createJobPowerTableRate)) || 0) +
                       (parseFloat(getItemRate('cuttingRate', createJobCuttingRate)) || 0) +
@@ -7023,7 +7060,8 @@ export default function App() {
                       (parseFloat(getItemRate('checkingRate', createJobCheckingRate)) || 0) +
                       (parseFloat(getItemRate('threadRate', createJobThreadRate)) || 0) +
                       (parseFloat(getItemRate('ironingRate', createJobIroningRate)) || 0) +
-                      (parseFloat(getItemRate('packingRate', createJobPackingRate)) || 0)
+                      (parseFloat(getItemRate('packingRate', createJobPackingRate)) || 0) +
+                      customRatesSum
                     );
 
                     return (
@@ -7032,7 +7070,7 @@ export default function App() {
                           <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#111827' }}>
                             Piece-Rates for: <strong style={{ color: '#4F46E5' }}>{activeCombo.partName || `Part ${currentComboIndex + 1}`}</strong> ({activeCombo.color || 'Standard'} • {(activeCombo.pcsCount || createJobOrderQty).toLocaleString()} Pcs)
                           </span>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                             {createJobCombos.length > 1 && (
                               <button
                                 type="button"
@@ -7099,7 +7137,7 @@ export default function App() {
                           </div>
 
                           <div className="form-group">
-                            <label style={{ fontSize: '12px', fontWeight: 600 }}>Overlock Rate (₹ / Pc)</label>
+                            <label style={{ fontSize: '12px', fontWeight: 600 }}>Transport Rate (₹ / Pc)</label>
                             <input 
                               type="number" 
                               step="any" 
@@ -7157,6 +7195,53 @@ export default function App() {
                               style={{ fontSize: '13.5px', padding: '8px 10px', borderRadius: '8px', backgroundColor: '#FFFFFF' }} 
                             />
                           </div>
+                        </div>
+
+                        {/* Custom Operation Rates for Active Combo Part */}
+                        {customRatesList.length > 0 && (
+                          <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #E5E7EB', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#4B5563', textTransform: 'uppercase' }}>Custom Operation Rates for {activeCombo.partName}:</div>
+                            {customRatesList.map((rateObj, rIdx) => (
+                              <div key={rIdx} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr auto', gap: '8px', alignItems: 'center' }}>
+                                <input 
+                                  type="text" 
+                                  value={rateObj.name} 
+                                  onChange={(e) => handleUpdateCustomRateInCombo(currentComboIndex, rIdx, 'name', e.target.value)}
+                                  placeholder="e.g. Washing / Embroidery" 
+                                  style={{ fontSize: '12.5px', padding: '6px 10px', borderRadius: '6px', border: '1px solid #D1D5DB', backgroundColor: '#FFFFFF' }} 
+                                />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  <span style={{ fontSize: '12px', color: '#6B7280' }}>₹/Pc:</span>
+                                  <input 
+                                    type="number" 
+                                    step="any" 
+                                    value={rateObj.val} 
+                                    onChange={(e) => handleUpdateCustomRateInCombo(currentComboIndex, rIdx, 'val', parseFloat(e.target.value) || 0)}
+                                    placeholder="e.g. 5.00" 
+                                    style={{ fontSize: '12.5px', padding: '6px 10px', borderRadius: '6px', border: '1px solid #D1D5DB', backgroundColor: '#FFFFFF', width: '100%', fontWeight: 700, fontFamily: 'var(--font-mono)' }} 
+                                  />
+                                </div>
+                                <button 
+                                  type="button" 
+                                  onClick={() => handleRemoveCustomRateFromCombo(currentComboIndex, rIdx)}
+                                  style={{ border: 'none', background: '#FEE2E2', color: '#EF4444', borderRadius: '6px', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                                  title="Remove Custom Rate"
+                                >
+                                  <i className="ph ph-x"></i>
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <div style={{ marginTop: '12px', textAlign: 'right' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleAddCustomRateToCombo(currentComboIndex)}
+                            style={{ border: 'none', background: 'transparent', color: '#4F46E5', fontSize: '12px', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                          >
+                            <i className="ph ph-plus-circle"></i> + Add Custom Operation Rate to {activeCombo.partName || `Part ${currentComboIndex + 1}`}
+                          </button>
                         </div>
                       </div>
                     );
