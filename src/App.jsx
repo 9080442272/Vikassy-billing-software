@@ -4864,52 +4864,163 @@ export default function App() {
 
         {/* ==================== SETTINGS VIEW ==================== */}
         {activeTab === 'settings' && (
-          <section id="settings-view" className="tab-view active">
-            <header className="view-header">
+          <section id="settings-view" className="tab-view active" style={{ padding: '0 4px 40px 4px' }}>
+            <header className="view-header" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
               <div>
-                <h1>System Settings & Configuration</h1>
-                <p className="subtitle">Manage company details, user role permissions, departments, and payroll rules.</p>
+                <h1 style={{ fontSize: '28px', fontWeight: 800, margin: '0 0 4px 0' }}>System Settings & Multi-Company Configuration</h1>
+                <p className="subtitle" style={{ margin: 0, color: 'var(--color-text-secondary)' }}>Manage legal companies, export branches, user role permissions, and GST registrations.</p>
               </div>
-              <button className="btn btn-primary" onClick={() => alert("Settings saved successfully!")}>
-                <i className="ph ph-floppy-disk"></i> Save Preferences
+              <button className="btn btn-primary" onClick={() => setIsAddBranchModalOpen(true)} style={{ padding: '10px 18px', borderRadius: '12px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                <i className="ph ph-plus-circle" style={{ fontSize: '18px' }}></i> Add New Company / Branch
               </button>
             </header>
 
-            <div className="card bg-surface border" style={{ padding: '28px', borderRadius: '16px', maxWidth: '800px', margin: '20px auto 0 auto' }}>
-              <h3 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: 'var(--color-accent-light)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
-                  <i className="ph ph-buildings"></i>
+            {/* SECTION 1: MULTI-COMPANY & BRANCHES DIRECTORY */}
+            <div className="card bg-surface border" style={{ padding: '24px', borderRadius: '16px', marginBottom: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px', color: '#111827' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#EEF2FF', color: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                      <i className="ph ph-buildings"></i>
+                    </div>
+                    Registered Companies & Export Branch Units ({companies.length})
+                  </h3>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6B7280' }}>
+                    Switch active accounting ledgers or register new branch locations.
+                  </p>
                 </div>
-                Varahi Exports Company Profile
+                <button className="btn btn-primary btn-sm" onClick={() => setIsAddBranchModalOpen(true)} style={{ borderRadius: '10px', padding: '8px 16px', fontWeight: 700 }}>
+                  <i className="ph ph-plus"></i> Add Company / Branch
+                </button>
+              </div>
+
+              <div className="table-responsive">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Company Name</th>
+                      <th>Branch Unit</th>
+                      <th>Location / City</th>
+                      <th>GSTIN Registration</th>
+                      <th>Contact Phone</th>
+                      <th className="text-center">Active Status</th>
+                      <th className="text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {companies.map((comp) => {
+                      const isActive = comp.id === activeCompanyId;
+                      return (
+                        <tr key={comp.id} style={{ backgroundColor: isActive ? '#F5F3FF' : 'transparent' }}>
+                          <td className="font-bold" style={{ color: isActive ? '#4F46E5' : '#111827' }}>
+                            {comp.name}
+                            <span style={{ marginLeft: '8px', fontSize: '10px', padding: '2px 6px', borderRadius: '8px', backgroundColor: comp.badge === 'HQ' ? '#EEF2FF' : '#F3F4F6', color: comp.badge === 'HQ' ? '#4F46E5' : '#4B5563', fontWeight: 700 }}>
+                              {comp.badge || 'Branch'}
+                            </span>
+                          </td>
+                          <td className="font-medium">{comp.branch}</td>
+                          <td>📍 {comp.city}</td>
+                          <td className="font-mono">{comp.gst || '33CKMPS0071D1ZC'}</td>
+                          <td className="font-mono">{comp.phone || '+91 99946 85525'}</td>
+                          <td className="text-center">
+                            {isActive ? (
+                              <span style={{ fontSize: '11px', fontWeight: 800, color: '#059669', backgroundColor: '#ECFDF5', border: '1px solid #A7F3D0', padding: '4px 10px', borderRadius: '12px' }}>
+                                🟢 ACTIVE LEDGER
+                              </span>
+                            ) : (
+                              <span style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', backgroundColor: '#F3F4F6', padding: '4px 10px', borderRadius: '12px' }}>
+                                Inactive
+                              </span>
+                            )}
+                          </td>
+                          <td className="text-right">
+                            {!isActive ? (
+                              <button 
+                                className="btn btn-secondary btn-sm" 
+                                onClick={() => setActiveCompanyId(comp.id)}
+                                style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '8px', fontWeight: 700, color: '#4F46E5', borderColor: '#C7D2FE' }}
+                              >
+                                Switch to This
+                              </button>
+                            ) : (
+                              <span style={{ fontSize: '12px', fontWeight: 700, color: '#4F46E5' }}>Currently Selected</span>
+                            )}
+                            {companies.length > 1 && !isActive && (
+                              <button 
+                                className="btn-ghost" 
+                                onClick={() => {
+                                  if (confirm(`Are you sure you want to remove ${comp.name} (${comp.branch})?`)) {
+                                    setCompanies(prev => prev.filter(c => c.id !== comp.id));
+                                  }
+                                }}
+                                style={{ marginLeft: '8px', color: '#EF4444', padding: '4px 8px' }}
+                                title="Remove Branch"
+                              >
+                                <i className="ph ph-trash"></i>
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* SECTION 2: ACTIVE COMPANY PROFILE FORM */}
+            <div className="card bg-surface border" style={{ padding: '28px', borderRadius: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+              <h3 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px', color: '#111827' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#EEF2FF', color: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                  <i className="ph ph-note-pencil"></i>
+                </div>
+                Active Profile: {activeCompany.name} ({activeCompany.branch})
               </h3>
-              <form onSubmit={(e) => { e.preventDefault(); alert("Company profile updated successfully!"); }} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                const form = e.target;
+                const updatedName = form.legalName.value.trim();
+                const updatedGst = form.gstin.value.trim();
+                const updatedPhone = form.phone.value.trim();
+                const updatedCity = form.city.value.trim();
+
+                setCompanies(prev => prev.map(c => c.id === activeCompany.id ? {
+                  ...c,
+                  name: updatedName || c.name,
+                  gst: updatedGst || c.gst,
+                  phone: updatedPhone || c.phone,
+                  city: updatedCity || c.city
+                } : c));
+
+                alert(`🎉 ${activeCompany.name} profile updated successfully!`);
+              }} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div className="form-group">
                     <label style={{ fontWeight: 600 }}>Company Legal Name *</label>
-                    <input type="text" defaultValue="VARAHI EXPORTS" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
+                    <input type="text" name="legalName" key={activeCompany.id + '-name'} defaultValue={activeCompany.name} style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
                   </div>
                   <div className="form-group">
-                    <label style={{ fontWeight: 600 }}>GSTIN Registration *</label>
-                    <input type="text" defaultValue="33CKMPS0071D1ZC" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
+                    <label style={{ fontWeight: 600 }}>GSTIN Tax Registration *</label>
+                    <input type="text" name="gstin" key={activeCompany.id + '-gst'} defaultValue={activeCompany.gst || '33CKMPS0071D1ZC'} style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
                   </div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div className="form-group">
-                    <label style={{ fontWeight: 600 }}>Primary Contact Email *</label>
-                    <input type="email" defaultValue="varahi.export@gmail.com" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
+                    <label style={{ fontWeight: 600 }}>Primary Contact Phone *</label>
+                    <input type="text" name="phone" key={activeCompany.id + '-phone'} defaultValue={activeCompany.phone || '+91 99946 85525'} style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
                   </div>
                   <div className="form-group">
-                    <label style={{ fontWeight: 600 }}>Primary Contact Phone *</label>
-                    <input type="text" defaultValue="+91 99946 85525" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
+                    <label style={{ fontWeight: 600 }}>City / Branch Location *</label>
+                    <input type="text" name="city" key={activeCompany.id + '-city'} defaultValue={activeCompany.city || 'Tirupur'} style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
                   </div>
                 </div>
                 <div className="form-group">
                   <label style={{ fontWeight: 600 }}>Registered Factory & Office Address *</label>
-                  <input type="text" defaultValue="8/2933 A, Karuparayan Kovil, 3rd Street, Pandian Nagar, Tirupur - 641603" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
+                  <input type="text" name="address" defaultValue="8/2933 A, Karuparayan Kovil, 3rd Street, Pandian Nagar, Tirupur - 641603" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
                   <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 700, borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                    <i className="ph ph-check" style={{ fontSize: '16px' }}></i> Update Company Profile
+                    <i className="ph ph-check" style={{ fontSize: '16px' }}></i> Save Company Profile Changes
                   </button>
                 </div>
               </form>
