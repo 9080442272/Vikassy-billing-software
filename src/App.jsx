@@ -768,36 +768,38 @@ export default function App() {
   // Garment Combo & Color Specifications States
   const [createJobComboType, setCreateJobComboType] = useState('2-Piece Combo (Top & Pant)');
   const [createJobCombos, setCreateJobCombos] = useState([
-    { partName: 'Top', color: 'Navy Blue' },
-    { partName: 'Pant', color: 'Black' }
+    { partName: 'Top', color: 'Navy Blue', pcsCount: 2500 },
+    { partName: 'Pant', color: 'Black', pcsCount: 2500 }
   ]);
 
   const handleComboTypeChange = (type) => {
     setCreateJobComboType(type);
+    const defaultQty = parseInt(createJobOrderQty, 10) || 2500;
     if (type === '2-Piece Combo (Top & Pant)') {
       setCreateJobCombos([
-        { partName: 'Top', color: 'Navy Blue' },
-        { partName: 'Pant', color: 'Black' }
+        { partName: 'Top', color: 'Navy Blue', pcsCount: defaultQty },
+        { partName: 'Pant', color: 'Black', pcsCount: defaultQty }
       ]);
     } else if (type === 'Single Garment') {
       setCreateJobCombos([
-        { partName: 'Garment / Top', color: 'Royal Blue' }
+        { partName: 'Garment / Top', color: 'Royal Blue', pcsCount: defaultQty }
       ]);
     } else if (type === '3-Piece Set (Top, Pant, Dupatta)') {
       setCreateJobCombos([
-        { partName: 'Top', color: 'Crimson Red' },
-        { partName: 'Pant', color: 'Golden Yellow' },
-        { partName: 'Dupatta / Outer', color: 'Crimson Red' }
+        { partName: 'Top', color: 'Crimson Red', pcsCount: defaultQty },
+        { partName: 'Pant', color: 'Golden Yellow', pcsCount: defaultQty },
+        { partName: 'Dupatta / Outer', color: 'Crimson Red', pcsCount: defaultQty }
       ]);
     } else if (type === 'Custom Combo Set') {
       setCreateJobCombos([
-        { partName: 'Item 1', color: 'Multicolor' }
+        { partName: 'Item 1', color: 'Multicolor', pcsCount: defaultQty }
       ]);
     }
   };
 
   const handleAddComboPart = () => {
-    setCreateJobCombos(prev => [...prev, { partName: `Part ${prev.length + 1}`, color: 'Navy Blue' }]);
+    const defaultQty = parseInt(createJobOrderQty, 10) || 2500;
+    setCreateJobCombos(prev => [...prev, { partName: `Part ${prev.length + 1}`, color: 'Navy Blue', pcsCount: defaultQty }]);
   };
 
   const handleRemoveComboPart = (index) => {
@@ -823,16 +825,17 @@ export default function App() {
     setCreateJobPackingRate(2.50);
     setCreateJobComboType('2-Piece Combo (Top & Pant)');
     setCreateJobCombos([
-      { partName: 'Top', color: 'Navy Blue' },
-      { partName: 'Pant', color: 'Black' }
+      { partName: 'Top', color: 'Navy Blue', pcsCount: 2500 },
+      { partName: 'Pant', color: 'Black', pcsCount: 2500 }
     ]);
     setIsCreateJobModalOpen(true);
   };
 
   const openViewEditJobModal = (job) => {
     setEditingJobOrder(job);
-    setCreateJobOrderQty(job.orderQty || job.quantity || 2500);
-    setCreateJobShipmentQty(job.shipmentQty || job.quantity || 2500);
+    const initialQty = job.orderQty || job.quantity || 2500;
+    setCreateJobOrderQty(initialQty);
+    setCreateJobShipmentQty(job.shipmentQty || initialQty);
     setIsShipmentQtyTouched(true);
     if (job.powerTableRate !== undefined) setCreateJobPowerTableRate(job.powerTableRate);
     if (job.cuttingRate !== undefined) setCreateJobCuttingRate(job.cuttingRate);
@@ -844,12 +847,12 @@ export default function App() {
     if (job.packingRate !== undefined) setCreateJobPackingRate(job.packingRate);
     if (job.comboType) setCreateJobComboType(job.comboType);
     if (job.combos && Array.isArray(job.combos)) {
-      setCreateJobCombos(job.combos);
+      setCreateJobCombos(job.combos.map(c => ({ ...c, pcsCount: c.pcsCount || initialQty })));
     } else {
       setCreateJobComboType('2-Piece Combo (Top & Pant)');
       setCreateJobCombos([
-        { partName: 'Top', color: 'Navy Blue' },
-        { partName: 'Pant', color: 'Black' }
+        { partName: 'Top', color: 'Navy Blue', pcsCount: initialQty },
+        { partName: 'Pant', color: 'Black', pcsCount: initialQty }
       ]);
     }
     setIsCreateJobModalOpen(true);
@@ -6881,7 +6884,7 @@ export default function App() {
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {createJobCombos.map((combo, idx) => (
-                      <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '10px', alignItems: 'center', backgroundColor: '#FFFFFF', padding: '10px 12px', borderRadius: '10px', border: '1px solid #E5E7EB' }}>
+                      <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 110px auto', gap: '10px', alignItems: 'center', backgroundColor: '#FFFFFF', padding: '10px 12px', borderRadius: '10px', border: '1px solid #E5E7EB' }}>
                         <div>
                           <label style={{ fontSize: '11px', fontWeight: 700, color: '#6B7280', display: 'block', marginBottom: '4px' }}>Combo Part {idx + 1}</label>
                           <input
@@ -6900,6 +6903,16 @@ export default function App() {
                             onChange={(e) => handleComboPartChange(idx, 'color', e.target.value)}
                             placeholder="e.g. Navy Blue, Black"
                             style={{ fontSize: '13px', padding: '7px 10px', borderRadius: '6px', border: '1px solid #D1D5DB', width: '100%' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '11px', fontWeight: 700, color: '#6B7280', display: 'block', marginBottom: '4px' }}>Pcs Count</label>
+                          <input
+                            type="number"
+                            value={combo.pcsCount || ''}
+                            onChange={(e) => handleComboPartChange(idx, 'pcsCount', parseInt(e.target.value, 10) || 0)}
+                            placeholder="e.g. 1250"
+                            style={{ fontSize: '13px', padding: '7px 10px', borderRadius: '6px', border: '1px solid #D1D5DB', width: '100%', fontWeight: 700, fontFamily: 'var(--font-mono)' }}
                           />
                         </div>
                         <div style={{ paddingTop: '16px' }}>
