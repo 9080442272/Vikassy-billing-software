@@ -9081,64 +9081,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* RICH VISUAL DASHBOARD & LEDGER IMPACT CARD */}
-            <div style={{
-              backgroundColor: '#FFF1F2',
-              border: '1.5px solid rgba(244, 63, 94, 0.3)',
-              borderRadius: '16px',
-              padding: '16px 18px',
-              marginBottom: '20px',
-              boxShadow: '0 4px 12px rgba(244, 63, 94, 0.08)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{
-                    width: '34px',
-                    height: '34px',
-                    borderRadius: '10px',
-                    backgroundColor: '#F43F5E',
-                    color: '#FFFFFF',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '18px',
-                    fontWeight: 800,
-                    boxShadow: '0 2px 6px rgba(244, 63, 94, 0.3)'
-                  }}>
-                    <i className="ph ph-trend-down"></i>
-                  </div>
-                  <div>
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#9F1239', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                      Dashboard & Ledger Impact
-                    </span>
-                    <h4 style={{ margin: '1px 0 0 0', fontSize: '13.5px', fontWeight: 700, color: '#881337' }}>
-                      Data in Dashboard will minus
-                    </h4>
-                  </div>
-                </div>
-
-                {deleteConfirmState.impactAmount && (
-                  <div style={{
-                    backgroundColor: '#FFFFFF',
-                    border: '1.5px solid rgba(244, 63, 94, 0.4)',
-                    padding: '6px 14px',
-                    borderRadius: '10px',
-                    fontSize: '14px',
-                    fontWeight: 800,
-                    color: '#F43F5E',
-                    fontFamily: 'var(--font-mono)',
-                    boxShadow: '0 2px 6px rgba(244, 63, 94, 0.15)'
-                  }}>
-                    {deleteConfirmState.impactAmount}
-                  </div>
-                )}
-              </div>
-
-              {/* Visual Minus Progress Bar */}
-              <div style={{ height: '6px', width: '100%', backgroundColor: '#FFE4E6', borderRadius: '4px', overflow: 'hidden', marginTop: '10px' }}>
-                <div style={{ width: '100%', height: '100%', background: 'linear-gradient(90deg, #F43F5E, #E11D48)', borderRadius: '4px' }}></div>
-              </div>
-            </div>
 
             {/* IMPACT CONSEQUENCES LIST */}
             {deleteConfirmState.impactList && deleteConfirmState.impactList.length > 0 && (
