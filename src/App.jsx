@@ -622,6 +622,7 @@ export default function App() {
 
   // Employee Action Modals & Records
   const [isAttendanceModalOpen, setIsAttendanceModalOpen] = useState(false);
+  const [isAdvanceModalOpen, setIsAdvanceModalOpen] = useState(false);
   const [linkedJobOrdersList, setLinkedJobOrdersList] = useState(['']);
   const [advSelectedClient, setAdvSelectedClient] = useState('');
   const [isDisbursePayrollModalOpen, setIsDisbursePayrollModalOpen] = useState(false);
