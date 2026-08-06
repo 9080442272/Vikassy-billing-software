@@ -106,4 +106,15 @@ export default defineSchema({
     notes: v.optional(v.string()),
     createdAt: v.string(),
   }).index("by_deliveryDate", ["deliveryDate"]),
+
+  attendance: defineTable({
+    employeeId: v.optional(v.string()),
+    empName: v.string(),
+    date: v.string(),
+    shift: v.string(),
+    status: v.string(),
+    overtimeHours: v.number(),
+    notes: v.optional(v.string()),
+    createdAt: v.string(),
+  }).index("by_date", ["date"]),
 });

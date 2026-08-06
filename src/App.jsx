@@ -329,6 +329,18 @@ export default function App() {
   const [localExpenses, setLocalExpenses] = useState(() => {
     try { return JSON.parse(localStorage.getItem('varahi_local_expenses')) || []; } catch(e) { return []; }
   });
+  const [localAttendance, setLocalAttendance] = useState(() => {
+    try {
+      const saved = localStorage.getItem('varahi_local_attendance');
+      return saved ? JSON.parse(saved) : [
+        { _id: 'att_1', empName: "Balasubramainan", role: "CEO", shift: "Morning Shift (08:00 - 17:00)", checkIn: "08:00 AM", status: "Present", date: new Date().toISOString().split('T')[0] }
+      ];
+    } catch(e) {
+      return [
+        { _id: 'att_1', empName: "Balasubramainan", role: "CEO", shift: "Morning Shift (08:00 - 17:00)", checkIn: "08:00 AM", status: "Present", date: new Date().toISOString().split('T')[0] }
+      ];
+    }
+  });
   const [customLocalJobs, setCustomLocalJobs] = useState(() => {
     try { return JSON.parse(localStorage.getItem('varahi_local_jobs')) || []; } catch(e) { return []; }
   });
@@ -339,6 +351,7 @@ export default function App() {
   useEffect(() => { localStorage.setItem('varahi_local_fabrics', JSON.stringify(localFabrics)); }, [localFabrics]);
   useEffect(() => { localStorage.setItem('varahi_local_stitching', JSON.stringify(localStitching)); }, [localStitching]);
   useEffect(() => { localStorage.setItem('varahi_local_expenses', JSON.stringify(localExpenses)); }, [localExpenses]);
+  useEffect(() => { localStorage.setItem('varahi_local_attendance', JSON.stringify(localAttendance)); }, [localAttendance]);
   useEffect(() => { localStorage.setItem('varahi_local_jobs', JSON.stringify(customLocalJobs)); }, [customLocalJobs]);
 
   const mergeCollections = (convexArr = [], localArr = []) => {
@@ -369,6 +382,9 @@ export default function App() {
 
   const rawStitching = useQuery(api.stitching.getAll) || [];
   const stitching = mergeCollections(rawStitching, localStitching);
+
+  const rawAttendance = useQuery(api.attendance.getAll) || [];
+  const attendanceRecords = mergeCollections(rawAttendance, localAttendance);
 
   const ceoActivities = useQuery(api.ceoActivities.getAll) || [];
 
@@ -401,7 +417,9 @@ export default function App() {
   const addStitchingMutation = useMutation(api.stitching.add);
   const updateStitchingMutation = useMutation(api.stitching.update);
   const deleteStitchingMutation = useMutation(api.stitching.remove);
-  const addCeoActivityMutation = useMutation(api.ceoActivities.add);
+  const addAttendanceMutation = useMutation(api.attendance.add);
+  const updateAttendanceMutation = useMutation(api.attendance.update);
+  const deleteAttendanceMutation = useMutation(api.attendance.remove);
   const updateCeoActivityMutation = useMutation(api.ceoActivities.update);
   const deleteCeoActivityMutation = useMutation(api.ceoActivities.remove);
   const addExpenseMutation = useMutation(api.expenses.add);
@@ -604,10 +622,6 @@ export default function App() {
   const [isAttendanceModalOpen, setIsAttendanceModalOpen] = useState(false);
   const [isAdvanceModalOpen, setIsAdvanceModalOpen] = useState(false);
   const [isDisbursePayrollModalOpen, setIsDisbursePayrollModalOpen] = useState(false);
-
-  const [attendanceRecords, setAttendanceRecords] = useState([
-    { id: 1, empName: "Balasubramainan", role: "CEO", shift: "Morning Shift (08:00 - 17:00)", checkIn: "08:00 AM", status: "Present", date: new Date().toISOString().split('T')[0] }
-  ]);
 
   const [advanceRecords, setAdvanceRecords] = useState([
     { id: 1, empName: "Balasubramainan", date: new Date().toISOString().split('T')[0], type: "Executive Advance", amount: 5000, mode: "Bank Transfer", notes: "Executive travel allowance" }
@@ -7889,7 +7903,7 @@ export default function App() {
               <h3>Log Daily Attendance & Shift</h3>
               <button className="btn-close" onClick={() => setIsAttendanceModalOpen(false)}><i className="ph ph-x"></i></button>
             </div>
-            <form onSubmit={(e) => {
+            <form onSubmit={async (e) => {
               e.preventDefault();
               const form = e.target;
               const empName = form.empName.value;
@@ -7901,16 +7915,30 @@ export default function App() {
               const targetEmp = employees.find(emp => emp.name === empName);
 
               const newRecord = {
-                id: Date.now(),
+                _id: 'att_' + Date.now(),
+                employeeId: targetEmp ? targetEmp._id : undefined,
                 empName,
                 role: targetEmp ? targetEmp.role : 'Stitcher',
                 shift,
                 checkIn,
                 status,
-                date
+                date,
+                overtimeHours: status.includes('Overtime') ? 2 : 0
               };
 
-              setAttendanceRecords(prev => [newRecord, ...prev]);
+              setLocalAttendance(prev => [newRecord, ...prev]);
+              try {
+                await addAttendanceMutation({
+                  employeeId: targetEmp ? targetEmp._id : undefined,
+                  empName,
+                  date,
+                  shift,
+                  status,
+                  overtimeHours: status.includes('Overtime') ? 2 : 0
+                });
+              } catch (err) {
+                console.warn("Convex add attendance fallback:", err);
+              }
               setIsAttendanceModalOpen(false);
             }}>
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
