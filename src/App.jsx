@@ -4168,128 +4168,6 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* 3. Recent Invoices Table Card */}
-                    <div style={{
-                      backgroundColor: '#FFFFFF',
-                      borderRadius: '16px',
-                      border: '1px solid #E5E7EB',
-                      padding: '24px',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
-                    }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
-                        <div>
-                          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#111827' }}>Recent Tax Invoices & Sales Billing</h3>
-                          <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6B7280' }}>Latest GST billing entries and quick payment settlement actions.</p>
-                        </div>
-                        <button className="btn btn-primary btn-sm" style={{ padding: '8px 16px', borderRadius: '10px', fontWeight: 700 }} onClick={() => { setEditingBill(null); setIsBillModalOpen(true); }}>
-                          <i className="ph ph-plus"></i> New Invoice
-                        </button>
-                      </div>
-
-                      <div className="table-responsive">
-                        <table className="data-table">
-                          <thead>
-                            <tr>
-                              <th>Invoice No</th>
-                              <th>Customer Name</th>
-                              <th>Date</th>
-                              <th className="text-right">Shipment Qty</th>
-                              <th className="text-right">Grand Total (₹)</th>
-                              <th className="text-center">Status</th>
-                              <th className="text-right">Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {bills.slice(0, 5).map(b => {
-                              const c = clients.find(cl => cl._id === b.clientId);
-                              const isPaid = (b.paymentStatus === 'Paid' || b.status === 'Paid');
-                              return (
-                                <tr key={b._id}>
-                                  <td className="font-semibold text-primary">{b.billNumber}</td>
-                                  <td className="font-medium">{c ? c.name : 'Corporate Client'}</td>
-                                  <td className="text-muted">{formatDate(b.date)}</td>
-                                  <td className="text-right font-medium">{(b.shipmentQty || b.items?.[0]?.qty || 2500).toLocaleString()} Pcs</td>
-                                  <td className="text-right font-bold text-green" style={{ fontFamily: 'var(--font-mono)' }}>{formatCurrency(b.totalAmount)}</td>
-                                  <td className="text-center">
-                                    <span 
-                                      onClick={() => toggleBillPaymentStatus(b)} 
-                                      style={{ 
-                                        padding: '4px 10px', 
-                                        borderRadius: '12px', 
-                                        fontSize: '11px', 
-                                        fontWeight: 700, 
-                                        cursor: 'pointer',
-                                        backgroundColor: isPaid ? '#ECFDF5' : '#FEF3C7',
-                                        color: isPaid ? '#059669' : '#D97706',
-                                        border: isPaid ? '1px solid #A7F3D0' : '1px solid #FDE68A'
-                                      }}
-                                    >
-                                      {isPaid ? '✓ Paid' : '⏳ Pending'}
-                                    </span>
-                                  </td>
-                                  <td className="text-right" onClick={(e) => e.stopPropagation()}>
-                                    <button className="btn btn-secondary btn-sm" onClick={() => { setViewingInvoice(b); setIsInvoiceViewOpen(true); }} style={{ padding: '4px 10px', fontSize: '12px', borderRadius: '8px' }}>
-                                      <i className="ph ph-eye"></i> View
-                                    </button>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                            {bills.length === 0 && (
-                              <tr>
-                                <td colSpan="7" className="text-center text-muted" style={{ padding: '24px' }}>
-                                  No invoices generated yet. Click "+ New Invoice" to record sales billing.
-                                </td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-
-                    {/* 4. Top Selling Products & Production Orders Card */}
-                    <div style={{
-                      backgroundColor: '#FFFFFF',
-                      borderRadius: '16px',
-                      border: '1px solid #E5E7EB',
-                      padding: '24px',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
-                    }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                        <div>
-                          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#111827' }}>Top Selling Products & Production Jobs</h3>
-                          <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6B7280' }}>Highest revenue generating garment styles and active job orders.</p>
-                        </div>
-                        <button className="btn btn-secondary btn-sm" style={{ borderRadius: '10px' }} onClick={() => setActiveTab('jobs')}>
-                          View All Jobs
-                        </button>
-                      </div>
-
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        {upcomingOrders.slice(0, 4).map(job => (
-                          <div key={job._id} onClick={() => openViewEditJobModal(job)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', backgroundColor: '#F9FAFB', borderRadius: '12px', border: '1px solid #F3F4F6', cursor: 'pointer' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                              <div style={{ width: '42px', height: '42px', borderRadius: '10px', backgroundColor: '#EEF2FF', color: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
-                                <i className="ph ph-t-shirt"></i>
-                              </div>
-                              <div>
-                                <div style={{ fontWeight: 800, fontSize: '14px', color: '#111827' }}>{job.orderTitle || `Style ${job.styleNumber}`}</div>
-                                <div style={{ fontSize: '12px', color: '#6B7280', marginTop: '2px' }}>
-                                  Client: <strong>{job.clientName}</strong> • Order Qty: <strong>{(job.orderQty || job.quantity || 2500).toLocaleString()} Pcs</strong>
-                                </div>
-                              </div>
-                            </div>
-                            <div style={{ textAlign: 'right' }}>
-                              <div style={{ fontWeight: 800, fontSize: '15px', color: '#10B981', fontFamily: 'var(--font-mono)' }}>{formatCurrency(job.estimatedValue || 0)}</div>
-                              <span style={{ fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '10px', backgroundColor: '#F3F4F6', color: '#4B5563', marginTop: '4px', display: 'inline-block' }}>
-                                {job.status || 'In Production'}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
                   </div>
 
                   {/* RIGHT SIDEBAR (30%) */}
@@ -4363,6 +4241,87 @@ export default function App() {
 
                   </div>
 
+                </div>
+
+                {/* ==================== FULL WIDTH RECENT TAX INVOICES TABLE ==================== */}
+                <div style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '16px',
+                  border: '1px solid #E5E7EB',
+                  padding: '24px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                  marginTop: '24px',
+                  width: '100%'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#111827' }}>Recent Tax Invoices & Sales Billing</h3>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6B7280' }}>Latest GST billing entries and quick payment settlement actions.</p>
+                    </div>
+                    <button className="btn btn-primary btn-sm" style={{ padding: '8px 16px', borderRadius: '10px', fontWeight: 700 }} onClick={() => { setEditingBill(null); setIsBillModalOpen(true); }}>
+                      <i className="ph ph-plus"></i> New Invoice
+                    </button>
+                  </div>
+
+                  <div className="table-responsive" style={{ width: '100%' }}>
+                    <table className="data-table" style={{ width: '100%' }}>
+                      <thead>
+                        <tr>
+                          <th>Invoice No</th>
+                          <th>Customer Name</th>
+                          <th>Date</th>
+                          <th className="text-right">Shipment Qty</th>
+                          <th className="text-right">Grand Total (₹)</th>
+                          <th className="text-center">Status</th>
+                          <th className="text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {bills.slice(0, 5).map(b => {
+                          const c = clients.find(cl => cl._id === b.clientId);
+                          const isPaid = (b.paymentStatus === 'Paid' || b.status === 'Paid');
+                          return (
+                            <tr key={b._id}>
+                              <td className="font-semibold text-primary">{b.billNumber}</td>
+                              <td className="font-medium">{c ? c.name : 'Corporate Client'}</td>
+                              <td className="text-muted">{formatDate(b.date)}</td>
+                              <td className="text-right font-medium">{(b.shipmentQty || b.items?.[0]?.qty || 2500).toLocaleString()} Pcs</td>
+                              <td className="text-right font-bold text-green" style={{ fontFamily: 'var(--font-mono)' }}>{formatCurrency(b.totalAmount)}</td>
+                              <td className="text-center">
+                                <span 
+                                  onClick={() => toggleBillPaymentStatus(b)} 
+                                  style={{ 
+                                    padding: '4px 10px', 
+                                    borderRadius: '12px', 
+                                    fontSize: '11px', 
+                                    fontWeight: 700, 
+                                    cursor: 'pointer',
+                                    backgroundColor: isPaid ? '#ECFDF5' : '#FEF3C7',
+                                    color: isPaid ? '#059669' : '#D97706',
+                                    border: isPaid ? '1px solid #A7F3D0' : '1px solid #FDE68A'
+                                  }}
+                                >
+                                  {isPaid ? '✓ Paid' : '⏳ Pending'}
+                                </span>
+                              </td>
+                              <td className="text-right" onClick={(e) => e.stopPropagation()}>
+                                <button className="btn btn-secondary btn-sm" onClick={() => { setViewingInvoice(b); setIsInvoiceViewOpen(true); }} style={{ padding: '4px 10px', fontSize: '12px', borderRadius: '8px' }}>
+                                  <i className="ph ph-eye"></i> View
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                        {bills.length === 0 && (
+                          <tr>
+                            <td colSpan="7" className="text-center text-muted" style={{ padding: '24px' }}>
+                              No invoices generated yet. Click "+ New Invoice" to record sales billing.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
 
                 {/* Floating Chatbot Widget on Home Screen */}
