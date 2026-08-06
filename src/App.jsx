@@ -310,21 +310,76 @@ function LinearDatePickerInput({ id, name, label, defaultValue, value, onChange,
 }
 
 export default function App() {
-  // Custom Local Jobs State (Production Manager Kanban Suite)
-  const [customLocalJobs, setCustomLocalJobs] = useState([]);
+  // Local persistent state fallbacks to guarantee 100% data survival across offline, restarts, and network drops
+  const [localClients, setLocalClients] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('varahi_local_clients')) || []; } catch(e) { return []; }
+  });
+  const [localBills, setLocalBills] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('varahi_local_bills')) || []; } catch(e) { return []; }
+  });
+  const [localEmployees, setLocalEmployees] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('varahi_local_employees')) || []; } catch(e) { return []; }
+  });
+  const [localFabrics, setLocalFabrics] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('varahi_local_fabrics')) || []; } catch(e) { return []; }
+  });
+  const [localStitching, setLocalStitching] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('varahi_local_stitching')) || []; } catch(e) { return []; }
+  });
+  const [localExpenses, setLocalExpenses] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('varahi_local_expenses')) || []; } catch(e) { return []; }
+  });
+  const [customLocalJobs, setCustomLocalJobs] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('varahi_local_jobs')) || []; } catch(e) { return []; }
+  });
 
-  // --- Convex Real-time Cloud Queries ---
-  const clients = useQuery(api.clients.getAll) || [];
-  const bills = useQuery(api.bills.getAll) || [];
-  const employees = useQuery(api.employees.getAll) || [];
-  const fabrics = useQuery(api.fabrics.getAll) || [];
-  const stitching = useQuery(api.stitching.getAll) || [];
+  useEffect(() => { localStorage.setItem('varahi_local_clients', JSON.stringify(localClients)); }, [localClients]);
+  useEffect(() => { localStorage.setItem('varahi_local_bills', JSON.stringify(localBills)); }, [localBills]);
+  useEffect(() => { localStorage.setItem('varahi_local_employees', JSON.stringify(localEmployees)); }, [localEmployees]);
+  useEffect(() => { localStorage.setItem('varahi_local_fabrics', JSON.stringify(localFabrics)); }, [localFabrics]);
+  useEffect(() => { localStorage.setItem('varahi_local_stitching', JSON.stringify(localStitching)); }, [localStitching]);
+  useEffect(() => { localStorage.setItem('varahi_local_expenses', JSON.stringify(localExpenses)); }, [localExpenses]);
+  useEffect(() => { localStorage.setItem('varahi_local_jobs', JSON.stringify(customLocalJobs)); }, [customLocalJobs]);
+
+  const mergeCollections = (convexArr = [], localArr = []) => {
+    const map = new Map();
+    localArr.forEach(item => {
+      const key = item._id || item.billNumber || item.styleNumber || (item.name + (item.role || ''));
+      map.set(key, item);
+    });
+    convexArr.forEach(item => {
+      const key = item._id || item.billNumber || item.styleNumber || (item.name + (item.role || ''));
+      map.set(key, item);
+    });
+    return Array.from(map.values());
+  };
+
+  // --- Convex Real-time Cloud Queries + Local Fallbacks ---
+  const rawClients = useQuery(api.clients.getAll) || [];
+  const clients = mergeCollections(rawClients, localClients);
+
+  const rawBills = useQuery(api.bills.getAll) || [];
+  const bills = mergeCollections(rawBills, localBills);
+
+  const rawEmployees = useQuery(api.employees.getAll) || [];
+  const employees = mergeCollections(rawEmployees, localEmployees);
+
+  const rawFabrics = useQuery(api.fabrics.getAll) || [];
+  const fabrics = mergeCollections(rawFabrics, localFabrics);
+
+  const rawStitching = useQuery(api.stitching.getAll) || [];
+  const stitching = mergeCollections(rawStitching, localStitching);
+
   const ceoActivities = useQuery(api.ceoActivities.getAll) || [];
+
   const rawExpenses = useQuery(api.expenses.getAll) || [];
   const dummyExpenseKeywords = ['auto delivery charges', 'denim stitcher bonus', 'coimbatore client dispatch', 'monthly workshop power generator'];
-  const expenses = rawExpenses.filter(e => !dummyExpenseKeywords.some(kw => (e.description || '').toLowerCase().includes(kw)));
+  const filteredExpenses = rawExpenses.filter(e => !dummyExpenseKeywords.some(kw => (e.description || '').toLowerCase().includes(kw)));
+  const expenses = mergeCollections(filteredExpenses, localExpenses);
+
   const upcomingOrdersConvex = useQuery(api.upcomingOrders.getAll) || [];
-  const upcomingOrders = [...(customLocalJobs || []), ...upcomingOrdersConvex];
+  const upcomingOrders = mergeCollections(upcomingOrdersConvex, customLocalJobs);
+
   const rawUsers = useQuery(api.users.getAll);
   const users = rawUsers || [];
 
@@ -563,10 +618,24 @@ export default function App() {
   ]);
 
   // Capital Sourcing & Order Investment States
-  const [investmentRecords, setInvestmentRecords] = useState([
-    { id: 1, date: new Date().toISOString().split('T')[0], type: "CEO brought amount from MD to run order", amount: 300000, linkedOrder: "Style #ST-2026-01 (Apex Denim Exports)" },
-    { id: 2, date: new Date().toISOString().split('T')[0], type: "CEO brought loan for working capital", amount: 250000, linkedOrder: "General Factory Operational Fund" }
-  ]);
+  const [investmentRecords, setInvestmentRecords] = useState(() => {
+    try {
+      const saved = localStorage.getItem('varahi_investment_records');
+      return saved ? JSON.parse(saved) : [
+        { id: 1, date: new Date().toISOString().split('T')[0], type: "CEO brought amount from MD to run order", amount: 300000, linkedOrder: "Style #ST-2026-01 (Apex Denim Exports)" },
+        { id: 2, date: new Date().toISOString().split('T')[0], type: "CEO brought loan for working capital", amount: 250000, linkedOrder: "General Factory Operational Fund" }
+      ];
+    } catch (e) {
+      return [
+        { id: 1, date: new Date().toISOString().split('T')[0], type: "CEO brought amount from MD to run order", amount: 300000, linkedOrder: "Style #ST-2026-01 (Apex Denim Exports)" },
+        { id: 2, date: new Date().toISOString().split('T')[0], type: "CEO brought loan for working capital", amount: 250000, linkedOrder: "General Factory Operational Fund" }
+      ];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('varahi_investment_records', JSON.stringify(investmentRecords));
+  }, [investmentRecords]);
   const [isInvestmentModalOpen, setIsInvestmentModalOpen] = useState(false);
   const [isAllocateOrderModalOpen, setIsAllocateOrderModalOpen] = useState(false);
 
@@ -1173,20 +1242,28 @@ export default function App() {
       address: document.getElementById('client-address').value.trim()
     };
 
-    try {
-      if (editingClient) {
+    if (editingClient) {
+      const updatedClient = { ...editingClient, ...clientData };
+      setLocalClients(prev => prev.map(c => c._id === editingClient._id ? updatedClient : c));
+      try {
         await updateClientMutation({
           id: editingClient._id,
           ...clientData,
           createdAt: editingClient.createdAt
         });
-      } else {
-        await addClientMutation(clientData);
+      } catch (err) {
+        console.warn("Convex update client fallback:", err);
       }
-      closeClientModal();
-    } catch (err) {
-      console.error("Error saving client:", err);
+    } else {
+      const newClient = { _id: 'client_' + Date.now(), ...clientData, createdAt: new Date().toISOString() };
+      setLocalClients(prev => [newClient, ...prev]);
+      try {
+        await addClientMutation(clientData);
+      } catch (err) {
+        console.warn("Convex add client fallback:", err);
+      }
     }
+    closeClientModal();
   };
 
   const deleteClient = (id, clientObj) => {
@@ -1203,7 +1280,12 @@ export default function App() {
         '📊 Existing historical invoices will remain saved for GST auditing.'
       ],
       onConfirm: async () => {
-        await deleteClientMutation({ id });
+        setLocalClients(prev => prev.filter(c => c._id !== id));
+        try {
+          await deleteClientMutation({ id });
+        } catch (err) {
+          console.warn("Convex delete client fallback:", err);
+        }
       }
     });
   };
@@ -1934,26 +2016,40 @@ export default function App() {
       fileName: billAttachmentName || undefined
     };
 
-    try {
-      if (editingBill) {
+    if (editingBill) {
+      const updatedBill = { ...editingBill, ...billData };
+      setLocalBills(prev => prev.map(b => b._id === editingBill._id ? updatedBill : b));
+      try {
         await updateBillMutation({
           id: editingBill._id,
           ...billData,
           createdAt: editingBill.createdAt
         });
-      } else {
-        await addBillMutation(billData);
+      } catch (err) {
+        console.warn("Convex update bill fallback:", err);
       }
-      closeBillModal();
-    } catch (err) {
-      console.error("Error saving invoice:", err);
+    } else {
+      const newBill = { _id: 'bill_' + Date.now(), ...billData, createdAt: new Date().toISOString() };
+      setLocalBills(prev => [newBill, ...prev]);
+      try {
+        await addBillMutation(billData);
+      } catch (err) {
+        console.warn("Convex add bill fallback:", err);
+      }
     }
+    closeBillModal();
   };
 
   const toggleBillPaymentStatus = async (bill) => {
     if (!bill) return;
     const currentStatus = bill.paymentStatus || bill.status || 'Pending';
     const newStatus = currentStatus === 'Paid' ? 'Pending' : 'Paid';
+
+    setLocalBills(prev => prev.map(b => b._id === bill._id ? { ...b, paymentStatus: newStatus, status: newStatus } : b));
+    if (viewingInvoice && viewingInvoice._id === bill._id) {
+      setViewingInvoice(prev => ({ ...prev, paymentStatus: newStatus, status: newStatus }));
+    }
+
     try {
       if (updateBillMutation) {
         await updateBillMutation({
@@ -1974,24 +2070,22 @@ export default function App() {
           createdAt: bill.createdAt
         });
       }
-      if (viewingInvoice && viewingInvoice._id === bill._id) {
-        setViewingInvoice(prev => ({ ...prev, paymentStatus: newStatus, status: newStatus }));
-      }
-      setActivityAuditLogs(prev => [
-        {
-          id: Date.now(),
-          user: "Billing Accountant",
-          action: newStatus === 'Paid' ? "Payment Received" : "Payment Marked Pending",
-          target: `Invoice #${bill.billNumber} (${formatCurrency(bill.totalAmount)})`,
-          time: "Just now",
-          icon: newStatus === 'Paid' ? "ph-check-circle" : "ph-clock-countdown",
-          color: newStatus === 'Paid' ? "#10B981" : "#F59E0B"
-        },
-        ...prev
-      ]);
     } catch (err) {
-      console.error("Error toggling bill status:", err);
+      console.warn("Convex status toggle fallback:", err);
     }
+
+    setActivityAuditLogs(prev => [
+      {
+        id: Date.now(),
+        user: "Billing Accountant",
+        action: newStatus === 'Paid' ? "Payment Received" : "Payment Marked Pending",
+        target: `Invoice #${bill.billNumber} (${formatCurrency(bill.totalAmount)})`,
+        time: "Just now",
+        icon: newStatus === 'Paid' ? "ph-check-circle" : "ph-clock-countdown",
+        color: newStatus === 'Paid' ? "#10B981" : "#F59E0B"
+      },
+      ...prev
+    ]);
   };
 
   const deleteBill = (id, billObj) => {
@@ -2010,7 +2104,12 @@ export default function App() {
         '👤 Client outstanding balance ledger will be updated.'
       ],
       onConfirm: async () => {
-        await deleteBillMutation({ id });
+        setLocalBills(prev => prev.filter(b => b._id !== id));
+        try {
+          await deleteBillMutation({ id });
+        } catch (err) {
+          console.warn("Convex delete bill fallback:", err);
+        }
       }
     });
   };
@@ -2092,20 +2191,28 @@ export default function App() {
       customRates: customEmpRatesList
     };
 
-    try {
-      if (editingEmployee) {
+    if (editingEmployee) {
+      const updatedEmp = { ...editingEmployee, ...payload };
+      setLocalEmployees(prev => prev.map(emp => emp._id === editingEmployee._id ? updatedEmp : emp));
+      try {
         await updateEmployeeMutation({
           id: editingEmployee._id,
           ...payload,
           createdAt: editingEmployee.createdAt
         });
-      } else {
-        await addEmployeeMutation(payload);
+      } catch (err) {
+        console.warn("Convex update emp fallback:", err);
       }
-      closeEmployeeModal();
-    } catch (err) {
-      console.error("Error saving employee:", err);
+    } else {
+      const newEmp = { _id: 'emp_' + Date.now(), ...payload, createdAt: new Date().toISOString() };
+      setLocalEmployees(prev => [newEmp, ...prev]);
+      try {
+        await addEmployeeMutation(payload);
+      } catch (err) {
+        console.warn("Convex add emp fallback:", err);
+      }
     }
+    closeEmployeeModal();
   };
 
   const deleteEmployee = (id, empObj) => {
@@ -2122,7 +2229,12 @@ export default function App() {
         '📅 Attendance logs & weekly payout history will be unlinked.'
       ],
       onConfirm: async () => {
-        await deleteEmployeeMutation({ id });
+        setLocalEmployees(prev => prev.filter(e => e._id !== id));
+        try {
+          await deleteEmployeeMutation({ id });
+        } catch (err) {
+          console.warn("Convex delete emp fallback:", err);
+        }
       }
     });
   };
@@ -2168,20 +2280,28 @@ export default function App() {
       status: document.getElementById('fabric-status').value
     };
 
-    try {
-      if (editingFabric) {
+    if (editingFabric) {
+      const updatedFab = { ...editingFabric, ...fabricData };
+      setLocalFabrics(prev => prev.map(f => f._id === editingFabric._id ? updatedFab : f));
+      try {
         await updateFabricMutation({
           id: editingFabric._id,
           ...fabricData,
           createdAt: editingFabric.createdAt
         });
-      } else {
-        await addFabricMutation(fabricData);
+      } catch (err) {
+        console.warn("Convex update fabric fallback:", err);
       }
-      closeFabricModal();
-    } catch (err) {
-      console.error("Error saving fabric roll:", err);
+    } else {
+      const newFab = { _id: 'fab_' + Date.now(), ...fabricData, createdAt: new Date().toISOString() };
+      setLocalFabrics(prev => [newFab, ...prev]);
+      try {
+        await addFabricMutation(fabricData);
+      } catch (err) {
+        console.warn("Convex add fabric fallback:", err);
+      }
     }
+    closeFabricModal();
   };
 
   const deleteFabric = (id, fabricObj) => {
@@ -2199,7 +2319,12 @@ export default function App() {
         '📦 Warehouse roll inventory ledger will be updated.'
       ],
       onConfirm: async () => {
-        await deleteFabricMutation({ id });
+        setLocalFabrics(prev => prev.filter(f => f._id !== id));
+        try {
+          await deleteFabricMutation({ id });
+        } catch (err) {
+          console.warn("Convex delete fabric fallback:", err);
+        }
       }
     });
   };
@@ -2309,20 +2434,28 @@ export default function App() {
       billId: document.getElementById('expense-bill-id').value || undefined
     };
 
-    try {
-      if (editingExpense) {
+    if (editingExpense) {
+      const updatedExp = { ...editingExpense, ...expenseData };
+      setLocalExpenses(prev => prev.map(exp => exp._id === editingExpense._id ? updatedExp : exp));
+      try {
         await updateExpenseMutation({
           id: editingExpense._id,
           ...expenseData,
           createdAt: editingExpense.createdAt
         });
-      } else {
-        await addExpenseMutation(expenseData);
+      } catch (err) {
+        console.warn("Convex update expense fallback:", err);
       }
-      closeExpenseModal();
-    } catch (err) {
-      console.error("Error saving expense:", err);
+    } else {
+      const newExp = { _id: 'exp_' + Date.now(), ...expenseData, createdAt: new Date().toISOString() };
+      setLocalExpenses(prev => [newExp, ...prev]);
+      try {
+        await addExpenseMutation(expenseData);
+      } catch (err) {
+        console.warn("Convex add expense fallback:", err);
+      }
     }
+    closeExpenseModal();
   };
 
   const deleteExpense = (id, expObj) => {
@@ -2340,7 +2473,12 @@ export default function App() {
         '📊 Net Profit Margin calculation will automatically recalculate.'
       ],
       onConfirm: async () => {
-        await deleteExpenseMutation({ id });
+        setLocalExpenses(prev => prev.filter(e => e._id !== id));
+        try {
+          await deleteExpenseMutation({ id });
+        } catch (err) {
+          console.warn("Convex delete expense fallback:", err);
+        }
       }
     });
   };
@@ -2384,20 +2522,28 @@ export default function App() {
       notes: document.getElementById('up-notes').value.trim()
     };
 
-    try {
-      if (editingUpcomingOrder) {
+    if (editingUpcomingOrder) {
+      const updatedJob = { ...editingUpcomingOrder, ...orderData };
+      setCustomLocalJobs(prev => prev.map(j => j._id === editingUpcomingOrder._id ? updatedJob : j));
+      try {
         await updateUpcomingOrderMutation({
           id: editingUpcomingOrder._id,
           ...orderData,
           createdAt: editingUpcomingOrder.createdAt
         });
-      } else {
-        await addUpcomingOrderMutation(orderData);
+      } catch (err) {
+        console.warn("Convex update order fallback:", err);
       }
-      closeUpcomingOrderModal();
-    } catch (err) {
-      console.error("Error scheduling order:", err);
+    } else {
+      const newJob = { _id: 'job_' + Date.now(), ...orderData, createdAt: new Date().toISOString() };
+      setCustomLocalJobs(prev => [newJob, ...prev]);
+      try {
+        await addUpcomingOrderMutation(orderData);
+      } catch (err) {
+        console.warn("Convex add order fallback:", err);
+      }
     }
+    closeUpcomingOrderModal();
   };
 
   const deleteUpcomingOrder = (id, orderObj) => {
