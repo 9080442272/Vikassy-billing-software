@@ -622,8 +622,7 @@ export default function App() {
 
   // Employee Action Modals & Records
   const [isAttendanceModalOpen, setIsAttendanceModalOpen] = useState(false);
-  const [isAdvanceModalOpen, setIsAdvanceModalOpen] = useState(false);
-  const [advSelectedJob, setAdvSelectedJob] = useState('');
+  const [advSelectedJobs, setAdvSelectedJobs] = useState([]);
   const [advSelectedClient, setAdvSelectedClient] = useState('');
   const [isDisbursePayrollModalOpen, setIsDisbursePayrollModalOpen] = useState(false);
 
@@ -8673,7 +8672,7 @@ export default function App() {
               const mode = form.mode.value;
               const notes = form.notes.value;
               const date = form.date.value;
-              const linkedJobOrder = form.linkedJobOrder?.value || '';
+              const linkedJobOrders = advSelectedJobs.join(', ');
               const linkedClient = form.linkedClient?.value || '';
 
               const newAdv = {
@@ -8683,7 +8682,8 @@ export default function App() {
                 type,
                 amount,
                 mode,
-                linkedJobOrder,
+                linkedJobOrders: advSelectedJobs,
+                linkedJobOrder: linkedJobOrders,
                 linkedClient,
                 notes
               };
@@ -8692,7 +8692,7 @@ export default function App() {
 
               // Automatically log as expense entry
               try {
-                const linkMeta = [linkedJobOrder, linkedClient].filter(Boolean).join(' • ');
+                const linkMeta = [linkedJobOrders, linkedClient].filter(Boolean).join(' • ');
                 await addExpenseMutation({
                   category: "Employee Salary Advances",
                   amount: amount,
@@ -8714,32 +8714,54 @@ export default function App() {
                   </select>
                 </div>
 
-                {/* Job Order & Client Linking Options */}
+                {/* Job Orders & Client Linking Options */}
                 <div className="form-group">
-                  <label style={{ fontWeight: 600 }}>Link to Production Job Order / Style (Optional)</label>
-                  <select 
-                    name="linkedJobOrder"
-                    value={advSelectedJob}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setAdvSelectedJob(val);
-                      const foundJob = customLocalJobs.find(j => (j.styleNumber ? `Style ${j.styleNumber}` : j.orderTitle) === val);
-                      if (foundJob && foundJob.clientName) {
-                        setAdvSelectedClient(foundJob.clientName);
-                      }
-                    }}
-                    style={{ fontSize: '13.5px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}
-                  >
-                    <option value="">-- Select Linked Job Order (General Advance) --</option>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label style={{ fontWeight: 600, margin: 0 }}>Link to Production Job Orders / Styles (Optional)</label>
+                    {advSelectedJobs.length > 0 && (
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#4F46E5', backgroundColor: '#EEF2FF', border: '1px solid #C7D2FE', padding: '2px 8px', borderRadius: '6px', fontFamily: 'var(--font-mono)' }}>
+                        {advSelectedJobs.length} Orders Selected
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ maxHeight: '140px', overflowY: 'auto', border: '1px solid #CBD5E1', borderRadius: '10px', padding: '8px 12px', backgroundColor: '#FFFFFF', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     {customLocalJobs.map(j => {
                       const title = j.styleNumber ? `Style ${j.styleNumber}` : j.orderTitle;
+                      const isSelected = advSelectedJobs.includes(title);
                       return (
-                        <option key={j._id} value={title}>
-                          📦 {title} {j.clientName ? `(${j.clientName})` : ''} — {(j.orderQty || j.quantity || 0).toLocaleString()} Pcs
-                        </option>
+                        <label key={j._id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer', padding: '4px 6px', borderRadius: '6px', backgroundColor: isSelected ? '#F0F5FF' : 'transparent', transition: 'background 0.15s ease' }}>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => {
+                              let updated = [];
+                              if (e.target.checked) {
+                                updated = [...advSelectedJobs, title];
+                              } else {
+                                updated = advSelectedJobs.filter(t => t !== title);
+                              }
+                              setAdvSelectedJobs(updated);
+
+                              const matchingClients = customLocalJobs
+                                .filter(job => updated.includes(job.styleNumber ? `Style ${job.styleNumber}` : job.orderTitle))
+                                .map(job => job.clientName)
+                                .filter(Boolean);
+                              if (matchingClients.length > 0 && !advSelectedClient) {
+                                setAdvSelectedClient(matchingClients[0]);
+                              }
+                            }}
+                            style={{ width: '16px', height: '16px', accentColor: '#4F46E5', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontWeight: isSelected ? 700 : 500, color: isSelected ? '#1E40AF' : '#374151' }}>
+                            📦 {title} {j.clientName ? `(${j.clientName})` : ''} — {(j.orderQty || j.quantity || 0).toLocaleString()} Pcs
+                          </span>
+                        </label>
                       );
                     })}
-                  </select>
+                    {customLocalJobs.length === 0 && (
+                      <div style={{ fontSize: '12px', color: '#9CA3AF', padding: '4px' }}>No production job orders found.</div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="form-group">
