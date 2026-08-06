@@ -3908,10 +3908,7 @@ export default function App() {
                     {/* Business Switcher Dropdown */}
                     <select 
                       value={activeCompany.id} 
-                      onChange={(e) => {
-                        const comp = companyBranches.find(c => c.id === e.target.value);
-                        if (comp) setActiveCompany(comp);
-                      }}
+                      onChange={(e) => setActiveCompanyId(e.target.value)}
                       style={{
                         padding: '8px 12px',
                         borderRadius: '10px',
@@ -3923,7 +3920,7 @@ export default function App() {
                         cursor: 'pointer'
                       }}
                     >
-                      {companyBranches.map(b => (
+                      {companies.map(b => (
                         <option key={b.id} value={b.id}>{b.name} ({b.city})</option>
                       ))}
                     </select>
