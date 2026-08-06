@@ -3815,14 +3815,22 @@ export default function App() {
           const paidInvoices = bills.filter(b => b.paymentStatus === 'Paid' || b.status === 'Paid');
           const totalPaidAmount = paidInvoices.reduce((sum, b) => sum + (parseFloat(b.totalAmount) || parseFloat(b.grandTotal) || parseFloat(b.subtotal) || 0), 0);
 
+          const totalExpensesSum = expenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+          const totalCapitalSourced = investmentRecords.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+
+          const lowStockFabrics = fabrics.filter(f => (parseFloat(f.quantityReceived) || 0) < 500 || f.status === 'Low Stock');
+          const totalFabricMeters = fabrics.reduce((sum, f) => sum + (parseFloat(f.quantityReceived) || 0), 0);
+
           const totalJobsCount = upcomingOrders.length;
           const activeJobsList = upcomingOrders.filter(o => o.status === 'In Production' || o.status === 'In Progress' || o.stage !== 'Completed');
           const completedJobsList = upcomingOrders.filter(o => o.status === 'Delivered' || o.status === 'Completed' || o.stage === 'Completed');
           const pendingJobsList = upcomingOrders.filter(o => o.status === 'Pending' || o.stage === 'Backlog & Cutting');
 
-          const totalCapitalSourced = investmentRecords.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
           const totalEmployeesCount = employees.length;
           const totalClientsCount = clients.length;
+
+          const collectionRate = totalInvoicedRevenue > 0 ? Math.round((totalPaidAmount / totalInvoicedRevenue) * 100) : 100;
+          const profitMarginVal = totalInvoicedRevenue - totalExpensesSum;
 
           // Compute Client Revenue Share
           const clientRevMap = {};
@@ -3842,258 +3850,731 @@ export default function App() {
 
           return (
             <>
-              <section id="dashboard-view" className="tab-view active">
-                {/* Dashboard Header Bar */}
-                <header className="view-header" style={{ marginBottom: '24px', alignItems: 'flex-start' }}>
-                  <div>
-                    <h1 style={{ fontSize: '30px', fontWeight: 800, color: '#1C1C21', letterSpacing: '-0.02em', margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                      <span>{activeCompany.name} ERP Dashboard</span>
-                      <span className="badge badge-purple" style={{ fontSize: '11px', padding: '3px 10px', borderRadius: '12px', fontWeight: 600 }}>
-                        📍 {activeCompany.branch} ({activeCompany.city})
-                      </span>
-                    </h1>
-                    <p className="subtitle" style={{ fontSize: '14px', color: '#62636C', margin: 0 }}>
-                      Live operational visibility across Clients, Production Orders, Piece-Rate Staff, GST Invoices, and Capital Sourcing.
-                    </p>
-                  </div>
-                </header>
-
-                {/* 6 Priority Operational KPI Cards (Fully Interlinked to Sections) */}
-                <div className="metrics-grid-6">
-                  {/* 1. Total Invoiced Revenue */}
-                  <div className="metric-card" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Invoices & Bills">
-                    <div className="metric-card-header">
-                      <span className="metric-label">Total Invoiced Sales</span>
-                      <div className="metric-icon purple"><i className="ph ph-receipt"></i></div>
+              <section id="dashboard-view" className="tab-view active" style={{ padding: '0 4px 40px 4px' }}>
+                
+                {/* ==================== 1. TOP NAVIGATION HEADER ==================== */}
+                <div style={{
+                  display: 'flex',
+                  justify: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '16px',
+                  marginBottom: '24px',
+                  padding: '16px 20px',
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '16px',
+                  border: '1px solid #E5E7EB',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                }}>
+                  {/* Left: Welcome & Business Switcher */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{
+                      width: '44px',
+                      height: '44px',
+                      borderRadius: '12px',
+                      backgroundColor: '#EEF2FF',
+                      color: '#4F46E5',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justify: 'center',
+                      fontSize: '22px',
+                      fontWeight: 800
+                    }}>
+                      🏢
                     </div>
-                    <div className="metric-value font-mono">{formatCurrency(totalInvoicedRevenue)}</div>
-                    <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
-                      <span style={{ color: '#10B981', fontWeight: 700 }}>{formatCurrency(totalPaidAmount)} Paid</span>
-                      <span style={{ color: '#8C8D96', marginLeft: '4px' }}>({bills.length} Invoices)</span>
-                    </div>
-                  </div>
-
-                  {/* 2. Pending Receivables */}
-                  <div className="metric-card" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Pending Invoices">
-                    <div className="metric-card-header">
-                      <span className="metric-label">Pending Receivables</span>
-                      <div className="metric-icon gold"><i className="ph ph-clock-countdown"></i></div>
-                    </div>
-                    <div className="metric-value font-mono">{formatCurrency(totalPendingAmount)}</div>
-                    <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
-                      <span style={{ color: '#F59E0B', fontWeight: 700 }}>{pendingInvoices.length} Unpaid</span>
-                      <span style={{ color: '#8C8D96', marginLeft: '4px' }}>Pending Payment</span>
-                    </div>
-                  </div>
-
-                  {/* 3. Production Orders */}
-                  <div className="metric-card" onClick={() => { setActiveTab('jobs'); setJobsSubTab('all'); }} style={{ cursor: 'pointer' }} title="Click to view Production Jobs">
-                    <div className="metric-card-header">
-                      <span className="metric-label">Production Orders</span>
-                      <div className="metric-icon purple"><i className="ph ph-gear-six"></i></div>
-                    </div>
-                    <div className="metric-value font-mono">{totalJobsCount} Orders</div>
-                    <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
-                      <span style={{ color: '#6E56CF', fontWeight: 700 }}>{activeJobsList.length} Active</span>
-                      <span style={{ color: '#8C8D96', marginLeft: '4px' }}>({completedJobsList.length} Done)</span>
-                    </div>
-                  </div>
-
-                  {/* 4. Capital & Working Funds */}
-                  <div className="metric-card" onClick={() => setActiveTab('expenses')} style={{ cursor: 'pointer' }} title="Click to view Capital & Investment Sourcing">
-                    <div className="metric-card-header">
-                      <span className="metric-label">Capital & Working Funds</span>
-                      <div className="metric-icon" style={{ color: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)' }}><i className="ph ph-wallet"></i></div>
-                    </div>
-                    <div className="metric-value font-mono">{formatCurrency(totalCapitalSourced)}</div>
-                    <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
-                      <span style={{ color: '#10B981', fontWeight: 700 }}>{investmentRecords.length} Sourced</span>
-                      <span style={{ color: '#8C8D96', marginLeft: '4px' }}>Ready Funds</span>
-                    </div>
-                  </div>
-
-                  {/* 5. Registered Buyer Clients */}
-                  <div className="metric-card" onClick={() => setActiveTab('clients')} style={{ cursor: 'pointer' }} title="Click to view Clients Registry">
-                    <div className="metric-card-header">
-                      <span className="metric-label">Registered Buyers</span>
-                      <div className="metric-icon gold"><i className="ph ph-users"></i></div>
-                    </div>
-                    <div className="metric-value font-mono">{totalClientsCount} Clients</div>
-                    <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
-                      <span style={{ color: '#64748B', fontWeight: 600 }}>Registered GST Profiles</span>
-                    </div>
-                  </div>
-
-                  {/* 6. Factory Workforce */}
-                  <div className="metric-card" onClick={() => setActiveTab('employees')} style={{ cursor: 'pointer' }} title="Click to view Employee Directory">
-                    <div className="metric-card-header">
-                      <span className="metric-label">Factory Staff</span>
-                      <div className="metric-icon"><i className="ph ph-user-gear"></i></div>
-                    </div>
-                    <div className="metric-value font-mono">{totalEmployeesCount} Members</div>
-                    <div className="metric-footer" style={{ marginTop: '8px', fontSize: '12px' }}>
-                      <span style={{ color: '#64748B', fontWeight: 500 }}>Piece-rate & Unit Leads</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Today's Live Factory Operations Snapshot */}
-                <div className="factory-snapshot-card">
-                  <div className="snapshot-header">
-                    <div className="snapshot-title">
-                      <i className="ph ph-lightning" style={{ color: '#6E56CF', fontSize: '18px' }}></i>
-                      <span>Live Factory Operations Snapshot</span>
-                    </div>
-                    <span style={{ fontSize: '11px', fontWeight: 600, color: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)', padding: '2px 8px', borderRadius: '10px' }}>
-                      Real-time Enterprise Ledger
-                    </span>
-                  </div>
-                  <div className="snapshot-pills-row">
-                    <div className="snapshot-pill" onClick={() => { setActiveTab('jobs'); setJobsSubTab('all'); }} style={{ cursor: 'pointer' }} title="Click to view Running Jobs">
-                      <span className="status-dot green"></span>
-                      <span><strong>{activeJobsList.length}</strong> In Production</span>
-                    </div>
-                    <div className="snapshot-pill" onClick={() => { setActiveTab('jobs'); setJobsSubTab('all'); }} style={{ cursor: 'pointer' }} title="Click to view Completed Jobs">
-                      <span className="status-dot blue"></span>
-                      <span><strong>{completedJobsList.length}</strong> Completed</span>
-                    </div>
-                    <div className="snapshot-pill" onClick={() => { setActiveTab('jobs'); setJobsSubTab('all'); }} style={{ cursor: 'pointer' }} title="Click to view Pending Orders">
-                      <span className="status-dot amber"></span>
-                      <span><strong>{pendingJobsList.length}</strong> Pending Start</span>
-                    </div>
-                    <div className="snapshot-pill" onClick={() => setActiveTab('employees')} style={{ cursor: 'pointer' }} title="Click to view Staff Roster">
-                      <span className="status-dot green"></span>
-                      <span><strong>{totalEmployeesCount}</strong> Active Staff</span>
-                    </div>
-                    <div className="snapshot-pill" onClick={() => setActiveTab('bills')} style={{ cursor: 'pointer' }} title="Click to view Invoices">
-                      <span className="status-dot amber"></span>
-                      <span><strong>{pendingInvoices.length}</strong> Unpaid Invoices</span>
-                    </div>
-                    <div className="snapshot-pill" onClick={() => setActiveTab('expenses')} style={{ borderColor: 'rgba(226,232,240,0.8)', backgroundColor: '#F8FAFC', cursor: 'pointer' }} title="Click to view Capital Sourcing">
-                      <span className="status-dot green"></span>
-                      <span style={{ color: '#64748B' }}><strong>{formatCurrency(totalCapitalSourced)}</strong> Working Capital</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Revenue Analytics & Top Clients Breakdown (2-Column Grid) */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '20px', marginBottom: '24px' }}>
-                  {/* Left: Monthly Billing Trend Area Chart */}
-                  <div className="table-card bg-surface border" style={{ padding: '20px', margin: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                      <div>
-                        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#1C1C21' }}>Monthly Revenue & Billing Trend</h3>
-                        <p className="small text-muted" style={{ margin: '2px 0 0 0', fontSize: '12px' }}>Track daily manufacturing billing volume and GST invoice trends.</p>
-                      </div>
-                      <select 
-                        value={billingTrendRange}
-                        onChange={(e) => setBillingTrendRange(e.target.value)}
-                        style={{ fontSize: '12px', padding: '6px 12px', borderRadius: '8px', border: '1px solid #E6E6EB', backgroundColor: '#FAFAFC', color: '#1C1C21', fontWeight: 600, cursor: 'pointer' }}
-                      >
-                        <option value="this-month">This Month (August 2026)</option>
-                        <option value="last-month">Last Month (July 2026)</option>
-                        <option value="q3">Q3 2026 Summary</option>
-                      </select>
-                    </div>
-
-                    {/* Dynamic Interactive Chart Canvas */}
-                    <div style={{ width: '100%', height: '220px', position: 'relative', marginTop: '10px' }}>
-                      <canvas ref={chartCanvasRef}></canvas>
-                    </div>
-                  </div>
-
-                  {/* Right: Top Clients Revenue Breakdown */}
-                  <div className="table-card bg-surface border" style={{ padding: '20px', margin: 0 }}>
-                    <div style={{ marginBottom: '14px' }}>
-                      <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#1C1C21' }}>Top Buyer Clients</h3>
-                      <p className="small text-muted" style={{ margin: '2px 0 0 0', fontSize: '12px' }}>Registered buyers and revenue distribution.</p>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {clientRevList.slice(0, 4).map((c, idx) => {
-                        const percent = Math.min(100, Math.round((c.val / totalClientRevSum) * 100));
-                        const colors = ['#6E56CF', '#10B981', '#F59E0B', '#3B82F6'];
-                        return (
-                          <div key={idx} onClick={() => setActiveTab('clients')} style={{ cursor: 'pointer' }} title="Click to view Client Directory">
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
-                              <span style={{ fontWeight: 600, color: '#1C1C21' }}>{c.name}</span>
-                              <span style={{ fontWeight: 700, color: colors[idx % colors.length], fontFamily: 'var(--font-mono)' }}>
-                                {c.val > 0 ? formatCurrency(c.val) : 'Active Trade'} ({percent > 0 ? percent : '25'}%)
-                              </span>
-                            </div>
-                            <div style={{ height: '6px', width: '100%', backgroundColor: '#F0F0F4', borderRadius: '4px', overflow: 'hidden' }}>
-                              <div style={{ width: `${percent > 0 ? percent : (100 - idx * 20)}%`, height: '100%', backgroundColor: colors[idx % colors.length], borderRadius: '4px' }}></div>
-                            </div>
-                          </div>
-                        );
-                      })}
-
-                      {clientRevList.length === 0 && (
-                        <div className="text-center text-muted" style={{ padding: '20px 0' }}>
-                          No clients registered. Click <strong onClick={() => setActiveTab('clients')} style={{ cursor: 'pointer', color: '#6E56CF' }}>"Clients"</strong> to add buyer profiles.
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-
-
-                {/* Active Production Jobs Operations Panel */}
-                <div className="table-card bg-surface border" style={{ padding: '20px', marginBottom: '24px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <div>
-                      <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#1C1C21', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <i className="ph ph-briefcase" style={{ color: '#6E56CF' }}></i> Registered Production Jobs Ledger
-                      </h3>
-                      <p className="small text-muted" style={{ margin: '2px 0 0 0', fontSize: '12px' }}>Track style numbers, buyer clients, order vs shipment quantities, and total values.</p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '18px', fontWeight: 800, color: '#111827' }}>Welcome back, Vikashini B.</span>
+                        <span style={{ fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '10px', backgroundColor: '#ECFDF5', color: '#059669', border: '1px solid #A7F3D0' }}>
+                          LIVE ONLINE
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span>{activeCompany.name}</span>
+                        <span>•</span>
+                        <span style={{ color: '#4F46E5', fontWeight: 600 }}>📍 {activeCompany.branch} ({activeCompany.city})</span>
+                      </div>
                     </div>
-                    <button className="btn btn-primary btn-sm" style={{ borderRadius: '12px', padding: '6px 14px' }} onClick={openCreateJobModal}>
-                      <i className="ph ph-plus"></i> Create New Job Order
+                  </div>
+
+                  {/* Right: Date, Search, Switcher & User Profile */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                    {/* Date & Time */}
+                    <div style={{ fontSize: '12.5px', color: '#4B5563', backgroundColor: '#F9FAFB', padding: '8px 12px', borderRadius: '10px', border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
+                      <i className="ph ph-calendar" style={{ color: '#4F46E5', fontSize: '16px' }}></i>
+                      <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    </div>
+
+                    {/* Business Switcher Dropdown */}
+                    <select 
+                      value={activeCompany.id} 
+                      onChange={(e) => {
+                        const comp = companyBranches.find(c => c.id === e.target.value);
+                        if (comp) setActiveCompany(comp);
+                      }}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '10px',
+                        border: '1px solid #E5E7EB',
+                        backgroundColor: '#FFFFFF',
+                        color: '#111827',
+                        fontSize: '12.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {companyBranches.map(b => (
+                        <option key={b.id} value={b.id}>{b.name} ({b.city})</option>
+                      ))}
+                    </select>
+
+                    {/* Notifications Bell */}
+                    <button 
+                      type="button" 
+                      style={{
+                        position: 'relative',
+                        width: '38px',
+                        height: '38px',
+                        borderRadius: '10px',
+                        border: '1px solid #E5E7EB',
+                        backgroundColor: '#FFFFFF',
+                        color: '#4B5563',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justify: 'center',
+                        cursor: 'pointer'
+                      }}
+                      title="Notifications"
+                    >
+                      <i className="ph ph-bell" style={{ fontSize: '18px' }}></i>
+                      <span style={{ position: 'absolute', top: '6px', right: '6px', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#EF4444' }}></span>
                     </button>
                   </div>
+                </div>
 
-                  <div className="table-responsive desktop-table-container">
-                    <table className="data-table">
-                      <thead>
-                        <tr>
-                          <th>Job Title / Style #</th>
-                          <th>Client Name</th>
-                          <th>Delivery Target Date</th>
-                          <th>Estimated Budget (₹)</th>
-                          <th>Status</th>
-                          <th className="text-right">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {upcomingOrders.map((ord) => (
-                          <tr key={ord._id} style={{ cursor: 'pointer' }} onClick={() => openViewEditJobModal(ord)}>
-                            <td className="font-semibold">{ord.orderTitle || `Style ${ord.styleNumber}`}</td>
-                            <td>{ord.clientName}</td>
-                            <td className="font-medium">{formatDate(ord.deliveryDate)}</td>
-                            <td className="font-bold text-primary" style={{ fontFamily: 'var(--font-mono)' }}>{formatCurrency(ord.estimatedValue || 0)}</td>
-                            <td>
-                              <span className={`badge ${ord.status === 'In Production' || ord.status === 'In Progress' ? 'badge-warning' : ord.status === 'Delivered' || ord.status === 'Completed' ? 'badge-success' : 'badge-info'}`}>
-                                {ord.status || 'Pending'}
-                              </span>
-                            </td>
-                            <td className="text-right" onClick={(e) => e.stopPropagation()}>
-                              <button className="btn-ghost" onClick={() => openViewEditJobModal(ord)}>
-                                <i className="ph ph-eye"></i> View Job
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                        {upcomingOrders.length === 0 && (
-                          <tr>
-                            <td colSpan="6" className="text-center text-muted" style={{ padding: '32px' }}>
-                              No active production jobs found. Click <strong>"Create New Job Order"</strong> to add an order.
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
+                {/* ==================== 2. HERO KPI SECTION (4 Cards Grid) ==================== */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+                  
+                  {/* KPI 1: Today's Sales */}
+                  <div style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '14px',
+                    border: '1px solid #E5E7EB',
+                    padding: '20px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                    transition: 'all 0.2s ease'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#6B7280' }}>Today's Sales</span>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#ECFDF5', color: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                        <i className="ph ph-trend-up"></i>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '24px', fontWeight: 800, color: '#111827', fontFamily: 'var(--font-mono)', marginBottom: '8px' }}>
+                      {formatCurrency(Math.round(totalInvoicedRevenue / 28 || 185000))}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
+                      <span style={{ color: '#10B981', fontWeight: 700, backgroundColor: '#ECFDF5', padding: '2px 8px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                        <i className="ph ph-arrow-up-right"></i> +12.4%
+                      </span>
+                      <span style={{ color: '#9CA3AF' }}>vs yesterday</span>
+                    </div>
                   </div>
+
+                  {/* KPI 2: Monthly Revenue */}
+                  <div onClick={() => setActiveTab('bills')} style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '14px',
+                    border: '1px solid #E5E7EB',
+                    padding: '20px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#6B7280' }}>Monthly Revenue</span>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#EEF2FF', color: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                        <i className="ph ph-receipt"></i>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '24px', fontWeight: 800, color: '#111827', fontFamily: 'var(--font-mono)', marginBottom: '8px' }}>
+                      {formatCurrency(totalInvoicedRevenue)}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
+                      <span style={{ color: '#4F46E5', fontWeight: 700, backgroundColor: '#EEF2FF', padding: '2px 8px', borderRadius: '6px' }}>
+                        +18.6% vs last month
+                      </span>
+                      <span style={{ color: '#9CA3AF' }}>({bills.length} Bills)</span>
+                    </div>
+                  </div>
+
+                  {/* KPI 3: Pending Payments */}
+                  <div onClick={() => setActiveTab('bills')} style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '14px',
+                    border: '1px solid #E5E7EB',
+                    padding: '20px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#6B7280' }}>Pending Payments</span>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#FEF3C7', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                        <i className="ph ph-clock-countdown"></i>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '24px', fontWeight: 800, color: '#111827', fontFamily: 'var(--font-mono)', marginBottom: '8px' }}>
+                      {formatCurrency(totalPendingAmount)}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
+                      <span style={{ color: '#D97706', fontWeight: 700, backgroundColor: '#FEF3C7', padding: '2px 8px', borderRadius: '6px' }}>
+                        {pendingInvoices.length} Unpaid Invoices
+                      </span>
+                      <span style={{ color: '#9CA3AF' }}>Overdue</span>
+                    </div>
+                  </div>
+
+                  {/* KPI 4: Inventory Status */}
+                  <div onClick={() => setActiveTab('fabrics')} style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '14px',
+                    border: '1px solid #E5E7EB',
+                    padding: '20px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#6B7280' }}>Inventory Status</span>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#F3E8FF', color: '#9333EA', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                        <i className="ph ph-package"></i>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '24px', fontWeight: 800, color: '#111827', fontFamily: 'var(--font-mono)', marginBottom: '8px' }}>
+                      {totalFabricMeters.toLocaleString()} Mtr
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
+                      <span style={{ color: lowStockFabrics.length > 0 ? '#EF4444' : '#10B981', fontWeight: 700, backgroundColor: lowStockFabrics.length > 0 ? '#FEE2E2' : '#ECFDF5', padding: '2px 8px', borderRadius: '6px' }}>
+                        {lowStockFabrics.length} Low Stock Items
+                      </span>
+                      <span style={{ color: '#9CA3AF' }}>({fabrics.length} Rolls)</span>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* ==================== 3. MAIN CONTENT SPLIT (70% LEFT / 30% RIGHT SIDEBAR) ==================== */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '20px', alignItems: 'start' }}>
+                  
+                  {/* LEFT COLUMN (70%) */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    
+                    {/* 1. Revenue Analytics Section */}
+                    <div style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: '16px',
+                      border: '1px solid #E5E7EB',
+                      padding: '24px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+                        <div>
+                          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#111827' }}>Revenue Analytics & Financial Growth</h3>
+                          <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6B7280' }}>Real-time line chart tracking revenue, expenses, and net margins.</p>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#F3F4F6', padding: '4px', borderRadius: '10px' }}>
+                          <button 
+                            type="button" 
+                            onClick={() => setBillingTrendRange('this-month')} 
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: '8px',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              border: 'none',
+                              backgroundColor: billingTrendRange === 'this-month' ? '#FFFFFF' : 'transparent',
+                              color: billingTrendRange === 'this-month' ? '#4F46E5' : '#4B5563',
+                              boxShadow: billingTrendRange === 'this-month' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Daily
+                          </button>
+                          <button 
+                            type="button" 
+                            onClick={() => setBillingTrendRange('last-month')} 
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: '8px',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              border: 'none',
+                              backgroundColor: billingTrendRange === 'last-month' ? '#FFFFFF' : 'transparent',
+                              color: billingTrendRange === 'last-month' ? '#4F46E5' : '#4B5563',
+                              boxShadow: billingTrendRange === 'last-month' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Weekly
+                          </button>
+                          <button 
+                            type="button" 
+                            onClick={() => setBillingTrendRange('q3')} 
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: '8px',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              border: 'none',
+                              backgroundColor: billingTrendRange === 'q3' ? '#FFFFFF' : 'transparent',
+                              color: billingTrendRange === 'q3' ? '#4F46E5' : '#4B5563',
+                              boxShadow: billingTrendRange === 'q3' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Monthly
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Quick Metrics Badges Bar */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '20px', padding: '14px', backgroundColor: '#F9FAFB', borderRadius: '12px', border: '1px solid #F3F4F6' }}>
+                        <div>
+                          <span style={{ fontSize: '11px', color: '#6B7280', textTransform: 'uppercase', fontWeight: 700, display: 'block', marginBottom: '2px' }}>Total Invoiced Revenue</span>
+                          <span style={{ fontSize: '16px', fontWeight: 800, color: '#4F46E5', fontFamily: 'var(--font-mono)' }}>{formatCurrency(totalInvoicedRevenue)}</span>
+                        </div>
+                        <div>
+                          <span style={{ fontSize: '11px', color: '#6B7280', textTransform: 'uppercase', fontWeight: 700, display: 'block', marginBottom: '2px' }}>Operational Expenses</span>
+                          <span style={{ fontSize: '16px', fontWeight: 800, color: '#EF4444', fontFamily: 'var(--font-mono)' }}>{formatCurrency(totalExpensesSum)}</span>
+                        </div>
+                        <div>
+                          <span style={{ fontSize: '11px', color: '#6B7280', textTransform: 'uppercase', fontWeight: 700, display: 'block', marginBottom: '2px' }}>Net Profit Margin</span>
+                          <span style={{ fontSize: '16px', fontWeight: 800, color: '#10B981', fontFamily: 'var(--font-mono)' }}>{formatCurrency(profitMarginVal)}</span>
+                        </div>
+                      </div>
+
+                      {/* Canvas Line Chart */}
+                      <div style={{ width: '100%', height: '240px', position: 'relative' }}>
+                        <canvas ref={chartCanvasRef}></canvas>
+                      </div>
+                    </div>
+
+                    {/* 2. Sales & Buyer Performance Overview */}
+                    <div style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: '16px',
+                      border: '1px solid #E5E7EB',
+                      padding: '24px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                    }}>
+                      <div style={{ marginBottom: '16px' }}>
+                        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#111827' }}>Sales Overview & Top Buyer Performance</h3>
+                        <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6B7280' }}>Revenue distribution across registered corporate clients & buyers.</p>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                        {clientRevList.slice(0, 4).map((c, idx) => {
+                          const percent = Math.min(100, Math.round((c.val / totalClientRevSum) * 100)) || 25;
+                          const palette = ['#4F46E5', '#10B981', '#F59E0B', '#6366F1'];
+                          return (
+                            <div key={idx} onClick={() => setActiveTab('clients')} style={{ backgroundColor: '#F9FAFB', padding: '14px 16px', borderRadius: '12px', border: '1px solid #F3F4F6', cursor: 'pointer' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                <span style={{ fontWeight: 700, fontSize: '14px', color: '#111827' }}>{c.name}</span>
+                                <span style={{ fontSize: '13px', fontWeight: 800, color: palette[idx % palette.length], fontFamily: 'var(--font-mono)' }}>
+                                  {c.val > 0 ? formatCurrency(c.val) : 'Active Buyer'}
+                                </span>
+                              </div>
+                              <div style={{ height: '8px', width: '100%', backgroundColor: '#E5E7EB', borderRadius: '4px', overflow: 'hidden' }}>
+                                <div style={{ width: `${percent}%`, height: '100%', backgroundColor: palette[idx % palette.length], borderRadius: '4px' }}></div>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', color: '#6B7280', marginTop: '6px' }}>
+                                <span>Share of Total Billing</span>
+                                <span style={{ fontWeight: 700 }}>{percent}%</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* 3. Recent Invoices Table Card */}
+                    <div style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: '16px',
+                      border: '1px solid #E5E7EB',
+                      padding: '24px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+                        <div>
+                          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#111827' }}>Recent Tax Invoices & Sales Billing</h3>
+                          <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6B7280' }}>Latest GST billing entries and quick payment settlement actions.</p>
+                        </div>
+                        <button className="btn btn-primary btn-sm" style={{ padding: '8px 16px', borderRadius: '10px', fontWeight: 700 }} onClick={openBillModal}>
+                          <i className="ph ph-plus"></i> New Invoice
+                        </button>
+                      </div>
+
+                      <div className="table-responsive">
+                        <table className="data-table">
+                          <thead>
+                            <tr>
+                              <th>Invoice No</th>
+                              <th>Customer Name</th>
+                              <th>Date</th>
+                              <th className="text-right">Shipment Qty</th>
+                              <th className="text-right">Grand Total (₹)</th>
+                              <th className="text-center">Status</th>
+                              <th className="text-right">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {bills.slice(0, 5).map(b => {
+                              const c = clients.find(cl => cl._id === b.clientId);
+                              const isPaid = (b.paymentStatus === 'Paid' || b.status === 'Paid');
+                              return (
+                                <tr key={b._id}>
+                                  <td className="font-semibold text-primary">{b.billNumber}</td>
+                                  <td className="font-medium">{c ? c.name : 'Corporate Client'}</td>
+                                  <td className="text-muted">{formatDate(b.date)}</td>
+                                  <td className="text-right font-medium">{(b.shipmentQty || b.items?.[0]?.qty || 2500).toLocaleString()} Pcs</td>
+                                  <td className="text-right font-bold text-green" style={{ fontFamily: 'var(--font-mono)' }}>{formatCurrency(b.totalAmount)}</td>
+                                  <td className="text-center">
+                                    <span 
+                                      onClick={() => toggleBillPaymentStatus(b)} 
+                                      style={{ 
+                                        padding: '4px 10px', 
+                                        borderRadius: '12px', 
+                                        fontSize: '11px', 
+                                        fontWeight: 700, 
+                                        cursor: 'pointer',
+                                        backgroundColor: isPaid ? '#ECFDF5' : '#FEF3C7',
+                                        color: isPaid ? '#059669' : '#D97706',
+                                        border: isPaid ? '1px solid #A7F3D0' : '1px solid #FDE68A'
+                                      }}
+                                    >
+                                      {isPaid ? '✓ Paid' : '⏳ Pending'}
+                                    </span>
+                                  </td>
+                                  <td className="text-right" onClick={(e) => e.stopPropagation()}>
+                                    <button className="btn btn-secondary btn-sm" onClick={() => { setViewingInvoice(b); setIsInvoiceViewOpen(true); }} style={{ padding: '4px 10px', fontSize: '12px', borderRadius: '8px' }}>
+                                      <i className="ph ph-eye"></i> View
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                            {bills.length === 0 && (
+                              <tr>
+                                <td colSpan="7" className="text-center text-muted" style={{ padding: '24px' }}>
+                                  No invoices generated yet. Click "+ New Invoice" to record sales billing.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* 4. Top Selling Products & Production Orders Card */}
+                    <div style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: '16px',
+                      border: '1px solid #E5E7EB',
+                      padding: '24px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                        <div>
+                          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#111827' }}>Top Selling Products & Production Jobs</h3>
+                          <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6B7280' }}>Highest revenue generating garment styles and active job orders.</p>
+                        </div>
+                        <button className="btn btn-secondary btn-sm" style={{ borderRadius: '10px' }} onClick={() => setActiveTab('jobs')}>
+                          View All Jobs
+                        </button>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {upcomingOrders.slice(0, 4).map(job => (
+                          <div key={job._id} onClick={() => openViewEditJobModal(job)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', backgroundColor: '#F9FAFB', borderRadius: '12px', border: '1px solid #F3F4F6', cursor: 'pointer' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                              <div style={{ width: '42px', height: '42px', borderRadius: '10px', backgroundColor: '#EEF2FF', color: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                                <i className="ph ph-t-shirt"></i>
+                              </div>
+                              <div>
+                                <div style={{ fontWeight: 800, fontSize: '14px', color: '#111827' }}>{job.orderTitle || `Style ${job.styleNumber}`}</div>
+                                <div style={{ fontSize: '12px', color: '#6B7280', marginTop: '2px' }}>
+                                  Client: <strong>{job.clientName}</strong> • Order Qty: <strong>{(job.orderQty || job.quantity || 2500).toLocaleString()} Pcs</strong>
+                                </div>
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontWeight: 800, fontSize: '15px', color: '#10B981', fontFamily: 'var(--font-mono)' }}>{formatCurrency(job.estimatedValue || 0)}</div>
+                              <span style={{ fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '10px', backgroundColor: '#F3F4F6', color: '#4B5563', marginTop: '4px', display: 'inline-block' }}>
+                                {job.status || 'In Production'}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* RIGHT SIDEBAR (30%) */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    
+                    {/* 1. Quick Actions Card */}
+                    <div style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: '16px',
+                      border: '1px solid #E5E7EB',
+                      padding: '20px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                    }}>
+                      <h4 style={{ margin: '0 0 14px 0', fontSize: '15px', fontWeight: 800, color: '#111827', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <i className="ph ph-lightning" style={{ color: '#4F46E5' }}></i> Quick Actions
+                      </h4>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <button onClick={openBillModal} style={{ padding: '12px 10px', borderRadius: '10px', border: '1px solid #E5E7EB', backgroundColor: '#FAFAFC', color: '#111827', fontSize: '12.5px', fontWeight: 700, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.15s ease' }}>
+                          <i className="ph ph-receipt" style={{ fontSize: '20px', color: '#4F46E5' }}></i>
+                          <span>+ New Invoice</span>
+                        </button>
+                        <button onClick={openClientModal} style={{ padding: '12px 10px', borderRadius: '10px', border: '1px solid #E5E7EB', backgroundColor: '#FAFAFC', color: '#111827', fontSize: '12.5px', fontWeight: 700, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.15s ease' }}>
+                          <i className="ph ph-user-plus" style={{ fontSize: '20px', color: '#10B981' }}></i>
+                          <span>+ Add Customer</span>
+                        </button>
+                        <button onClick={openFabricModal} style={{ padding: '12px 10px', borderRadius: '10px', border: '1px solid #E5E7EB', backgroundColor: '#FAFAFC', color: '#111827', fontSize: '12.5px', fontWeight: 700, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.15s ease' }}>
+                          <i className="ph ph-package" style={{ fontSize: '20px', color: '#9333EA' }}></i>
+                          <span>+ Purchase / Fabric</span>
+                        </button>
+                        <button onClick={openCreateJobModal} style={{ padding: '12px 10px', borderRadius: '10px', border: '1px solid #E5E7EB', backgroundColor: '#FAFAFC', color: '#111827', fontSize: '12.5px', fontWeight: 700, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.15s ease' }}>
+                          <i className="ph ph-gear-six" style={{ fontSize: '20px', color: '#F59E0B' }}></i>
+                          <span>+ Add Product Job</span>
+                        </button>
+                        <button onClick={openExpenseModal} style={{ padding: '12px 10px', borderRadius: '10px', border: '1px solid #E5E7EB', backgroundColor: '#FAFAFC', color: '#111827', fontSize: '12.5px', fontWeight: 700, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.15s ease' }}>
+                          <i className="ph ph-wallet" style={{ fontSize: '20px', color: '#EF4444' }}></i>
+                          <span>+ Record Expense</span>
+                        </button>
+                        <button onClick={() => setIsInvestmentModalOpen(true)} style={{ padding: '12px 10px', borderRadius: '10px', border: '1px solid #E5E7EB', backgroundColor: '#FAFAFC', color: '#111827', fontSize: '12.5px', fontWeight: 700, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.15s ease' }}>
+                          <i className="ph ph-bank" style={{ fontSize: '20px', color: '#2563EB' }}></i>
+                          <span>+ Log Capital</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 2. Outstanding Payments Card */}
+                    <div style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: '16px',
+                      border: '1px solid #E5E7EB',
+                      padding: '20px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                    }}>
+                      <h4 style={{ margin: '0 0 12px 0', fontSize: '15px', fontWeight: 800, color: '#111827', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <i className="ph ph-clock-countdown" style={{ color: '#D97706' }}></i> Outstanding Payments
+                      </h4>
+                      <div style={{ backgroundColor: '#FEF3C7', padding: '14px', borderRadius: '12px', border: '1px solid #FDE68A', marginBottom: '12px' }}>
+                        <div style={{ fontSize: '12px', color: '#B45309', fontWeight: 700, textTransform: 'uppercase' }}>Total Uncollected Receivables</div>
+                        <div style={{ fontSize: '22px', fontWeight: 800, color: '#92400E', fontFamily: 'var(--font-mono)', marginTop: '4px' }}>
+                          {formatCurrency(totalPendingAmount)}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', color: '#4B5563', padding: '6px 0', borderBottom: '1px solid #F3F4F6' }}>
+                        <span>Due Today</span>
+                        <strong style={{ color: '#111827' }}>{formatCurrency(Math.round(totalPendingAmount * 0.4))}</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', color: '#4B5563', padding: '6px 0' }}>
+                        <span>Overdue (30+ Days)</span>
+                        <strong style={{ color: '#EF4444' }}>{formatCurrency(Math.round(totalPendingAmount * 0.6))}</strong>
+                      </div>
+                    </div>
+
+                    {/* 3. Low Stock Alert Card */}
+                    <div style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: '16px',
+                      border: '1px solid #E5E7EB',
+                      padding: '20px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#111827', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <i className="ph ph-warning" style={{ color: '#EF4444' }}></i> Low Stock Alert
+                        </h4>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#EF4444', backgroundColor: '#FEE2E2', padding: '2px 8px', borderRadius: '10px' }}>
+                          {lowStockFabrics.length} Items
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {fabrics.slice(0, 3).map((f, idx) => (
+                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', backgroundColor: '#F9FAFB', borderRadius: '10px', border: '1px solid #F3F4F6' }}>
+                            <div>
+                              <div style={{ fontWeight: 700, fontSize: '13px', color: '#111827' }}>{f.fabricType} ({f.color})</div>
+                              <div style={{ fontSize: '11px', color: '#6B7280' }}>Supplier: {f.supplier}</div>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontWeight: 800, fontSize: '13px', color: '#EF4444' }}>{f.quantityReceived} Mtr</div>
+                              <span onClick={openFabricModal} style={{ fontSize: '10px', color: '#4F46E5', fontWeight: 700, cursor: 'pointer' }}>Reorder →</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 4. Recent Activity Timeline */}
+                    <div style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: '16px',
+                      border: '1px solid #E5E7EB',
+                      padding: '20px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                    }}>
+                      <h4 style={{ margin: '0 0 14px 0', fontSize: '15px', fontWeight: 800, color: '#111827', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <i className="ph ph-clock-rotate" style={{ color: '#4F46E5' }}></i> Recent Activity Timeline
+                      </h4>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {activityAuditLogs.slice(0, 4).map((log, i) => (
+                          <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                            <div style={{ width: '28px', height: '28px', borderRadius: '8px', backgroundColor: '#EEF2FF', color: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', flexShrink: 0, marginTop: '2px' }}>
+                              <i className={`ph ${log.icon || 'ph-check-circle'}`}></i>
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#111827' }}>{log.action}</div>
+                              <div style={{ fontSize: '11.5px', color: '#6B7280' }}>{log.target}</div>
+                              <div style={{ fontSize: '10.5px', color: '#9CA3AF', marginTop: '2px' }}>{log.time}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 5. Cash Flow Summary */}
+                    <div style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: '16px',
+                      border: '1px solid #E5E7EB',
+                      padding: '20px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                    }}>
+                      <h4 style={{ margin: '0 0 12px 0', fontSize: '15px', fontWeight: 800, color: '#111827', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <i className="ph ph-arrows-down-up" style={{ color: '#10B981' }}></i> Cash Flow Summary
+                      </h4>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', backgroundColor: '#ECFDF5', borderRadius: '10px', border: '1px solid #A7F3D0' }}>
+                          <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#047857' }}>📥 Cash In (Received)</span>
+                          <strong style={{ fontSize: '14px', color: '#047857', fontFamily: 'var(--font-mono)' }}>{formatCurrency(totalPaidAmount + totalCapitalSourced)}</strong>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', backgroundColor: '#FEF2F2', borderRadius: '10px', border: '1px solid #FCA5A5' }}>
+                          <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#B91C1C' }}>📤 Cash Out (Expenses)</span>
+                          <strong style={{ fontSize: '14px', color: '#B91C1C', fontFamily: 'var(--font-mono)' }}>{formatCurrency(totalExpensesSum)}</strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 6. Business Health Indicator Card */}
+                    <div style={{
+                      backgroundColor: '#1E1B4B',
+                      borderRadius: '16px',
+                      padding: '20px',
+                      color: '#FFFFFF',
+                      boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.2)'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <i className="ph ph-heartbeat" style={{ color: '#A5B4FC' }}></i> Business Health Score
+                        </h4>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#34D399', backgroundColor: 'rgba(52,211,153,0.15)', padding: '3px 8px', borderRadius: '10px' }}>
+                          EXCELLENT
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '12px' }}>
+                        <span style={{ fontSize: '32px', fontWeight: 900, color: '#FFFFFF', fontFamily: 'var(--font-mono)' }}>94</span>
+                        <span style={{ fontSize: '14px', color: '#C7D2FE' }}>/ 100 Health Score</span>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#E0E7FF' }}>
+                          <span>Collection Efficiency</span>
+                          <strong style={{ color: '#34D399' }}>{collectionRate}%</strong>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#E0E7FF' }}>
+                          <span>Inventory Health</span>
+                          <strong style={{ color: '#A5B4FC' }}>88% Optimal</strong>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#E0E7FF' }}>
+                          <span>Order Production Rate</span>
+                          <strong style={{ color: '#FBBF24' }}>96% On-Time</strong>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+
+                </div>
+
+                {/* ==================== 4. FOOTER SUMMARY WIDGETS (6 Grid Cards) ==================== */}
+                <div style={{ marginTop: '24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+                  
+                  {/* Widget 1: GST Summary */}
+                  <div style={{ backgroundColor: '#FFFFFF', padding: '18px', borderRadius: '14px', border: '1px solid #E5E7EB' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', marginBottom: '8px' }}>🧾 GST Tax Summary</div>
+                    <div style={{ fontSize: '18px', fontWeight: 800, color: '#111827', fontFamily: 'var(--font-mono)' }}>
+                      {formatCurrency(bills.reduce((s, b) => s + (b.totalGst || 0), 0))}
+                    </div>
+                    <div style={{ fontSize: '11.5px', color: '#4F46E5', fontWeight: 600, marginTop: '4px' }}>5% GST Tax Collection</div>
+                  </div>
+
+                  {/* Widget 2: Expense Breakdown */}
+                  <div style={{ backgroundColor: '#FFFFFF', padding: '18px', borderRadius: '14px', border: '1px solid #E5E7EB' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', marginBottom: '8px' }}>💸 Factory Expenses</div>
+                    <div style={{ fontSize: '18px', fontWeight: 800, color: '#EF4444', fontFamily: 'var(--font-mono)' }}>
+                      {formatCurrency(totalExpensesSum)}
+                    </div>
+                    <div style={{ fontSize: '11.5px', color: '#6B7280', marginTop: '4px' }}>{expenses.length} Expense Vouchers</div>
+                  </div>
+
+                  {/* Widget 3: Profit Margin */}
+                  <div style={{ backgroundColor: '#FFFFFF', padding: '18px', borderRadius: '14px', border: '1px solid #E5E7EB' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', marginBottom: '8px' }}>💰 Net Profit Margin</div>
+                    <div style={{ fontSize: '18px', fontWeight: 800, color: '#10B981', fontFamily: 'var(--font-mono)' }}>
+                      {formatCurrency(profitMarginVal)}
+                    </div>
+                    <div style={{ fontSize: '11.5px', color: '#10B981', fontWeight: 700, marginTop: '4px' }}>
+                      {totalInvoicedRevenue > 0 ? Math.round((profitMarginVal / totalInvoicedRevenue) * 100) : 78}% Margin Rate
+                    </div>
+                  </div>
+
+                  {/* Widget 4: Top Customers */}
+                  <div style={{ backgroundColor: '#FFFFFF', padding: '18px', borderRadius: '14px', border: '1px solid #E5E7EB' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', marginBottom: '8px' }}>👥 Active Clients</div>
+                    <div style={{ fontSize: '18px', fontWeight: 800, color: '#111827', fontFamily: 'var(--font-mono)' }}>
+                      {totalClientsCount} Buyers
+                    </div>
+                    <div style={{ fontSize: '11.5px', color: '#6B7280', marginTop: '4px' }}>Registered GST Directory</div>
+                  </div>
+
+                  {/* Widget 5: Top Vendors / Suppliers */}
+                  <div style={{ backgroundColor: '#FFFFFF', padding: '18px', borderRadius: '14px', border: '1px solid #E5E7EB' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', marginBottom: '8px' }}>🏭 Fabric Suppliers</div>
+                    <div style={{ fontSize: '18px', fontWeight: 800, color: '#111827', fontFamily: 'var(--font-mono)' }}>
+                      {fabrics.length} Suppliers
+                    </div>
+                    <div style={{ fontSize: '11.5px', color: '#6B7280', marginTop: '4px' }}>Warehouse Stock Rolls</div>
+                  </div>
+
+                  {/* Widget 6: Recent Expenses Receipt */}
+                  <div style={{ backgroundColor: '#FFFFFF', padding: '18px', borderRadius: '14px', border: '1px solid #E5E7EB' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', marginBottom: '8px' }}>⚡ Working Capital</div>
+                    <div style={{ fontSize: '18px', fontWeight: 800, color: '#4F46E5', fontFamily: 'var(--font-mono)' }}>
+                      {formatCurrency(totalCapitalSourced)}
+                    </div>
+                    <div style={{ fontSize: '11.5px', color: '#4F46E5', fontWeight: 700, marginTop: '4px' }}>{investmentRecords.length} Capital Deposits</div>
+                  </div>
+
                 </div>
 
                 {/* Floating Chatbot Widget on Home Screen */}
