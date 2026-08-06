@@ -813,6 +813,26 @@ export default function App() {
     setCreateJobCombos(prev => prev.map((item, i) => i === index ? { ...item, [field]: value } : item));
   };
 
+  const handleCopyRatesToAllCombos = (sourceComboIndex) => {
+    const sourceCombo = createJobCombos[sourceComboIndex];
+    if (!sourceCombo) return;
+
+    setCreateJobCombos(prev => prev.map((item, idx) => {
+      if (idx === sourceComboIndex) return item;
+      return {
+        ...item,
+        powerTableRate: sourceCombo.powerTableRate,
+        cuttingRate: sourceCombo.cuttingRate,
+        singerRate: sourceCombo.singerRate,
+        overlockRate: sourceCombo.overlockRate,
+        checkingRate: sourceCombo.checkingRate,
+        threadRate: sourceCombo.threadRate,
+        ironingRate: sourceCombo.ironingRate,
+        packingRate: sourceCombo.packingRate
+      };
+    }));
+  };
+
   const openCreateJobModal = () => {
     setEditingJobOrder(null);
     setCreateJobOrderQty(2500);
@@ -7012,9 +7032,33 @@ export default function App() {
                           <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#111827' }}>
                             Piece-Rates for: <strong style={{ color: '#4F46E5' }}>{activeCombo.partName || `Part ${currentComboIndex + 1}`}</strong> ({activeCombo.color || 'Standard'} • {(activeCombo.pcsCount || createJobOrderQty).toLocaleString()} Pcs)
                           </span>
-                          <span style={{ fontSize: '12px', fontWeight: 800, color: '#059669', backgroundColor: '#ECFDF5', border: '1px solid #A7F3D0', padding: '3px 10px', borderRadius: '10px', fontFamily: 'var(--font-mono)' }}>
-                            {activeCombo.partName || `Part ${currentComboIndex + 1}`} Total: ₹{activePartTotalRate.toFixed(2)} / Pc
-                          </span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            {createJobCombos.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleCopyRatesToAllCombos(currentComboIndex)}
+                                style={{
+                                  fontSize: '11.5px',
+                                  fontWeight: 700,
+                                  color: '#4F46E5',
+                                  backgroundColor: '#EEF2FF',
+                                  border: '1px solid #C7D2FE',
+                                  padding: '4px 10px',
+                                  borderRadius: '8px',
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '5px'
+                                }}
+                                title={`Copy ${activeCombo.partName || 'current part'} rates to all other combo parts`}
+                              >
+                                <i className="ph ph-copy"></i> Apply Same Rates to All Parts
+                              </button>
+                            )}
+                            <span style={{ fontSize: '12px', fontWeight: 800, color: '#059669', backgroundColor: '#ECFDF5', border: '1px solid #A7F3D0', padding: '3px 10px', borderRadius: '10px', fontFamily: 'var(--font-mono)' }}>
+                              {activeCombo.partName || `Part ${currentComboIndex + 1}`} Total: ₹{activePartTotalRate.toFixed(2)} / Pc
+                            </span>
+                          </div>
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
