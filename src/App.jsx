@@ -4855,7 +4855,6 @@ export default function App() {
                       <th className="text-right">Discount</th>
                       <th className="text-right">Grand Total</th>
                       <th className="text-center">Payment Status</th>
-                      <th>Attachment</th>
                       <th className="text-right">Actions</th>
                     </tr>
                   </thead>
@@ -4896,13 +4895,6 @@ export default function App() {
                               <i className={`ph ${isPaid ? 'ph-check-circle' : 'ph-clock-countdown'}`} style={{ fontSize: '13px' }}></i>
                               {isPaid ? 'Payment Received' : 'Payment Pending'}
                             </button>
-                          </td>
-                          <td>
-                            {b.fileData ? (
-                              <a href={b.fileData} download={b.fileName} className="badge" style={{ textDecoration: 'none', backgroundColor: 'rgba(124,58,237,0.1)', color: 'var(--color-primary)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                                <i className="ph ph-paperclip"></i> View File
-                              </a>
-                            ) : '-'}
                           </td>
                           <td className="text-right" onClick={(e) => e.stopPropagation()}>
                             <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
@@ -6079,14 +6071,6 @@ export default function App() {
                     <label htmlFor="bill-total-input">Grand Total (₹) *</label>
                     <input type="number" id="bill-total-input" min="0" step="any" required placeholder="0.00" value={billGrandTotal} readOnly style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-primary)', padding: '12px 14px', backgroundColor: 'var(--color-accent-light)', border: '1px solid var(--color-primary)' }} />
                   </div>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="bill-file">Scan / Upload Invoice File</label>
-                  <input type="file" id="bill-file" accept="image/*,application/pdf" onChange={handleBillAttachment} style={{ fontSize: '13px' }} />
-                  {billAttachmentName && (
-                    <div style={{ fontSize: '11px', marginTop: '6px', color: 'var(--color-primary)', fontWeight: 600 }}>Attached: {billAttachmentName}</div>
-                  )}
                 </div>
               </div>
               <div className="modal-footer" style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
