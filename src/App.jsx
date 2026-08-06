@@ -767,43 +767,46 @@ export default function App() {
 
   // Garment Combo & Color Specifications States
   const [createJobComboType, setCreateJobComboType] = useState('2-Piece Combo (Top & Pant)');
+  const [activeComboRateTab, setActiveComboRateTab] = useState(0);
   const [createJobCombos, setCreateJobCombos] = useState([
-    { partName: 'Top', color: 'Navy Blue', pcsCount: 2500 },
-    { partName: 'Pant', color: 'Black', pcsCount: 2500 }
+    { partName: 'Top', color: 'Navy Blue', pcsCount: 2500, powerTableRate: 12.00, cuttingRate: 3.50, singerRate: 8.50, overlockRate: 4.50, checkingRate: 2.00, threadRate: 1.50, ironingRate: 3.00, packingRate: 2.50 },
+    { partName: 'Pant', color: 'Black', pcsCount: 2500, powerTableRate: 10.00, cuttingRate: 2.75, singerRate: 7.00, overlockRate: 4.00, checkingRate: 1.75, threadRate: 1.25, ironingRate: 2.50, packingRate: 2.00 }
   ]);
 
   const handleComboTypeChange = (type) => {
     setCreateJobComboType(type);
+    setActiveComboRateTab(0);
     const defaultQty = parseInt(createJobOrderQty, 10) || 2500;
     if (type === '2-Piece Combo (Top & Pant)') {
       setCreateJobCombos([
-        { partName: 'Top', color: 'Navy Blue', pcsCount: defaultQty },
-        { partName: 'Pant', color: 'Black', pcsCount: defaultQty }
+        { partName: 'Top', color: 'Navy Blue', pcsCount: defaultQty, powerTableRate: 12.00, cuttingRate: 3.50, singerRate: 8.50, overlockRate: 4.50, checkingRate: 2.00, threadRate: 1.50, ironingRate: 3.00, packingRate: 2.50 },
+        { partName: 'Pant', color: 'Black', pcsCount: defaultQty, powerTableRate: 10.00, cuttingRate: 2.75, singerRate: 7.00, overlockRate: 4.00, checkingRate: 1.75, threadRate: 1.25, ironingRate: 2.50, packingRate: 2.00 }
       ]);
     } else if (type === 'Single Garment') {
       setCreateJobCombos([
-        { partName: 'Garment / Top', color: 'Royal Blue', pcsCount: defaultQty }
+        { partName: 'Garment / Top', color: 'Royal Blue', pcsCount: defaultQty, powerTableRate: 12.00, cuttingRate: 3.50, singerRate: 8.50, overlockRate: 4.50, checkingRate: 2.00, threadRate: 1.50, ironingRate: 3.00, packingRate: 2.50 }
       ]);
     } else if (type === '3-Piece Set (Top, Pant, Dupatta)') {
       setCreateJobCombos([
-        { partName: 'Top', color: 'Crimson Red', pcsCount: defaultQty },
-        { partName: 'Pant', color: 'Golden Yellow', pcsCount: defaultQty },
-        { partName: 'Dupatta / Outer', color: 'Crimson Red', pcsCount: defaultQty }
+        { partName: 'Top', color: 'Crimson Red', pcsCount: defaultQty, powerTableRate: 12.00, cuttingRate: 3.50, singerRate: 8.50, overlockRate: 4.50, checkingRate: 2.00, threadRate: 1.50, ironingRate: 3.00, packingRate: 2.50 },
+        { partName: 'Pant', color: 'Golden Yellow', pcsCount: defaultQty, powerTableRate: 10.00, cuttingRate: 2.75, singerRate: 7.00, overlockRate: 4.00, checkingRate: 1.75, threadRate: 1.25, ironingRate: 2.50, packingRate: 2.00 },
+        { partName: 'Dupatta / Outer', color: 'Crimson Red', pcsCount: defaultQty, powerTableRate: 5.00, cuttingRate: 1.50, singerRate: 4.00, overlockRate: 2.00, checkingRate: 1.00, threadRate: 1.00, ironingRate: 1.50, packingRate: 1.00 }
       ]);
     } else if (type === 'Custom Combo Set') {
       setCreateJobCombos([
-        { partName: 'Item 1', color: 'Multicolor', pcsCount: defaultQty }
+        { partName: 'Item 1', color: 'Multicolor', pcsCount: defaultQty, powerTableRate: 12.00, cuttingRate: 3.50, singerRate: 8.50, overlockRate: 4.50, checkingRate: 2.00, threadRate: 1.50, ironingRate: 3.00, packingRate: 2.50 }
       ]);
     }
   };
 
   const handleAddComboPart = () => {
     const defaultQty = parseInt(createJobOrderQty, 10) || 2500;
-    setCreateJobCombos(prev => [...prev, { partName: `Part ${prev.length + 1}`, color: 'Navy Blue', pcsCount: defaultQty }]);
+    setCreateJobCombos(prev => [...prev, { partName: `Part ${prev.length + 1}`, color: 'Navy Blue', pcsCount: defaultQty, powerTableRate: 12.00, cuttingRate: 3.50, singerRate: 8.50, overlockRate: 4.50, checkingRate: 2.00, threadRate: 1.50, ironingRate: 3.00, packingRate: 2.50 }]);
   };
 
   const handleRemoveComboPart = (index) => {
     setCreateJobCombos(prev => prev.filter((_, i) => i !== index));
+    setActiveComboRateTab(0);
   };
 
   const handleComboPartChange = (index, field, value) => {
@@ -824,9 +827,10 @@ export default function App() {
     setCreateJobIroningRate(3.00);
     setCreateJobPackingRate(2.50);
     setCreateJobComboType('2-Piece Combo (Top & Pant)');
+    setActiveComboRateTab(0);
     setCreateJobCombos([
-      { partName: 'Top', color: 'Navy Blue', pcsCount: 2500 },
-      { partName: 'Pant', color: 'Black', pcsCount: 2500 }
+      { partName: 'Top', color: 'Navy Blue', pcsCount: 2500, powerTableRate: 12.00, cuttingRate: 3.50, singerRate: 8.50, overlockRate: 4.50, checkingRate: 2.00, threadRate: 1.50, ironingRate: 3.00, packingRate: 2.50 },
+      { partName: 'Pant', color: 'Black', pcsCount: 2500, powerTableRate: 10.00, cuttingRate: 2.75, singerRate: 7.00, overlockRate: 4.00, checkingRate: 1.75, threadRate: 1.25, ironingRate: 2.50, packingRate: 2.00 }
     ]);
     setIsCreateJobModalOpen(true);
   };
@@ -837,6 +841,7 @@ export default function App() {
     setCreateJobOrderQty(initialQty);
     setCreateJobShipmentQty(job.shipmentQty || initialQty);
     setIsShipmentQtyTouched(true);
+    setActiveComboRateTab(0);
     if (job.powerTableRate !== undefined) setCreateJobPowerTableRate(job.powerTableRate);
     if (job.cuttingRate !== undefined) setCreateJobCuttingRate(job.cuttingRate);
     if (job.singerRate !== undefined) setCreateJobSingerRate(job.singerRate);
@@ -847,12 +852,23 @@ export default function App() {
     if (job.packingRate !== undefined) setCreateJobPackingRate(job.packingRate);
     if (job.comboType) setCreateJobComboType(job.comboType);
     if (job.combos && Array.isArray(job.combos)) {
-      setCreateJobCombos(job.combos.map(c => ({ ...c, pcsCount: c.pcsCount || initialQty })));
+      setCreateJobCombos(job.combos.map(c => ({
+        ...c,
+        pcsCount: c.pcsCount || initialQty,
+        powerTableRate: c.powerTableRate !== undefined ? c.powerTableRate : 12.00,
+        cuttingRate: c.cuttingRate !== undefined ? c.cuttingRate : 3.50,
+        singerRate: c.singerRate !== undefined ? c.singerRate : 8.50,
+        overlockRate: c.overlockRate !== undefined ? c.overlockRate : 4.50,
+        checkingRate: c.checkingRate !== undefined ? c.checkingRate : 2.00,
+        threadRate: c.threadRate !== undefined ? c.threadRate : 1.50,
+        ironingRate: c.ironingRate !== undefined ? c.ironingRate : 3.00,
+        packingRate: c.packingRate !== undefined ? c.packingRate : 2.50
+      })));
     } else {
       setCreateJobComboType('2-Piece Combo (Top & Pant)');
       setCreateJobCombos([
-        { partName: 'Top', color: 'Navy Blue', pcsCount: initialQty },
-        { partName: 'Pant', color: 'Black', pcsCount: initialQty }
+        { partName: 'Top', color: 'Navy Blue', pcsCount: initialQty, powerTableRate: 12.00, cuttingRate: 3.50, singerRate: 8.50, overlockRate: 4.50, checkingRate: 2.00, threadRate: 1.50, ironingRate: 3.00, packingRate: 2.50 },
+        { partName: 'Pant', color: 'Black', pcsCount: initialQty, powerTableRate: 10.00, cuttingRate: 2.75, singerRate: 7.00, overlockRate: 4.00, checkingRate: 1.75, threadRate: 1.25, ironingRate: 2.50, packingRate: 2.00 }
       ]);
     }
     setIsCreateJobModalOpen(true);
@@ -6686,18 +6702,18 @@ export default function App() {
               e.preventDefault();
               const form = e.target;
               const styleNo = form.styleNumber.value.trim();
-              const orderQty = parseInt(createJobOrderQty, 10) || 0;
-              const shipmentQty = parseInt(createJobShipmentQty, 10) || 0;
-              const totalRatePerPc = (parseFloat(createJobPowerTableRate) || 0) + 
-                                     (parseFloat(createJobCuttingRate) || 0) + 
-                                     (parseFloat(createJobSingerRate) || 0) + 
-                                     (parseFloat(createJobOverlockRate) || 0) + 
-                                     (parseFloat(createJobCheckingRate) || 0) + 
-                                     (parseFloat(createJobThreadRate) || 0) + 
-                                     (parseFloat(createJobIroningRate) || 0) + 
-                                     (parseFloat(createJobPackingRate) || 0) + 
-                                     jobCustomRatesList.reduce((sum, r) => sum + (parseFloat(r.val) || 0), 0);
-              const calcJobTotalCost = Math.round(orderQty * totalRatePerPc);
+              const calcJobTotalCost = createJobCombos.reduce((total, combo) => {
+                const pCount = combo.pcsCount || orderQty;
+                const pRate = (parseFloat(combo.powerTableRate !== undefined ? combo.powerTableRate : createJobPowerTableRate) || 0) +
+                              (parseFloat(combo.cuttingRate !== undefined ? combo.cuttingRate : createJobCuttingRate) || 0) +
+                              (parseFloat(combo.singerRate !== undefined ? combo.singerRate : createJobSingerRate) || 0) +
+                              (parseFloat(combo.overlockRate !== undefined ? combo.overlockRate : createJobOverlockRate) || 0) +
+                              (parseFloat(combo.checkingRate !== undefined ? combo.checkingRate : createJobCheckingRate) || 0) +
+                              (parseFloat(combo.threadRate !== undefined ? combo.threadRate : createJobThreadRate) || 0) +
+                              (parseFloat(combo.ironingRate !== undefined ? combo.ironingRate : createJobIroningRate) || 0) +
+                              (parseFloat(combo.packingRate !== undefined ? combo.packingRate : createJobPackingRate) || 0);
+                return total + Math.round(pCount * pRate);
+              }, 0);
 
               if (editingJobOrder) {
                 // Update existing job order
@@ -6944,144 +6960,163 @@ export default function App() {
 
                 {/* Job Operation Piece-Rates Section */}
                 <div style={{ marginTop: '4px', paddingTop: '14px', borderTop: '1px dashed var(--color-border)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <label style={{ margin: 0, fontWeight: 700, fontSize: '13px', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <i className="ph ph-scissors"></i> Job Piece-Rates (PC Rates)
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                    <label style={{ margin: 0, fontWeight: 700, fontSize: '13.5px', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <i className="ph ph-scissors"></i> Job Piece-Rates per Garment Part
                     </label>
-                    <button
-                      type="button"
-                      onClick={() => setIsJobCustomRateActive(!isJobCustomRateActive)}
-                      style={{
-                        border: 'none',
-                        background: 'transparent',
-                        color: 'var(--color-primary)',
-                        fontSize: '11.5px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        padding: 0
-                      }}
-                    >
-                      <i className={`ph ${isJobCustomRateActive ? 'ph-minus-circle' : 'ph-plus-circle'}`}></i>
-                      {isJobCustomRateActive ? 'Hide Custom Rate Input' : 'Add Custom Operation Rate'}
-                    </button>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    <div className="form-group">
-                      <label htmlFor="job-power-table-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Power Table Rate (₹ / Pc)</label>
-                      <input 
-                        type="number" 
-                        id="job-power-table-rate" 
-                        name="powerTableRate" 
-                        step="any" 
-                        placeholder="e.g. 12.00" 
-                        value={createJobPowerTableRate}
-                        onChange={(e) => setCreateJobPowerTableRate(e.target.value)}
-                        style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} 
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="job-cutting-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Cutting Rate (₹ / Pc)</label>
-                      <input 
-                        type="number" 
-                        id="job-cutting-rate" 
-                        name="cuttingRate" 
-                        step="any" 
-                        placeholder="e.g. 3.50" 
-                        value={createJobCuttingRate}
-                        onChange={(e) => setCreateJobCuttingRate(e.target.value)}
-                        style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} 
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="job-singer-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Singer Machine Rate (₹ / Pc)</label>
-                      <input 
-                        type="number" 
-                        id="job-singer-rate" 
-                        name="singerRate" 
-                        step="any" 
-                        placeholder="e.g. 8.50" 
-                        value={createJobSingerRate}
-                        onChange={(e) => setCreateJobSingerRate(e.target.value)}
-                        style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} 
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="job-overlock-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Overlock Rate (₹ / Pc)</label>
-                      <input 
-                        type="number" 
-                        id="job-overlock-rate" 
-                        name="overlockRate" 
-                        step="any" 
-                        placeholder="e.g. 4.50" 
-                        value={createJobOverlockRate}
-                        onChange={(e) => setCreateJobOverlockRate(e.target.value)}
-                        style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} 
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="job-checking-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Checking Rate (₹ / Pc)</label>
-                      <input 
-                        type="number" 
-                        id="job-checking-rate" 
-                        name="checkingRate" 
-                        step="any" 
-                        placeholder="e.g. 2.00" 
-                        value={createJobCheckingRate}
-                        onChange={(e) => setCreateJobCheckingRate(e.target.value)}
-                        style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} 
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="job-thread-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Thread Trimming Rate (₹ / Pc)</label>
-                      <input 
-                        type="number" 
-                        id="job-thread-rate" 
-                        name="threadRate" 
-                        step="any" 
-                        placeholder="e.g. 1.50" 
-                        value={createJobThreadRate}
-                        onChange={(e) => setCreateJobThreadRate(e.target.value)}
-                        style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} 
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="job-ironing-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Ironing Rate (₹ / Pc)</label>
-                      <input 
-                        type="number" 
-                        id="job-ironing-rate" 
-                        name="ironingRate" 
-                        step="any" 
-                        placeholder="e.g. 3.00" 
-                        value={createJobIroningRate}
-                        onChange={(e) => setCreateJobIroningRate(e.target.value)}
-                        style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} 
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="job-packing-rate" style={{ fontSize: '12px', fontWeight: 600 }}>Packing Rate (₹ / Pc)</label>
-                      <input 
-                        type="number" 
-                        id="job-packing-rate" 
-                        name="packingRate" 
-                        step="any" 
-                        placeholder="e.g. 2.50" 
-                        value={createJobPackingRate}
-                        onChange={(e) => setCreateJobPackingRate(e.target.value)}
-                        style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px' }} 
-                      />
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      {createJobCombos.map((combo, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setActiveComboRateTab(idx)}
+                          style={{
+                            padding: '5px 12px',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            border: activeComboRateTab === idx ? '1px solid #4F46E5' : '1px solid #E5E7EB',
+                            backgroundColor: activeComboRateTab === idx ? '#4F46E5' : '#FFFFFF',
+                            color: activeComboRateTab === idx ? '#FFFFFF' : '#374151',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          {combo.partName || `Part ${idx+1}`} Rates
+                        </button>
+                      ))}
                     </div>
                   </div>
+
+                  {/* Active Combo Part Rates Card */}
+                  {(() => {
+                    const currentComboIndex = Math.min(activeComboRateTab, createJobCombos.length - 1);
+                    const activeCombo = createJobCombos[currentComboIndex] || createJobCombos[0] || {};
+                    
+                    const getItemRate = (field, fallback) => activeCombo[field] !== undefined ? activeCombo[field] : fallback;
+
+                    const activePartTotalRate = (
+                      (parseFloat(getItemRate('powerTableRate', createJobPowerTableRate)) || 0) +
+                      (parseFloat(getItemRate('cuttingRate', createJobCuttingRate)) || 0) +
+                      (parseFloat(getItemRate('singerRate', createJobSingerRate)) || 0) +
+                      (parseFloat(getItemRate('overlockRate', createJobOverlockRate)) || 0) +
+                      (parseFloat(getItemRate('checkingRate', createJobCheckingRate)) || 0) +
+                      (parseFloat(getItemRate('threadRate', createJobThreadRate)) || 0) +
+                      (parseFloat(getItemRate('ironingRate', createJobIroningRate)) || 0) +
+                      (parseFloat(getItemRate('packingRate', createJobPackingRate)) || 0)
+                    );
+
+                    return (
+                      <div style={{ backgroundColor: '#F9FAFB', padding: '14px', borderRadius: '12px', border: '1px solid #E5E7EB' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                          <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#111827' }}>
+                            Piece-Rates for: <strong style={{ color: '#4F46E5' }}>{activeCombo.partName || `Part ${currentComboIndex + 1}`}</strong> ({activeCombo.color || 'Standard'} • {(activeCombo.pcsCount || createJobOrderQty).toLocaleString()} Pcs)
+                          </span>
+                          <span style={{ fontSize: '12px', fontWeight: 800, color: '#059669', backgroundColor: '#ECFDF5', border: '1px solid #A7F3D0', padding: '3px 10px', borderRadius: '10px', fontFamily: 'var(--font-mono)' }}>
+                            {activeCombo.partName || `Part ${currentComboIndex + 1}`} Total: ₹{activePartTotalRate.toFixed(2)} / Pc
+                          </span>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                          <div className="form-group">
+                            <label style={{ fontSize: '12px', fontWeight: 600 }}>Power Table Rate (₹ / Pc)</label>
+                            <input 
+                              type="number" 
+                              step="any" 
+                              placeholder="e.g. 12.00" 
+                              value={getItemRate('powerTableRate', createJobPowerTableRate)}
+                              onChange={(e) => handleComboPartChange(currentComboIndex, 'powerTableRate', parseFloat(e.target.value) || 0)}
+                              style={{ fontSize: '13.5px', padding: '8px 10px', borderRadius: '8px', backgroundColor: '#FFFFFF' }} 
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label style={{ fontSize: '12px', fontWeight: 600 }}>Cutting Rate (₹ / Pc)</label>
+                            <input 
+                              type="number" 
+                              step="any" 
+                              placeholder="e.g. 3.50" 
+                              value={getItemRate('cuttingRate', createJobCuttingRate)}
+                              onChange={(e) => handleComboPartChange(currentComboIndex, 'cuttingRate', parseFloat(e.target.value) || 0)}
+                              style={{ fontSize: '13.5px', padding: '8px 10px', borderRadius: '8px', backgroundColor: '#FFFFFF' }} 
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label style={{ fontSize: '12px', fontWeight: 600 }}>Singer Machine Rate (₹ / Pc)</label>
+                            <input 
+                              type="number" 
+                              step="any" 
+                              placeholder="e.g. 8.50" 
+                              value={getItemRate('singerRate', createJobSingerRate)}
+                              onChange={(e) => handleComboPartChange(currentComboIndex, 'singerRate', parseFloat(e.target.value) || 0)}
+                              style={{ fontSize: '13.5px', padding: '8px 10px', borderRadius: '8px', backgroundColor: '#FFFFFF' }} 
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label style={{ fontSize: '12px', fontWeight: 600 }}>Overlock Rate (₹ / Pc)</label>
+                            <input 
+                              type="number" 
+                              step="any" 
+                              placeholder="e.g. 4.50" 
+                              value={getItemRate('overlockRate', createJobOverlockRate)}
+                              onChange={(e) => handleComboPartChange(currentComboIndex, 'overlockRate', parseFloat(e.target.value) || 0)}
+                              style={{ fontSize: '13.5px', padding: '8px 10px', borderRadius: '8px', backgroundColor: '#FFFFFF' }} 
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label style={{ fontSize: '12px', fontWeight: 600 }}>Checking Rate (₹ / Pc)</label>
+                            <input 
+                              type="number" 
+                              step="any" 
+                              placeholder="e.g. 2.00" 
+                              value={getItemRate('checkingRate', createJobCheckingRate)}
+                              onChange={(e) => handleComboPartChange(currentComboIndex, 'checkingRate', parseFloat(e.target.value) || 0)}
+                              style={{ fontSize: '13.5px', padding: '8px 10px', borderRadius: '8px', backgroundColor: '#FFFFFF' }} 
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label style={{ fontSize: '12px', fontWeight: 600 }}>Thread Trimming Rate (₹ / Pc)</label>
+                            <input 
+                              type="number" 
+                              step="any" 
+                              placeholder="e.g. 1.50" 
+                              value={getItemRate('threadRate', createJobThreadRate)}
+                              onChange={(e) => handleComboPartChange(currentComboIndex, 'threadRate', parseFloat(e.target.value) || 0)}
+                              style={{ fontSize: '13.5px', padding: '8px 10px', borderRadius: '8px', backgroundColor: '#FFFFFF' }} 
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label style={{ fontSize: '12px', fontWeight: 600 }}>Ironing Rate (₹ / Pc)</label>
+                            <input 
+                              type="number" 
+                              step="any" 
+                              placeholder="e.g. 3.00" 
+                              value={getItemRate('ironingRate', createJobIroningRate)}
+                              onChange={(e) => handleComboPartChange(currentComboIndex, 'ironingRate', parseFloat(e.target.value) || 0)}
+                              style={{ fontSize: '13.5px', padding: '8px 10px', borderRadius: '8px', backgroundColor: '#FFFFFF' }} 
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label style={{ fontSize: '12px', fontWeight: 600 }}>Packing Rate (₹ / Pc)</label>
+                            <input 
+                              type="number" 
+                              step="any" 
+                              placeholder="e.g. 2.50" 
+                              value={getItemRate('packingRate', createJobPackingRate)}
+                              onChange={(e) => handleComboPartChange(currentComboIndex, 'packingRate', parseFloat(e.target.value) || 0)}
+                              style={{ fontSize: '13.5px', padding: '8px 10px', borderRadius: '8px', backgroundColor: '#FFFFFF' }} 
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Dynamic Custom Rates List for Job */}
                   {jobCustomRatesList.length > 0 && (
