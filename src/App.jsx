@@ -765,6 +765,49 @@ export default function App() {
   const [createJobPackingRate, setCreateJobPackingRate] = useState(2.50);
   const [editingJobOrder, setEditingJobOrder] = useState(null);
 
+  // Garment Combo & Color Specifications States
+  const [createJobComboType, setCreateJobComboType] = useState('2-Piece Combo (Top & Pant)');
+  const [createJobCombos, setCreateJobCombos] = useState([
+    { partName: 'Top', color: 'Navy Blue' },
+    { partName: 'Pant', color: 'Black' }
+  ]);
+
+  const handleComboTypeChange = (type) => {
+    setCreateJobComboType(type);
+    if (type === '2-Piece Combo (Top & Pant)') {
+      setCreateJobCombos([
+        { partName: 'Top', color: 'Navy Blue' },
+        { partName: 'Pant', color: 'Black' }
+      ]);
+    } else if (type === 'Single Garment') {
+      setCreateJobCombos([
+        { partName: 'Garment / Top', color: 'Royal Blue' }
+      ]);
+    } else if (type === '3-Piece Set (Top, Pant, Dupatta)') {
+      setCreateJobCombos([
+        { partName: 'Top', color: 'Crimson Red' },
+        { partName: 'Pant', color: 'Golden Yellow' },
+        { partName: 'Dupatta / Outer', color: 'Crimson Red' }
+      ]);
+    } else if (type === 'Custom Combo Set') {
+      setCreateJobCombos([
+        { partName: 'Item 1', color: 'Multicolor' }
+      ]);
+    }
+  };
+
+  const handleAddComboPart = () => {
+    setCreateJobCombos(prev => [...prev, { partName: `Part ${prev.length + 1}`, color: 'Navy Blue' }]);
+  };
+
+  const handleRemoveComboPart = (index) => {
+    setCreateJobCombos(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleComboPartChange = (index, field, value) => {
+    setCreateJobCombos(prev => prev.map((item, i) => i === index ? { ...item, [field]: value } : item));
+  };
+
   const openCreateJobModal = () => {
     setEditingJobOrder(null);
     setCreateJobOrderQty(2500);
@@ -778,6 +821,11 @@ export default function App() {
     setCreateJobThreadRate(1.50);
     setCreateJobIroningRate(3.00);
     setCreateJobPackingRate(2.50);
+    setCreateJobComboType('2-Piece Combo (Top & Pant)');
+    setCreateJobCombos([
+      { partName: 'Top', color: 'Navy Blue' },
+      { partName: 'Pant', color: 'Black' }
+    ]);
     setIsCreateJobModalOpen(true);
   };
 
@@ -794,6 +842,16 @@ export default function App() {
     if (job.threadRate !== undefined) setCreateJobThreadRate(job.threadRate);
     if (job.ironingRate !== undefined) setCreateJobIroningRate(job.ironingRate);
     if (job.packingRate !== undefined) setCreateJobPackingRate(job.packingRate);
+    if (job.comboType) setCreateJobComboType(job.comboType);
+    if (job.combos && Array.isArray(job.combos)) {
+      setCreateJobCombos(job.combos);
+    } else {
+      setCreateJobComboType('2-Piece Combo (Top & Pant)');
+      setCreateJobCombos([
+        { partName: 'Top', color: 'Navy Blue' },
+        { partName: 'Pant', color: 'Black' }
+      ]);
+    }
     setIsCreateJobModalOpen(true);
   };
 
@@ -6654,6 +6712,8 @@ export default function App() {
                   estimatedValue: calcJobTotalCost,
                   assignedWorker: editingJobOrder?.assignedWorker || 'Factory Team',
                   notes: form.notes.value,
+                  comboType: createJobComboType,
+                  combos: createJobCombos,
                   powerTableRate: parseFloat(createJobPowerTableRate) || 0,
                   cuttingRate: parseFloat(createJobCuttingRate) || 0,
                   singerRate: parseFloat(createJobSingerRate) || 0,
@@ -6684,6 +6744,8 @@ export default function App() {
                   status: "Pending",
                   stage: "Backlog & Cutting",
                   notes: form.notes.value,
+                  comboType: createJobComboType,
+                  combos: createJobCombos,
                   powerTableRate: parseFloat(createJobPowerTableRate) || 0,
                   cuttingRate: parseFloat(createJobCuttingRate) || 0,
                   singerRate: parseFloat(createJobSingerRate) || 0,
@@ -6790,6 +6852,81 @@ export default function App() {
                     <option value="High Priority">🟠 High Priority</option>
                     <option value="Urgent Dispatch">🔴 Urgent Dispatch</option>
                   </select>
+                </div>
+
+                {/* Garment Combo Set & Color Specifications Section */}
+                <div style={{ marginTop: '10px', padding: '14px', borderRadius: '12px', backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <label style={{ margin: 0, fontWeight: 700, fontSize: '13.5px', color: '#111827', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <i className="ph ph-t-shirt" style={{ color: '#4F46E5', fontSize: '18px' }}></i> Garment Combo Set & Color Breakdown
+                    </label>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#4F46E5', backgroundColor: '#EEF2FF', padding: '2px 8px', borderRadius: '8px' }}>
+                      {createJobCombos.length} Combo Parts
+                    </span>
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: '12px' }}>
+                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#4B5563' }}>Choose Combo Preset *</label>
+                    <select
+                      value={createJobComboType}
+                      onChange={(e) => handleComboTypeChange(e.target.value)}
+                      style={{ fontSize: '13.5px', padding: '9px 12px', borderRadius: '8px', width: '100%', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1' }}
+                    >
+                      <option value="2-Piece Combo (Top & Pant)">👕👖 2-Piece Combo (e.g. Top & Pant)</option>
+                      <option value="Single Garment">👕 Single Garment (e.g. Top / Shirt / Pant)</option>
+                      <option value="3-Piece Set (Top, Pant, Dupatta)">👗 3-Piece Set (e.g. Top, Pant, Dupatta)</option>
+                      <option value="Custom Combo Set">✨ Custom Combo Set</option>
+                    </select>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {createJobCombos.map((combo, idx) => (
+                      <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '10px', alignItems: 'center', backgroundColor: '#FFFFFF', padding: '10px 12px', borderRadius: '10px', border: '1px solid #E5E7EB' }}>
+                        <div>
+                          <label style={{ fontSize: '11px', fontWeight: 700, color: '#6B7280', display: 'block', marginBottom: '4px' }}>Combo Part {idx + 1}</label>
+                          <input
+                            type="text"
+                            value={combo.partName}
+                            onChange={(e) => handleComboPartChange(idx, 'partName', e.target.value)}
+                            placeholder="e.g. Top, Pant, Kurti"
+                            style={{ fontSize: '13px', padding: '7px 10px', borderRadius: '6px', border: '1px solid #D1D5DB', width: '100%' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '11px', fontWeight: 700, color: '#6B7280', display: 'block', marginBottom: '4px' }}>Color Selection</label>
+                          <input
+                            type="text"
+                            value={combo.color}
+                            onChange={(e) => handleComboPartChange(idx, 'color', e.target.value)}
+                            placeholder="e.g. Navy Blue, Black"
+                            style={{ fontSize: '13px', padding: '7px 10px', borderRadius: '6px', border: '1px solid #D1D5DB', width: '100%' }}
+                          />
+                        </div>
+                        <div style={{ paddingTop: '16px' }}>
+                          {createJobCombos.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveComboPart(idx)}
+                              style={{ border: 'none', background: '#FEE2E2', color: '#EF4444', borderRadius: '6px', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                              title="Remove Item"
+                            >
+                              <i className="ph ph-trash" style={{ fontSize: '14px' }}></i>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={{ marginTop: '10px', textAlign: 'right' }}>
+                    <button
+                      type="button"
+                      onClick={handleAddComboPart}
+                      style={{ border: 'none', background: 'transparent', color: '#4F46E5', fontSize: '12px', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      <i className="ph ph-plus-circle"></i> + Add Custom Combo Item
+                    </button>
+                  </div>
                 </div>
 
                 {/* Job Operation Piece-Rates Section */}
