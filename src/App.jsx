@@ -2253,6 +2253,35 @@ export default function App() {
     });
   };
 
+  const deleteAttendanceRecord = (record) => {
+    if (!record) return;
+    const empName = record.empName || 'Employee';
+    const date = record.date || 'Attendance Log';
+
+    requestDeleteConfirmation({
+      heading: `Are you sure you want to delete attendance for ${empName}?`,
+      subheading: `Deleting this shift attendance record (${date}) will remove it from daily logs and attendance reports.`,
+      itemName: `${empName} - ${date}`,
+      impactType: 'item',
+      impactAmount: '- 1 Attendance Log',
+      impactList: [
+        '📅 Daily attendance log table will be updated.',
+        '📊 Shift hour calculations will be recalculated.'
+      ],
+      onConfirm: async () => {
+        const idToRemove = record._id || record.id;
+        setLocalAttendance(prev => prev.filter(r => (r._id || r.id) !== idToRemove));
+        try {
+          if (deleteAttendanceMutation && record._id && !record._id.startsWith('att_')) {
+            await deleteAttendanceMutation({ id: record._id });
+          }
+        } catch (err) {
+          console.warn("Convex delete attendance fallback:", err);
+        }
+      }
+    });
+  };
+
   const openEditEmployee = (emp) => {
     setEditingEmployee(emp);
     setIsEmployeeModalOpen(true);
@@ -5020,25 +5049,35 @@ export default function App() {
                     </thead>
                     <tbody>
                       {attendanceRecords.map((record) => (
-                        <tr key={record.id}>
+                        <tr key={record._id || record.id}>
                           <td className="text-muted">{record.date}</td>
                           <td className="font-semibold">{record.empName}</td>
-                          <td>{record.role}</td>
-                          <td>{record.shift}</td>
-                          <td>{record.checkIn}</td>
+                          <td>{record.role || 'Staff'}</td>
+                          <td>{record.shift || 'General Shift'}</td>
+                          <td>{record.checkIn || '08:00 AM'}</td>
                           <td>
                             <span className={`badge ${
-                              record.status.includes('Present') ? 'badge-success' :
-                              record.status.includes('Overtime') ? 'badge-info' :
-                              record.status.includes('Half-Day') ? 'badge-warning' : 'badge-danger'
+                              (record.status || '').includes('Present') ? 'badge-success' :
+                              (record.status || '').includes('Overtime') ? 'badge-info' :
+                              (record.status || '').includes('Half-Day') ? 'badge-warning' : 'badge-danger'
                             }`}>
                               {record.status}
                             </span>
                           </td>
-                          <td className="text-right">
-                            <button className="btn btn-secondary btn-sm" onClick={() => setIsAttendanceModalOpen(true)}>
-                              Update Status
-                            </button>
+                          <td className="text-right" onClick={(e) => e.stopPropagation()}>
+                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                              <button className="btn btn-secondary btn-sm" onClick={() => setIsAttendanceModalOpen(true)}>
+                                Update
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-icon text-red"
+                                onClick={() => deleteAttendanceRecord(record)}
+                                title="Delete Attendance Log"
+                              >
+                                <i className="ph ph-trash"></i>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
