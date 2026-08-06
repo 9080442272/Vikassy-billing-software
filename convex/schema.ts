@@ -117,4 +117,37 @@ export default defineSchema({
     notes: v.optional(v.string()),
     createdAt: v.string(),
   }).index("by_date", ["date"]),
+
+  investments: defineTable({
+    date: v.string(),
+    type: v.string(),
+    amount: v.number(),
+    linkedOrder: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    createdAt: v.string(),
+  }).index("by_date", ["date"]),
+
+  advance_records: defineTable({
+    employeeId: v.optional(v.string()),
+    empName: v.string(),
+    date: v.string(),
+    type: v.string(),
+    amount: v.number(),
+    mode: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    createdAt: v.string(),
+  }).index("by_date", ["date"]),
+
+  payroll_records: defineTable({
+    employeeId: v.optional(v.string()),
+    empName: v.string(),
+    month: v.string(),
+    baseSalary: v.number(),
+    bonus: v.number(),
+    deductions: v.number(),
+    netPayable: v.number(),
+    status: v.string(),
+    date: v.string(),
+    createdAt: v.string(),
+  }).index("by_month", ["month"]),
 });
