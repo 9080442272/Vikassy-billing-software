@@ -776,41 +776,66 @@ export default function App() {
   const handleComboTypeChange = (type) => {
     setCreateJobComboType(type);
     setActiveComboRateTab(0);
-    const defaultQty = parseInt(createJobOrderQty, 10) || 2500;
+    const defaultQty = parseInt(createJobOrderQty, 10) || 1250;
+    let nextCombos = [];
     if (type === '2-Piece Combo (Top & Pant)') {
-      setCreateJobCombos([
+      nextCombos = [
         { partName: 'Top', color: 'Navy Blue', pcsCount: defaultQty, powerTableRate: 12.00, cuttingRate: 3.50, singerRate: 8.50, overlockRate: 4.50, checkingRate: 2.00, threadRate: 1.50, ironingRate: 3.00, packingRate: 2.50 },
         { partName: 'Pant', color: 'Black', pcsCount: defaultQty, powerTableRate: 10.00, cuttingRate: 2.75, singerRate: 7.00, overlockRate: 4.00, checkingRate: 1.75, threadRate: 1.25, ironingRate: 2.50, packingRate: 2.00 }
-      ]);
+      ];
     } else if (type === 'Single Garment') {
-      setCreateJobCombos([
-        { partName: 'Garment / Top', color: 'Royal Blue', pcsCount: defaultQty, powerTableRate: 12.00, cuttingRate: 3.50, singerRate: 8.50, overlockRate: 4.50, checkingRate: 2.00, threadRate: 1.50, ironingRate: 3.00, packingRate: 2.50 }
-      ]);
+      nextCombos = [
+        { partName: 'Garment / Top', color: 'Royal Blue', pcsCount: defaultQty * 2, powerTableRate: 12.00, cuttingRate: 3.50, singerRate: 8.50, overlockRate: 4.50, checkingRate: 2.00, threadRate: 1.50, ironingRate: 3.00, packingRate: 2.50 }
+      ];
     } else if (type === '3-Piece Set (Top, Pant, Dupatta)') {
-      setCreateJobCombos([
+      nextCombos = [
         { partName: 'Top', color: 'Crimson Red', pcsCount: defaultQty, powerTableRate: 12.00, cuttingRate: 3.50, singerRate: 8.50, overlockRate: 4.50, checkingRate: 2.00, threadRate: 1.50, ironingRate: 3.00, packingRate: 2.50 },
         { partName: 'Pant', color: 'Golden Yellow', pcsCount: defaultQty, powerTableRate: 10.00, cuttingRate: 2.75, singerRate: 7.00, overlockRate: 4.00, checkingRate: 1.75, threadRate: 1.25, ironingRate: 2.50, packingRate: 2.00 },
         { partName: 'Dupatta / Outer', color: 'Crimson Red', pcsCount: defaultQty, powerTableRate: 5.00, cuttingRate: 1.50, singerRate: 4.00, overlockRate: 2.00, checkingRate: 1.00, threadRate: 1.00, ironingRate: 1.50, packingRate: 1.00 }
-      ]);
+      ];
     } else if (type === 'Custom Combo Set') {
-      setCreateJobCombos([
+      nextCombos = [
         { partName: 'Item 1', color: 'Multicolor', pcsCount: defaultQty, powerTableRate: 12.00, cuttingRate: 3.50, singerRate: 8.50, overlockRate: 4.50, checkingRate: 2.00, threadRate: 1.50, ironingRate: 3.00, packingRate: 2.50 }
-      ]);
+      ];
     }
+    setCreateJobCombos(nextCombos);
+    const totalPcs = nextCombos.reduce((sum, c) => sum + (parseInt(c.pcsCount, 10) || 0), 0);
+    setCreateJobOrderQty(totalPcs);
+    if (!isShipmentQtyTouched) setCreateJobShipmentQty(totalPcs);
   };
 
   const handleAddComboPart = () => {
-    const defaultQty = parseInt(createJobOrderQty, 10) || 2500;
-    setCreateJobCombos(prev => [...prev, { partName: `Part ${prev.length + 1}`, color: 'Navy Blue', pcsCount: defaultQty, powerTableRate: 12.00, cuttingRate: 3.50, singerRate: 8.50, overlockRate: 4.50, checkingRate: 2.00, threadRate: 1.50, ironingRate: 3.00, packingRate: 2.50 }]);
+    const defaultQty = 620;
+    setCreateJobCombos(prev => {
+      const nextCombos = [...prev, { partName: `Part ${prev.length + 1}`, color: 'Navy Blue', pcsCount: defaultQty, powerTableRate: 12.00, cuttingRate: 3.50, singerRate: 8.50, overlockRate: 4.50, checkingRate: 2.00, threadRate: 1.50, ironingRate: 3.00, packingRate: 2.50 }];
+      const totalPcs = nextCombos.reduce((sum, c) => sum + (parseInt(c.pcsCount, 10) || 0), 0);
+      setCreateJobOrderQty(totalPcs);
+      if (!isShipmentQtyTouched) setCreateJobShipmentQty(totalPcs);
+      return nextCombos;
+    });
   };
 
   const handleRemoveComboPart = (index) => {
-    setCreateJobCombos(prev => prev.filter((_, i) => i !== index));
+    setCreateJobCombos(prev => {
+      const nextCombos = prev.filter((_, i) => i !== index);
+      const totalPcs = nextCombos.reduce((sum, c) => sum + (parseInt(c.pcsCount, 10) || 0), 0);
+      setCreateJobOrderQty(totalPcs);
+      if (!isShipmentQtyTouched) setCreateJobShipmentQty(totalPcs);
+      return nextCombos;
+    });
     setActiveComboRateTab(0);
   };
 
   const handleComboPartChange = (index, field, value) => {
-    setCreateJobCombos(prev => prev.map((item, i) => i === index ? { ...item, [field]: value } : item));
+    setCreateJobCombos(prev => {
+      const nextCombos = prev.map((item, i) => i === index ? { ...item, [field]: value } : item);
+      if (field === 'pcsCount') {
+        const totalPcs = nextCombos.reduce((sum, c) => sum + (parseInt(c.pcsCount, 10) || 0), 0);
+        setCreateJobOrderQty(totalPcs);
+        if (!isShipmentQtyTouched) setCreateJobShipmentQty(totalPcs);
+      }
+      return nextCombos;
+    });
   };
 
   const handleCopyRatesToAllCombos = (sourceComboIndex) => {
@@ -6933,8 +6958,8 @@ export default function App() {
                     <label style={{ margin: 0, fontWeight: 700, fontSize: '13.5px', color: '#111827', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <i className="ph ph-t-shirt" style={{ color: '#4F46E5', fontSize: '18px' }}></i> Garment Combo Set & Color Breakdown
                     </label>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#4F46E5', backgroundColor: '#EEF2FF', padding: '2px 8px', borderRadius: '8px' }}>
-                      {createJobCombos.length} Combo Parts
+                    <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#4F46E5', backgroundColor: '#EEF2FF', border: '1px solid #C7D2FE', padding: '3px 10px', borderRadius: '8px', fontFamily: 'var(--font-mono)' }}>
+                      {createJobCombos.length} Combo Parts • Total: {createJobCombos.reduce((sum, c) => sum + (parseInt(c.pcsCount, 10) || 0), 0).toLocaleString()} Pcs
                     </span>
                   </div>
 
