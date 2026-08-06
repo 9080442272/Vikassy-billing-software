@@ -3897,56 +3897,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Right: Date, Search, Switcher & User Profile */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                    {/* Date & Time */}
-                    <div style={{ fontSize: '12.5px', color: '#4B5563', backgroundColor: '#F9FAFB', padding: '8px 12px', borderRadius: '10px', border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
-                      <i className="ph ph-calendar" style={{ color: '#4F46E5', fontSize: '16px' }}></i>
-                      <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                    </div>
-
-                    {/* Business Switcher Dropdown */}
-                    <select 
-                      value={activeCompany.id} 
-                      onChange={(e) => setActiveCompanyId(e.target.value)}
-                      style={{
-                        padding: '8px 12px',
-                        borderRadius: '10px',
-                        border: '1px solid #E5E7EB',
-                        backgroundColor: '#FFFFFF',
-                        color: '#111827',
-                        fontSize: '12.5px',
-                        fontWeight: 700,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {companies.map(b => (
-                        <option key={b.id} value={b.id}>{b.name} ({b.city})</option>
-                      ))}
-                    </select>
-
-                    {/* Notifications Bell */}
-                    <button 
-                      type="button" 
-                      style={{
-                        position: 'relative',
-                        width: '38px',
-                        height: '38px',
-                        borderRadius: '10px',
-                        border: '1px solid #E5E7EB',
-                        backgroundColor: '#FFFFFF',
-                        color: '#4B5563',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justify: 'center',
-                        cursor: 'pointer'
-                      }}
-                      title="Notifications"
-                    >
-                      <i className="ph ph-bell" style={{ fontSize: '18px' }}></i>
-                      <span style={{ position: 'absolute', top: '6px', right: '6px', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#EF4444' }}></span>
-                    </button>
-                  </div>
+                  {/* Right: Empty */}
                 </div>
 
                 {/* ==================== 2. HERO KPI SECTION (4 Cards Grid) ==================== */}
