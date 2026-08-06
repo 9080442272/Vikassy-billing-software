@@ -4865,14 +4865,11 @@ export default function App() {
         {/* ==================== SETTINGS VIEW ==================== */}
         {activeTab === 'settings' && (
           <section id="settings-view" className="tab-view active" style={{ padding: '0 4px 40px 4px' }}>
-            <header className="view-header" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+            <header className="view-header" style={{ marginBottom: '24px' }}>
               <div>
                 <h1 style={{ fontSize: '28px', fontWeight: 800, margin: '0 0 4px 0' }}>System Settings & Multi-Company Configuration</h1>
                 <p className="subtitle" style={{ margin: 0, color: 'var(--color-text-secondary)' }}>Manage legal companies, export branches, user role permissions, and GST registrations.</p>
               </div>
-              <button className="btn btn-primary" onClick={() => setIsAddBranchModalOpen(true)} style={{ padding: '10px 18px', borderRadius: '12px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                <i className="ph ph-plus-circle" style={{ fontSize: '18px' }}></i> Add New Company / Branch
-              </button>
             </header>
 
             {/* SECTION 1: MULTI-COMPANY & BRANCHES DIRECTORY */}
