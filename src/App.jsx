@@ -383,7 +383,7 @@ export default function App() {
   const rawStitching = useQuery(api.stitching.getAll) || [];
   const stitching = mergeCollections(rawStitching, localStitching);
 
-  const rawAttendance = useQuery(api.attendance.getAll) || [];
+  const rawAttendance = (api.attendance && api.attendance.getAll ? useQuery(api.attendance.getAll) : []) || [];
   const attendanceRecords = mergeCollections(rawAttendance, localAttendance);
 
   const ceoActivities = useQuery(api.ceoActivities.getAll) || [];
@@ -417,9 +417,9 @@ export default function App() {
   const addStitchingMutation = useMutation(api.stitching.add);
   const updateStitchingMutation = useMutation(api.stitching.update);
   const deleteStitchingMutation = useMutation(api.stitching.remove);
-  const addAttendanceMutation = useMutation(api.attendance.add);
-  const updateAttendanceMutation = useMutation(api.attendance.update);
-  const deleteAttendanceMutation = useMutation(api.attendance.remove);
+  const addAttendanceMutation = api.attendance && api.attendance.add ? useMutation(api.attendance.add) : null;
+  const updateAttendanceMutation = api.attendance && api.attendance.update ? useMutation(api.attendance.update) : null;
+  const deleteAttendanceMutation = api.attendance && api.attendance.remove ? useMutation(api.attendance.remove) : null;
   const updateCeoActivityMutation = useMutation(api.ceoActivities.update);
   const deleteCeoActivityMutation = useMutation(api.ceoActivities.remove);
   const addExpenseMutation = useMutation(api.expenses.add);
@@ -7928,14 +7928,16 @@ export default function App() {
 
               setLocalAttendance(prev => [newRecord, ...prev]);
               try {
-                await addAttendanceMutation({
-                  employeeId: targetEmp ? targetEmp._id : undefined,
-                  empName,
-                  date,
-                  shift,
-                  status,
-                  overtimeHours: status.includes('Overtime') ? 2 : 0
-                });
+                if (addAttendanceMutation) {
+                  await addAttendanceMutation({
+                    employeeId: targetEmp ? targetEmp._id : undefined,
+                    empName,
+                    date,
+                    shift,
+                    status,
+                    overtimeHours: status.includes('Overtime') ? 2 : 0
+                  });
+                }
               } catch (err) {
                 console.warn("Convex add attendance fallback:", err);
               }
