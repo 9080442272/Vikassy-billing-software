@@ -4498,47 +4498,6 @@ export default function App() {
                     </table>
                   </div>
                 </div>
-
-                {/* Floating Chatbot Widget on Home Screen */}
-
-                {/* Floating Chatbot Widget on Home Screen */}
-                <div className="floating-chatbot-container no-print">
-                  {isChatOpen && (
-                    <div className="chatbot-window-card">
-                      <div className="chat-header" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-muted)' }}>
-                        <div className="chat-ai-avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(124,58,237,0.1)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}><i className="ph-fill ph-sparkle"></i></div>
-                        <div style={{ flex: 1 }}>
-                          <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 600 }}>AI Financial Advisor</h4>
-                          <p className="small text-green" style={{ margin: 0, fontSize: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}><span className="pulse-dot" style={{ width: '6px', height: '6px', backgroundColor: 'var(--color-success)', borderRadius: '50%', display: 'inline-block' }}></span> Online & connected</p>
-                        </div>
-                        <button className="btn btn-accent btn-sm" onClick={triggerAIAnalysis} style={{ fontSize: '10px', padding: '4px 8px', display: 'inline-flex', alignItems: 'center', gap: '4px', border: '1px solid rgba(124, 58, 237, 0.2)', marginRight: '6px' }}><i className="ph ph-sparkle"></i> Analysis</button>
-                        <button className="btn-close" onClick={() => setIsChatOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--color-text-secondary)', cursor: 'pointer', fontSize: '16px' }}><i className="ph ph-x"></i></button>
-                      </div>
-
-                      <div className="chat-logs" id="ai-chat-logs" style={{ height: '260px', overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: 'var(--color-surface)' }}>
-                        {chatMessages.map((msg, i) => (
-                          <div className={`chat-message ${msg.role}`} key={i} style={{ alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%', padding: '8px 12px', borderRadius: 'var(--radius-md)', fontSize: '12px', lineHeight: 1.4, backgroundColor: msg.role === 'user' ? 'var(--color-primary)' : 'var(--color-muted)', color: msg.role === 'user' ? '#ffffff' : 'var(--color-text-primary)' }}>
-                            <p style={{ margin: 0 }}>{msg.text}</p>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="suggestion-chips" style={{ padding: '8px 12px', display: 'flex', gap: '4px', flexWrap: 'wrap', borderTop: '1px solid var(--color-border)', backgroundColor: 'var(--color-muted)' }}>
-                        <button className="chip" style={{ fontSize: '10px', padding: '4px 8px', borderRadius: '12px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-secondary)', cursor: 'pointer' }} onClick={() => sendQuickMessage('Provide complete cash flow review')}>Cash Flow</button>
-                        <button className="chip" style={{ fontSize: '10px', padding: '4px 8px', borderRadius: '12px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-secondary)', cursor: 'pointer' }} onClick={() => sendQuickMessage('Who is my top client by sales?')}>Top Client</button>
-                        <button className="chip" style={{ fontSize: '10px', padding: '4px 8px', borderRadius: '12px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-secondary)', cursor: 'pointer' }} onClick={() => sendQuickMessage('Do I have client concentration risk?')}>Risk Audit</button>
-                      </div>
-                      <form className="chat-input-form" onSubmit={sendChatMessage} style={{ display: 'flex', gap: '8px', padding: '8px 12px', borderTop: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)' }}>
-                        <input type="text" placeholder="Ask finances..." value={chatInput} onChange={(e) => setChatInput(e.target.value)} required style={{ flex: 1, fontSize: '12px', padding: '8px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-muted)', color: 'var(--color-text-primary)' }} />
-                        <button type="submit" className="btn btn-accent btn-icon-square" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><i className="ph-fill ph-paper-plane-right"></i></button>
-                      </form>
-                    </div>
-                  )}
-
-                  <div className="floating-chat-trigger" onClick={() => setIsChatOpen(!isChatOpen)}>
-                    {isChatOpen ? <i className="ph ph-x"></i> : <i className="ph ph-sparkle"></i>}
-                  </div>
-                </div>
               </section>
             </>
           );
@@ -5507,8 +5466,8 @@ export default function App() {
                     </div>
                     <div className="mobile-card-body">
                       <div className="mobile-card-detail">
-                        <span className="mobile-card-detail-label">Client</span>
-                        <span className="mobile-card-detail-value">{c ? c.name : 'Unknown Client'}</span>
+                        <span className="mobile-card-detail-label">Company / Buyer</span>
+                        <span className="mobile-card-detail-value font-medium" style={{ color: 'var(--color-primary)' }}>🏢 {c ? (c.companyName || c.name) : 'Corporate Client'}</span>
                       </div>
                       <div className="mobile-card-detail">
                         <span className="mobile-card-detail-label">Grand Total</span>
@@ -8574,24 +8533,6 @@ export default function App() {
                   <div style={{ fontWeight: 'bold', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px', color: '#000' }}>
                     Tax Invoice
                   </div>
-                  {(() => {
-                    const isPaid = (viewingInvoice.paymentStatus === 'Paid' || viewingInvoice.status === 'Paid');
-                    if (!isPaid) return null;
-                    return (
-                      <div style={{
-                        fontSize: '11px',
-                        fontWeight: 800,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px',
-                        color: '#047857',
-                        border: '1.5px solid #047857',
-                        padding: '2px 8px',
-                        borderRadius: '4px'
-                      }}>
-                        ✓ PAYMENT RECEIVED
-                      </div>
-                    );
-                  })()}
                 </div>
 
                 {/* Top Grid */}
