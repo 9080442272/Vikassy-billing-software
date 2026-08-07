@@ -4441,7 +4441,7 @@ export default function App() {
                       <thead>
                         <tr>
                           <th>Invoice No</th>
-                          <th>Customer Name</th>
+                          <th>Company / Buyer</th>
                           <th>Date</th>
                           <th className="text-right">Shipment Qty</th>
                           <th className="text-right">Grand Total (₹)</th>
@@ -4456,7 +4456,7 @@ export default function App() {
                           return (
                             <tr key={b._id}>
                               <td className="font-semibold text-primary">{b.billNumber}</td>
-                              <td className="font-medium">{c ? c.name : 'Corporate Client'}</td>
+                              <td className="font-medium">🏢 {c ? (c.companyName || c.name) : 'Corporate Client'}</td>
                               <td className="text-muted">{formatDate(b.date)}</td>
                               <td className="text-right font-medium">{(b.shipmentQty || b.items?.[0]?.qty || 2500).toLocaleString()} Pcs</td>
                               <td className="text-right font-bold text-green" style={{ fontFamily: 'var(--font-mono)' }}>{formatCurrency(b.totalAmount)}</td>
@@ -5395,7 +5395,7 @@ export default function App() {
                   <thead>
                     <tr>
                       <th>Invoice No</th>
-                      <th>Client Name</th>
+                      <th>Company / Buyer</th>
                       <th>Date</th>
                       <th>Tax Scheme</th>
                       <th className="text-right">Subtotal</th>
@@ -5413,7 +5413,7 @@ export default function App() {
                       return (
                         <tr key={b._id}>
                           <td className="font-semibold text-primary">{b.billNumber}</td>
-                          <td>{c ? c.name : 'Unknown Client'}</td>
+                          <td className="font-medium">🏢 {c ? (c.companyName || c.name) : 'Corporate Client'}</td>
                           <td>{formatDate(b.date)}</td>
                           <td>{b.billType === 'with-gst' ? 'With GST (5%)' : 'Without GST'}</td>
                           <td className="text-right">{formatCurrency(b.subtotal)}</td>
@@ -6862,11 +6862,11 @@ export default function App() {
             <form id="bill-form" onSubmit={handleBillSubmit}>
               <div className="modal-body" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div className="form-group">
-                  <label htmlFor="bill-client">Select Client *</label>
-                  <select id="bill-client" required value={billClient} onChange={(e) => handleClientSelectForInvoice(e.target.value)} style={{ fontSize: '15px', padding: '12px 14px' }}>
-                    <option value="">-- Choose Client --</option>
+                  <label htmlFor="bill-client" style={{ fontWeight: 600 }}>Select Company / Buyer *</label>
+                  <select id="bill-client" required value={billClient} onChange={(e) => handleClientSelectForInvoice(e.target.value)} style={{ fontSize: '14.5px', padding: '12px 14px' }}>
+                    <option value="">-- Choose Company / Buyer --</option>
                     {clients.map(c => (
-                      <option key={c._id} value={c._id}>{c.name} {c.companyName ? `(${c.companyName})` : ''}</option>
+                      <option key={c._id} value={c._id}>🏢 {c.companyName || c.name}</option>
                     ))}
                   </select>
 
