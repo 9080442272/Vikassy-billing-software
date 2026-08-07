@@ -662,10 +662,10 @@ export default function App() {
     try {
       const saved = localStorage.getItem('varahi_operational_expenses');
       return saved ? JSON.parse(saved) : [
-        { id: 1, date: new Date().toISOString().split('T')[0], category: "Company Rent / Factory Lease", amount: 25000, mode: "Bank Transfer", voucherNo: "RENT-AUG-2026", notes: "Monthly Factory Rent for Main Unit" },
-        { id: 2, date: new Date().toISOString().split('T')[0], category: "EB Electricity Bill", amount: 8450, mode: "UPI / GPay", voucherNo: "EB-987452", notes: "Electricity bill for Stitching & Cutting Floor" },
-        { id: 3, date: new Date().toISOString().split('T')[0], category: "Auto & Freight Charges", amount: 1200, mode: "Cash", voucherNo: "AUTO-441", notes: "Fabric transport auto charges to dyeing unit" },
-        { id: 4, date: new Date().toISOString().split('T')[0], category: "Petrol & Diesel Fuel", amount: 1500, mode: "UPI / GPay", voucherNo: "PETROL-09", notes: "Company vehicle fuel for delivery dispatch" }
+        { id: 1, date: new Date().toISOString().split('T')[0], category: "Company Rent / Factory Lease", amount: 25000, mode: "Bank Transfer", voucherNo: "RENT-AUG-2026", fundedByCapitalSource: "CEO brought loan for working capital", notes: "Monthly Factory Rent for Main Unit" },
+        { id: 2, date: new Date().toISOString().split('T')[0], category: "EB Electricity Bill", amount: 8450, mode: "UPI / GPay", voucherNo: "EB-987452", fundedByCapitalSource: "CEO brought amount from MD to run order", notes: "Electricity bill for Stitching & Cutting Floor" },
+        { id: 3, date: new Date().toISOString().split('T')[0], category: "Auto & Freight Charges", amount: 1200, mode: "Cash", voucherNo: "AUTO-441", fundedByCapitalSource: "CEO brought loan for working capital", notes: "Fabric transport auto charges to dyeing unit" },
+        { id: 4, date: new Date().toISOString().split('T')[0], category: "Petrol & Diesel Fuel", amount: 1500, mode: "UPI / GPay", voucherNo: "PETROL-09", fundedByCapitalSource: "", notes: "Company vehicle fuel for delivery dispatch" }
       ];
     } catch (e) {
       return [];
@@ -6034,6 +6034,10 @@ export default function App() {
         {/* ==================== CAPITAL & INVESTMENT SOURCING VIEW ==================== */}
         {activeTab === 'expenses' && (() => {
           const totalCapitalInjected = investmentRecords.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+          const totalCapitalDrawdown = operationalExpenses
+            .filter(op => op.fundedByCapitalSource && op.fundedByCapitalSource !== '')
+            .reduce((sum, op) => sum + (parseFloat(op.amount) || 0), 0);
+          const netAvailableCapital = Math.max(0, totalCapitalInjected - totalCapitalDrawdown);
 
           return (
             <section id="expenses-view" className="tab-view active">
@@ -6041,7 +6045,7 @@ export default function App() {
                 <div>
                   <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 800 }}>Capital & Investment Sourcing</h1>
                   <p className="subtitle" style={{ margin: '4px 0 0 0', color: 'var(--color-text-secondary)' }}>
-                    Track order execution funding sources (e.g. CEO brought amount from MD to run order, Bank/Director loans).
+                    Track order execution funding sources (e.g. CEO brought amount from MD to run order, Bank/Director loans) and factory bill drawdowns.
                   </p>
                 </div>
                 <button className="btn btn-primary" onClick={() => setIsInvestmentModalOpen(true)} style={{ padding: '10px 20px', fontSize: '13.5px', fontWeight: 800, borderRadius: '12px', boxShadow: '0 4px 14px rgba(94, 106, 210, 0.35)', display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
@@ -6050,7 +6054,7 @@ export default function App() {
               </header>
 
               {/* KPI Cards */}
-              <div className="metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
+              <div className="metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
                 <div className="metric-card" style={{ borderLeft: '4px solid #10B981', backgroundColor: '#F0FDF4' }}>
                   <div className="metric-card-header">
                     <span className="metric-label" style={{ color: '#047857', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -6063,6 +6067,36 @@ export default function App() {
                   <div className="metric-value" style={{ color: '#065F46', fontWeight: 800 }}>{formatCurrency(totalCapitalInjected)}</div>
                   <div className="metric-footer">
                     <span style={{ color: '#047857', fontWeight: 600 }}>Active capital ready for order execution</span>
+                  </div>
+                </div>
+
+                <div className="metric-card" style={{ borderLeft: '4px solid #EF4444', backgroundColor: '#FEF2F2' }}>
+                  <div className="metric-card-header">
+                    <span className="metric-label" style={{ color: '#991B1B', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      💸 Factory Bills Paid from Capital
+                    </span>
+                    <div className="metric-icon" style={{ color: '#EF4444', backgroundColor: '#FEE2E2' }}>
+                      <i className="ph ph-receipt"></i>
+                    </div>
+                  </div>
+                  <div className="metric-value" style={{ color: '#7F1D1D', fontWeight: 800 }}>{formatCurrency(totalCapitalDrawdown)}</div>
+                  <div className="metric-footer">
+                    <span style={{ color: '#991B1B', fontWeight: 600 }}>Rent, EB bills & transport funded</span>
+                  </div>
+                </div>
+
+                <div className="metric-card" style={{ borderLeft: '4px solid #4F46E5', backgroundColor: '#EEF2FF' }}>
+                  <div className="metric-card-header">
+                    <span className="metric-label" style={{ color: '#3730A3', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      🏦 Net Available Capital
+                    </span>
+                    <div className="metric-icon" style={{ color: '#4F46E5', backgroundColor: '#C7D2FE' }}>
+                      <i className="ph ph-bank"></i>
+                    </div>
+                  </div>
+                  <div className="metric-value" style={{ color: '#312E81', fontWeight: 800 }}>{formatCurrency(netAvailableCapital)}</div>
+                  <div className="metric-footer">
+                    <span style={{ color: '#3730A3', fontWeight: 600 }}>Remaining unspent capital balance</span>
                   </div>
                 </div>
 
@@ -6080,30 +6114,15 @@ export default function App() {
                     <span>Capital brought from MD to run orders</span>
                   </div>
                 </div>
-
-                <div className="metric-card">
-                  <div className="metric-card-header">
-                    <span className="metric-label">Loans & Credit Lines</span>
-                    <div className="metric-icon" style={{ color: '#6E56CF', backgroundColor: 'rgba(110,86,207,0.1)' }}>
-                      <i className="ph ph-bank"></i>
-                    </div>
-                  </div>
-                  <div className="metric-value">
-                    {formatCurrency(investmentRecords.filter(r => r.type?.includes('Loan') || r.investorName?.includes('Loan')).reduce((s, r) => s + (parseFloat(r.amount) || 0), 0))}
-                  </div>
-                  <div className="metric-footer">
-                    <span>Short-term loans & working capital lines</span>
-                  </div>
-                </div>
               </div>
 
               {/* Main Ledger Table Card */}
               <div className="table-card bg-surface border" style={{ padding: '20px', borderRadius: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
                   <div>
-                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Order Investment Ledger</h3>
+                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Order Investment & Bills Ledger</h3>
                     <p className="small text-muted" style={{ margin: '4px 0 0 0' }}>
-                      Audit breakdown of capital sources, investors, and target order allocations.
+                      Audit breakdown of capital sources, investors, target order allocations, and factory bills drawdown.
                     </p>
                   </div>
                 </div>
@@ -6115,50 +6134,84 @@ export default function App() {
                         <th>Date</th>
                         <th>Source Category</th>
                         <th>Target Order / Purpose</th>
-                        <th className="text-right">Capital Amount (₹)</th>
+                        <th className="text-right">Capital Amount</th>
+                        <th>Factory Bills Paid from this Capital</th>
+                        <th className="text-right">Remaining Capital</th>
                         <th className="text-right">Action</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {investmentRecords.map((rec) => (
-                        <tr key={rec.id}>
-                          <td className="text-muted">{rec.date}</td>
-                          <td>
-                            <span className="badge badge-purple" style={{ fontSize: '11.5px', fontWeight: 700 }}>
-                              {rec.type || 'CEO brought amount from MD'}
-                            </span>
-                          </td>
-                          <td>
-                            <span className="font-semibold text-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                              <i className="ph ph-tag" style={{ fontSize: '12px' }}></i> {rec.linkedOrder || 'Run Production Order'}
-                            </span>
-                          </td>
-                          <td className="text-right font-semibold" style={{ color: '#10B981', fontSize: '14px', fontFamily: 'var(--font-mono)' }}>
-                            + {formatCurrency(Math.abs(rec.amount))}
-                          </td>
-                          <td className="text-right" onClick={(e) => e.stopPropagation()}>
-                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
-                              <button 
-                                className="btn-icon text-primary" 
-                                onClick={() => openEditInvestment(rec)} 
-                                title="Edit Investment Record"
-                              >
-                                <i className="ph ph-pencil-simple"></i>
-                              </button>
-                              <button 
-                                className="btn-icon text-red" 
-                                onClick={() => deleteInvestmentRecord(rec)} 
-                                title="Delete Record"
-                              >
-                                <i className="ph ph-trash"></i>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                      {investmentRecords.map((rec) => {
+                        const recName = rec.type || 'CEO brought amount from MD';
+                        const linkedBills = operationalExpenses.filter(op => 
+                          op.fundedByCapitalSource === recName || 
+                          op.fundedByCapitalSource === rec.linkedOrder ||
+                          (rec.type && op.fundedByCapitalSource?.includes(rec.type))
+                        );
+                        const spentFromThisCap = linkedBills.reduce((s, op) => s + (parseFloat(op.amount) || 0), 0);
+                        const remainingThisCap = Math.max(0, rec.amount - spentFromThisCap);
+
+                        return (
+                          <tr key={rec.id}>
+                            <td className="text-muted">{rec.date}</td>
+                            <td>
+                              <span className="badge badge-purple" style={{ fontSize: '11.5px', fontWeight: 700 }}>
+                                {rec.type || 'CEO brought amount from MD'}
+                              </span>
+                            </td>
+                            <td>
+                              <span className="font-semibold text-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <i className="ph ph-tag" style={{ fontSize: '12px' }}></i> {rec.linkedOrder || 'Run Production Order'}
+                              </span>
+                            </td>
+                            <td className="text-right font-semibold" style={{ color: '#10B981', fontSize: '14px', fontFamily: 'var(--font-mono)' }}>
+                              + {formatCurrency(Math.abs(rec.amount))}
+                            </td>
+                            <td>
+                              {linkedBills.length > 0 ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#DC2626' }}>
+                                    - {formatCurrency(spentFromThisCap)} ({linkedBills.length} Bills Paid)
+                                  </span>
+                                  <div style={{ fontSize: '11px', color: '#6B7280', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                    {linkedBills.map(b => (
+                                      <span key={b.id} style={{ backgroundColor: '#F3F4F6', padding: '1px 6px', borderRadius: '4px' }}>
+                                        {b.category} ({formatCurrency(b.amount)})
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-muted" style={{ fontSize: '12px' }}>No bills drawn yet</span>
+                              )}
+                            </td>
+                            <td className="text-right font-semibold" style={{ color: remainingThisCap > 0 ? '#2563EB' : '#9CA3AF', fontSize: '13.5px', fontFamily: 'var(--font-mono)' }}>
+                              {formatCurrency(remainingThisCap)}
+                            </td>
+                            <td className="text-right" onClick={(e) => e.stopPropagation()}>
+                              <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                <button 
+                                  className="btn-icon text-primary" 
+                                  onClick={() => openEditInvestment(rec)} 
+                                  title="Edit Investment Record"
+                                >
+                                  <i className="ph ph-pencil-simple"></i>
+                                </button>
+                                <button 
+                                  className="btn-icon text-red" 
+                                  onClick={() => deleteInvestmentRecord(rec)} 
+                                  title="Delete Record"
+                                >
+                                  <i className="ph ph-trash"></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                       {investmentRecords.length === 0 && (
                         <tr>
-                          <td colSpan="5" className="text-center text-muted" style={{ padding: '32px' }}>
+                          <td colSpan="7" className="text-center text-muted" style={{ padding: '32px' }}>
                             No investment records logged. Click <strong>"Log Investment / Capital"</strong> to record capital sourcing.
                           </td>
                         </tr>
@@ -6260,7 +6313,7 @@ export default function App() {
               </div>
 
               {/* Main Table Card */}
-              <div className="table-card bg-surface border" style={{ padding: '20px', borderRadius: '16px' }}>
+                <div className="table-card bg-surface border" style={{ padding: '20px', borderRadius: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
                   <div>
                     <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Operational Expenditure Ledger</h3>
@@ -6278,6 +6331,7 @@ export default function App() {
                         <th>Category</th>
                         <th>Voucher / Receipt No.</th>
                         <th>Payment Mode</th>
+                        <th>Funded By Capital Source</th>
                         <th>Notes / Purpose</th>
                         <th className="text-right">Amount (₹)</th>
                         <th className="text-right">Actions</th>
@@ -6301,6 +6355,15 @@ export default function App() {
                             <span style={{ fontSize: '12px', fontWeight: 600, color: '#4B5563' }}>
                               💳 {op.mode || 'Cash'}
                             </span>
+                          </td>
+                          <td>
+                            {op.fundedByCapitalSource ? (
+                              <span className="badge badge-purple" style={{ fontSize: '11px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                🏦 {op.fundedByCapitalSource}
+                              </span>
+                            ) : (
+                              <span className="text-muted" style={{ fontSize: '12px' }}>General Cash</span>
+                            )}
                           </td>
                           <td style={{ fontSize: '13px', color: '#374151' }}>{op.notes || '-'}</td>
                           <td className="text-right font-semibold" style={{ color: '#DC2626', fontSize: '14px', fontFamily: 'var(--font-mono)' }}>
@@ -6328,7 +6391,7 @@ export default function App() {
                       ))}
                       {operationalExpenses.length === 0 && (
                         <tr>
-                          <td colSpan="7" className="text-center text-muted" style={{ padding: '32px' }}>
+                          <td colSpan="8" className="text-center text-muted" style={{ padding: '32px' }}>
                             No operational expenses logged. Click <strong>"Log Operational Expense"</strong> to add company bills.
                           </td>
                         </tr>
