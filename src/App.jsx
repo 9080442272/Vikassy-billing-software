@@ -982,6 +982,7 @@ export default function App() {
   const [billWithGst, setBillWithGst] = useState(true);
   const [billSubtotal, setBillSubtotal] = useState('');
   const [billShipmentQty, setBillShipmentQty] = useState('2500');
+  const [billItemRate, setBillItemRate] = useState('74');
   const [billGstAmount, setBillGstAmount] = useState('');
   const [billDiscount, setBillDiscount] = useState('0');
   const [billGrandTotal, setBillGrandTotal] = useState('0');
@@ -1397,9 +1398,37 @@ export default function App() {
   }, [bills, clients, activeTab, isLoggedIn, billingTrendRange]);
 
   // --- Calculations triggers for invoices ---
+  const handleRateChange = (val) => {
+    setBillItemRate(val);
+    const rate = parseFloat(val) || 0;
+    const qty = parseFloat(billShipmentQty) || 0;
+    const subtotalVal = Math.round(rate * qty);
+    setBillSubtotal(subtotalVal.toString());
+    const computedGst = billWithGst ? subtotalVal * 0.05 : 0;
+    setBillGstAmount(computedGst.toFixed(2));
+    calculateGrandTotal(subtotalVal, computedGst, parseFloat(billDiscount) || 0);
+  };
+
+  const handleShipmentQtyChange = (val) => {
+    setBillShipmentQty(val);
+    const qty = parseFloat(val) || 0;
+    const rate = parseFloat(billItemRate) || 0;
+    if (rate > 0) {
+      const subtotalVal = Math.round(rate * qty);
+      setBillSubtotal(subtotalVal.toString());
+      const computedGst = billWithGst ? subtotalVal * 0.05 : 0;
+      setBillGstAmount(computedGst.toFixed(2));
+      calculateGrandTotal(subtotalVal, computedGst, parseFloat(billDiscount) || 0);
+    }
+  };
+
   const handleSubtotalChange = (val) => {
     setBillSubtotal(val);
     const sub = parseFloat(val) || 0;
+    const qty = parseFloat(billShipmentQty) || 0;
+    if (qty > 0) {
+      setBillItemRate((sub / qty).toFixed(2));
+    }
     const computedGst = billWithGst ? sub * 0.05 : 0;
     setBillGstAmount(computedGst.toFixed(2));
     calculateGrandTotal(sub, computedGst, parseFloat(billDiscount) || 0);
@@ -2201,9 +2230,10 @@ export default function App() {
       date: billDate,
       billType: billWithGst ? 'with-gst' : 'without-gst',
       shipmentQty: parsedShipmentQty,
+      itemRate: parseFloat(billItemRate) || 0,
       items: [{
         name: billWithGst ? "Fabric Stitching & Checking Summary" : "Fabric Production Services (Tax-exempt)",
-        price: parseFloat(billSubtotal),
+        price: parseFloat(billItemRate) || (parseFloat(billSubtotal) / parsedShipmentQty),
         qty: parsedShipmentQty,
         gstRate: billWithGst ? 5 : 0,
         gstAmount: parseFloat(billGstAmount) || 0,
@@ -6938,9 +6968,9 @@ export default function App() {
                   </div>
                 )}
 
-                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                   <div className="form-group">
-                    <label htmlFor="bill-shipment-qty">Shipment Quantity (Pcs) *</label>
+                    <label htmlFor="bill-shipment-qty">Shipment Qty (Pcs) *</label>
                     <input 
                       type="number" 
                       id="bill-shipment-qty" 
@@ -6948,13 +6978,27 @@ export default function App() {
                       required 
                       placeholder="e.g. 2500" 
                       value={billShipmentQty} 
-                      onChange={(e) => setBillShipmentQty(e.target.value)} 
-                      style={{ fontSize: '15px', padding: '12px 14px', fontWeight: 600 }} 
+                      onChange={(e) => handleShipmentQtyChange(e.target.value)} 
+                      style={{ fontSize: '14.5px', padding: '12px 14px', fontWeight: 600 }} 
                     />
                   </div>
                   <div className="form-group">
-                    <label htmlFor="bill-subtotal-input">Taxable Value / Subtotal (₹) *</label>
-                    <input type="number" id="bill-subtotal-input" min="0" step="any" required placeholder="0.00" value={billSubtotal} onChange={(e) => handleSubtotalChange(e.target.value)} style={{ fontSize: '15px', padding: '12px 14px', fontWeight: 600 }} />
+                    <label htmlFor="bill-item-rate">Rate (₹/Pc) *</label>
+                    <input 
+                      type="number" 
+                      id="bill-item-rate" 
+                      min="0" 
+                      step="any" 
+                      required 
+                      placeholder="e.g. 74.00" 
+                      value={billItemRate} 
+                      onChange={(e) => handleRateChange(e.target.value)} 
+                      style={{ fontSize: '14.5px', padding: '12px 14px', fontWeight: 700, color: '#4F46E5' }} 
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="bill-subtotal-input">Subtotal (₹) *</label>
+                    <input type="number" id="bill-subtotal-input" min="0" step="any" required placeholder="0.00" value={billSubtotal} onChange={(e) => handleSubtotalChange(e.target.value)} style={{ fontSize: '14.5px', padding: '12px 14px', fontWeight: 700 }} />
                   </div>
                 </div>
 
