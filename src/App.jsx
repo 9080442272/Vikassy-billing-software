@@ -3353,12 +3353,12 @@ export default function App() {
       alert("No invoice records to export!");
       return;
     }
-    const headers = ["Invoice Number", "Client Name", "Invoice Date", "Tax Scheme", "Subtotal", "GST Tax", "Discount", "Grand Total"];
+    const headers = ["Invoice Number", "Company / Buyer", "Invoice Date", "Tax Scheme", "Subtotal", "GST Tax", "Discount", "Grand Total"];
     const rows = bills.map(b => {
       const c = clients.find(cl => cl._id === b.clientId);
       return [
         b.billNumber,
-        c ? c.name : 'Unknown Client',
+        c ? (c.companyName || c.name) : 'Corporate Client',
         formatDate(b.date),
         b.billType === 'with-gst' ? 'GST (5%)' : 'No GST',
         formatCurrency(b.subtotal),
@@ -8571,7 +8571,7 @@ export default function App() {
                             const c = clients.find(cl => cl._id === viewingInvoice.clientId);
                             return (
                               <>
-                                <div style={{ fontWeight: 'bold' }}>{c ? c.name : '-'}</div>
+                                <div style={{ fontWeight: 'bold' }}>{c ? (c.companyName || c.name) : '-'}</div>
                                 <div>{c ? c.address || 'N/A' : '-'}</div>
                                 <div>GSTIN/UIN: <span style={{ fontWeight: 600 }}>{c ? c.gstin || 'Unregistered' : '-'}</span></div>
                                 <div>State Name: Tamil Nadu, Code: 33</div>
