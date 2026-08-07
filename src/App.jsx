@@ -657,6 +657,28 @@ export default function App() {
   const [isInvestmentModalOpen, setIsInvestmentModalOpen] = useState(false);
   const [isAllocateOrderModalOpen, setIsAllocateOrderModalOpen] = useState(false);
 
+  // Factory Operational Expenses & Overheads States
+  const [operationalExpenses, setOperationalExpenses] = useState(() => {
+    try {
+      const saved = localStorage.getItem('varahi_operational_expenses');
+      return saved ? JSON.parse(saved) : [
+        { id: 1, date: new Date().toISOString().split('T')[0], category: "Company Rent / Factory Lease", amount: 25000, mode: "Bank Transfer", voucherNo: "RENT-AUG-2026", notes: "Monthly Factory Rent for Main Unit" },
+        { id: 2, date: new Date().toISOString().split('T')[0], category: "EB Electricity Bill", amount: 8450, mode: "UPI / GPay", voucherNo: "EB-987452", notes: "Electricity bill for Stitching & Cutting Floor" },
+        { id: 3, date: new Date().toISOString().split('T')[0], category: "Auto & Freight Charges", amount: 1200, mode: "Cash", voucherNo: "AUTO-441", notes: "Fabric transport auto charges to dyeing unit" },
+        { id: 4, date: new Date().toISOString().split('T')[0], category: "Petrol & Diesel Fuel", amount: 1500, mode: "UPI / GPay", voucherNo: "PETROL-09", notes: "Company vehicle fuel for delivery dispatch" }
+      ];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('varahi_operational_expenses', JSON.stringify(operationalExpenses));
+  }, [operationalExpenses]);
+
+  const [isOpExpenseModalOpen, setIsOpExpenseModalOpen] = useState(false);
+  const [editingOpExpense, setEditingOpExpense] = useState(null);
+
   // Piece-Rate Master (PC Rate) States
   const [pieceRateOperations, setPieceRateOperations] = useState([
     { id: 1, code: "OP-01", name: "Garment Pattern Cutting", department: "Cutting", ratePerPiece: 3.50, targetPerDay: 300, assignedRole: "Cutting Master" },
@@ -3721,6 +3743,10 @@ export default function App() {
             <i className="ph ph-coins"></i>
             <span>Capital & Investment</span>
           </button>
+          <button className={`nav-item ${activeTab === 'operational-expenses' ? 'active' : ''}`} onClick={() => handleTabChange('operational-expenses')}>
+            <i className="ph ph-building-office"></i>
+            <span>Factory Expenses & Bills</span>
+          </button>
 
 
           <div style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '14px 8px 4px 8px' }}>
@@ -6145,6 +6171,176 @@ export default function App() {
           );
         })()}
 
+        {/* ==================== FACTORY EXPENSES & OPERATIONAL OVERHEADS VIEW ==================== */}
+        {activeTab === 'operational-expenses' && (() => {
+          const totalOpExpenses = operationalExpenses.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+          const rentTotal = operationalExpenses.filter(r => r.category?.includes('Rent') || r.category?.includes('Lease')).reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
+          const ebTotal = operationalExpenses.filter(r => r.category?.includes('EB') || r.category?.includes('Electricity')).reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
+          const fuelTotal = operationalExpenses.filter(r => r.category?.includes('Petrol') || r.category?.includes('Fuel') || r.category?.includes('Auto') || r.category?.includes('Freight')).reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
+
+          return (
+            <section id="operational-expenses-view" className="tab-view active">
+              <header className="view-header">
+                <div>
+                  <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 800 }}>Factory Expenses & Bills</h1>
+                  <p className="subtitle" style={{ margin: '4px 0 0 0', color: 'var(--color-text-secondary)' }}>
+                    Track recurring company rent, EB electricity bills, auto & transport freight, petrol/fuel, maintenance, and factory overheads.
+                  </p>
+                </div>
+                <button 
+                  className="btn btn-primary" 
+                  onClick={() => { setEditingOpExpense(null); setIsOpExpenseModalOpen(true); }} 
+                  style={{ padding: '10px 20px', fontSize: '13.5px', fontWeight: 800, borderRadius: '12px', boxShadow: '0 4px 14px rgba(94, 106, 210, 0.35)', display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+                >
+                  <i className="ph ph-plus-circle" style={{ fontSize: '18px' }}></i> Log Operational Expense
+                </button>
+              </header>
+
+              {/* KPI Metrics */}
+              <div className="metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+                <div className="metric-card" style={{ borderLeft: '4px solid #4F46E5', backgroundColor: '#EEF2FF' }}>
+                  <div className="metric-card-header">
+                    <span className="metric-label" style={{ color: '#3730A3', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      🏢 Factory Rent & Lease
+                    </span>
+                    <div className="metric-icon" style={{ color: '#4F46E5', backgroundColor: '#C7D2FE' }}>
+                      <i className="ph ph-buildings"></i>
+                    </div>
+                  </div>
+                  <div className="metric-value" style={{ color: '#312E81', fontWeight: 800 }}>{formatCurrency(rentTotal)}</div>
+                  <div className="metric-footer">
+                    <span style={{ color: '#3730A3', fontWeight: 600 }}>Monthly building & premises rent</span>
+                  </div>
+                </div>
+
+                <div className="metric-card" style={{ borderLeft: '4px solid #F59E0B', backgroundColor: '#FFFBEB' }}>
+                  <div className="metric-card-header">
+                    <span className="metric-label" style={{ color: '#92400E', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      ⚡ EB Electricity Bills
+                    </span>
+                    <div className="metric-icon" style={{ color: '#F59E0B', backgroundColor: '#FDE68A' }}>
+                      <i className="ph ph-lightning"></i>
+                    </div>
+                  </div>
+                  <div className="metric-value" style={{ color: '#78350F', fontWeight: 800 }}>{formatCurrency(ebTotal)}</div>
+                  <div className="metric-footer">
+                    <span style={{ color: '#92400E', fontWeight: 600 }}>Power table & floor EB charges</span>
+                  </div>
+                </div>
+
+                <div className="metric-card" style={{ borderLeft: '4px solid #10B981', backgroundColor: '#F0FDF4' }}>
+                  <div className="metric-card-header">
+                    <span className="metric-label" style={{ color: '#047857', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      🚗 Auto & Fuel (Petrol)
+                    </span>
+                    <div className="metric-icon" style={{ color: '#10B981', backgroundColor: '#D1FAE5' }}>
+                      <i className="ph ph-car"></i>
+                    </div>
+                  </div>
+                  <div className="metric-value" style={{ color: '#065F46', fontWeight: 800 }}>{formatCurrency(fuelTotal)}</div>
+                  <div className="metric-footer">
+                    <span style={{ color: '#047857', fontWeight: 600 }}>Transport, auto & vehicle petrol</span>
+                  </div>
+                </div>
+
+                <div className="metric-card" style={{ borderLeft: '4px solid #6E56CF', backgroundColor: '#F5F3FF' }}>
+                  <div className="metric-card-header">
+                    <span className="metric-label" style={{ color: '#5B21B6', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      📦 Total Operational Expenses
+                    </span>
+                    <div className="metric-icon" style={{ color: '#6E56CF', backgroundColor: '#DDD6FE' }}>
+                      <i className="ph ph-receipt"></i>
+                    </div>
+                  </div>
+                  <div className="metric-value" style={{ color: '#4C1D95', fontWeight: 800 }}>{formatCurrency(totalOpExpenses)}</div>
+                  <div className="metric-footer">
+                    <span style={{ color: '#5B21B6', fontWeight: 600 }}>Combined overhead expenditure</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Main Table Card */}
+              <div className="table-card bg-surface border" style={{ padding: '20px', borderRadius: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Operational Expenditure Ledger</h3>
+                    <p className="small text-muted" style={{ margin: '4px 0 0 0' }}>
+                      Detailed audit log of company rent, EB bills, transport auto freight, petrol, and pantry expenses.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="table-responsive">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Voucher / Receipt No.</th>
+                        <th>Payment Mode</th>
+                        <th>Notes / Purpose</th>
+                        <th className="text-right">Amount (₹)</th>
+                        <th className="text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {operationalExpenses.map((op) => (
+                        <tr key={op.id}>
+                          <td className="text-muted">{op.date}</td>
+                          <td>
+                            <span className={`badge ${
+                              op.category?.includes('Rent') ? 'badge-purple' :
+                              op.category?.includes('EB') ? 'badge-warning' :
+                              op.category?.includes('Auto') || op.category?.includes('Petrol') ? 'badge-success' : 'badge-neutral'
+                            }`} style={{ fontSize: '12px', fontWeight: 700 }}>
+                              {op.category}
+                            </span>
+                          </td>
+                          <td className="font-mono text-muted">{op.voucherNo || 'N/A'}</td>
+                          <td>
+                            <span style={{ fontSize: '12px', fontWeight: 600, color: '#4B5563' }}>
+                              💳 {op.mode || 'Cash'}
+                            </span>
+                          </td>
+                          <td style={{ fontSize: '13px', color: '#374151' }}>{op.notes || '-'}</td>
+                          <td className="text-right font-semibold" style={{ color: '#DC2626', fontSize: '14px', fontFamily: 'var(--font-mono)' }}>
+                            - {formatCurrency(op.amount)}
+                          </td>
+                          <td className="text-right">
+                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                              <button 
+                                className="btn-icon text-primary" 
+                                onClick={() => { setEditingOpExpense(op); setIsOpExpenseModalOpen(true); }}
+                                title="Edit Expense"
+                              >
+                                <i className="ph ph-pencil-simple"></i>
+                              </button>
+                              <button 
+                                className="btn-icon text-red" 
+                                onClick={() => setOperationalExpenses(prev => prev.filter(item => item.id !== op.id))}
+                                title="Delete Expense"
+                              >
+                                <i className="ph ph-trash"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {operationalExpenses.length === 0 && (
+                        <tr>
+                          <td colSpan="7" className="text-center text-muted" style={{ padding: '32px' }}>
+                            No operational expenses logged. Click <strong>"Log Operational Expense"</strong> to add company bills.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+          );
+        })()}
+
       </main>
 
       {/* ==================== OWNER INVESTMENT / BORROWED CAPITAL MODAL ==================== */}
@@ -6259,6 +6455,144 @@ export default function App() {
                 <button type="button" className="btn btn-secondary" onClick={() => { setIsInvestmentModalOpen(false); setEditingInvestment(null); }}>Cancel</button>
                 <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 700, borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                   <i className="ph ph-check" style={{ fontSize: '16px' }}></i> {editingInvestment ? 'Update Capital Record' : 'Save Capital Record'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== FACTORY OPERATIONAL EXPENSE MODAL ==================== */}
+      {isOpExpenseModalOpen && (
+        <div className="modal-overlay active" onClick={() => { setIsOpExpenseModalOpen(false); setEditingOpExpense(null); }}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px' }}>
+            <div className="modal-header">
+              <h3>{editingOpExpense ? '✏️ Edit Factory Expense' : '🏢 Log Factory Operational Expense / Bill'}</h3>
+              <button className="btn-close" onClick={() => { setIsOpExpenseModalOpen(false); setEditingOpExpense(null); }}><i className="ph ph-x"></i></button>
+            </div>
+            <form key={editingOpExpense ? editingOpExpense.id : 'new-op-exp'} onSubmit={async (e) => {
+              e.preventDefault();
+              const form = e.target;
+              const category = form.category.value;
+              const amount = parseFloat(form.amount.value) || 0;
+              const date = form.date.value;
+              const mode = form.mode.value;
+              const voucherNo = form.voucherNo.value;
+              const notes = form.notes.value;
+
+              if (editingOpExpense) {
+                const targetId = editingOpExpense.id;
+                setOperationalExpenses(prev => prev.map(r => r.id === targetId ? {
+                  ...r,
+                  category,
+                  amount,
+                  date,
+                  mode,
+                  voucherNo,
+                  notes
+                } : r));
+              } else {
+                const newOp = {
+                  id: Date.now(),
+                  category,
+                  amount,
+                  date,
+                  mode,
+                  voucherNo,
+                  notes
+                };
+                setOperationalExpenses(prev => [newOp, ...prev]);
+
+                // Auto-sync into general expense log
+                try {
+                  await addExpenseMutation({
+                    category: category,
+                    amount: amount,
+                    description: `Operational Expense (${category}): ${notes || 'Factory bill'} [Voucher: ${voucherNo || 'N/A'}]`,
+                    date
+                  });
+                } catch (err) {}
+              }
+
+              setIsOpExpenseModalOpen(false);
+              setEditingOpExpense(null);
+            }}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px' }}>
+                <div className="form-group">
+                  <label style={{ fontWeight: 600 }}>Expense Category *</label>
+                  <select name="category" required defaultValue={editingOpExpense ? editingOpExpense.category : 'Company Rent / Factory Lease'} style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}>
+                    <option value="Company Rent / Factory Lease">🏢 Company Rent / Factory Lease</option>
+                    <option value="EB Electricity Bill">⚡ EB Electricity Bill</option>
+                    <option value="Auto & Freight Charges">🛺 Auto & Freight Charges</option>
+                    <option value="Petrol & Diesel Fuel">⛽ Petrol & Diesel Fuel</option>
+                    <option value="Factory Repairs & Maintenance">🛠️ Factory Repairs & Maintenance</option>
+                    <option value="Water & Utility Charges">🚰 Water & Utility Charges</option>
+                    <option value="Tea, Pantry & Sundry Expenses">☕ Tea, Pantry & Sundry Expenses</option>
+                    <option value="Office Stationery & Printing">🖨️ Office Stationery & Printing</option>
+                    <option value="Miscellaneous Overheads">📦 Miscellaneous Overheads</option>
+                  </select>
+                </div>
+
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-group">
+                    <label htmlFor="op-amount" style={{ fontWeight: 600 }}>Expense Amount (₹) *</label>
+                    <input 
+                      type="number" 
+                      id="op-amount" 
+                      name="amount" 
+                      required 
+                      step="any" 
+                      defaultValue={editingOpExpense ? editingOpExpense.amount : ''} 
+                      placeholder="e.g. 25000 or 8450" 
+                      style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }} 
+                    />
+                  </div>
+                  <LinearDatePickerInput 
+                    id="op-date" 
+                    name="date" 
+                    label="Date Paid *" 
+                    defaultValue={editingOpExpense ? editingOpExpense.date : new Date().toISOString().split('T')[0]} 
+                    required 
+                  />
+                </div>
+
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-group">
+                    <label style={{ fontWeight: 600 }}>Payment Method *</label>
+                    <select name="mode" defaultValue={editingOpExpense ? editingOpExpense.mode : 'Bank Transfer'} style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}>
+                      <option value="Bank Transfer">Bank Transfer (NEFT/RTGS)</option>
+                      <option value="UPI / GPay">UPI / GPay / PhonePe</option>
+                      <option value="Cash">Cash</option>
+                      <option value="Cheque">Cheque</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label style={{ fontWeight: 600 }}>Voucher / Receipt No.</label>
+                    <input 
+                      type="text" 
+                      name="voucherNo" 
+                      defaultValue={editingOpExpense ? editingOpExpense.voucherNo : ''} 
+                      placeholder="e.g. EB-987452 or RENT-08" 
+                      style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }} 
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label style={{ fontWeight: 600 }}>Notes / Purpose / Vendor</label>
+                  <input 
+                    type="text" 
+                    name="notes" 
+                    defaultValue={editingOpExpense ? editingOpExpense.notes : ''} 
+                    placeholder="e.g. Monthly rent paid to landlord, July EB bill for cutting section" 
+                    style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', width: '100%' }} 
+                  />
+                </div>
+              </div>
+              <div className="modal-footer" style={{ borderTop: '1px solid #E2E8F0', padding: '14px 20px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => { setIsOpExpenseModalOpen(false); setEditingOpExpense(null); }}>Cancel</button>
+                <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 700, borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                  <i className="ph ph-check" style={{ fontSize: '16px' }}></i> {editingOpExpense ? 'Update Expense' : 'Save Expense Record'}
                 </button>
               </div>
             </form>
