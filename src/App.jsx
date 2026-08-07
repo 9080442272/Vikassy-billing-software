@@ -1463,13 +1463,14 @@ export default function App() {
   // Client CRUD
   const handleClientSubmit = async (e) => {
     e.preventDefault();
+    const companyVal = document.getElementById('client-company')?.value.trim() || document.getElementById('client-name')?.value.trim() || 'Client';
     const clientData = {
-      name: document.getElementById('client-name').value.trim(),
-      companyName: document.getElementById('client-company').value.trim(),
-      email: document.getElementById('client-email').value.trim(),
-      phone: document.getElementById('client-phone').value.trim(),
-      gstin: document.getElementById('client-gstin').value.trim(),
-      address: document.getElementById('client-address').value.trim()
+      name: companyVal,
+      companyName: companyVal,
+      email: document.getElementById('client-email')?.value.trim() || '',
+      phone: document.getElementById('client-phone')?.value.trim() || '',
+      gstin: document.getElementById('client-gstin')?.value.trim() || '',
+      address: document.getElementById('client-address')?.value.trim() || ''
     };
 
     if (editingClient) {
@@ -1524,12 +1525,21 @@ export default function App() {
     setEditingClient(c);
     setIsClientModalOpen(true);
     setTimeout(() => {
-      document.getElementById('client-name').value = c.name;
-      document.getElementById('client-company').value = c.companyName || '';
-      document.getElementById('client-email').value = c.email || '';
-      document.getElementById('client-phone').value = c.phone || '';
-      document.getElementById('client-gstin').value = c.gstin || '';
-      document.getElementById('client-address').value = c.address || '';
+      if (document.getElementById('client-company')) {
+        document.getElementById('client-company').value = c.companyName || c.name || '';
+      }
+      if (document.getElementById('client-email')) {
+        document.getElementById('client-email').value = c.email || '';
+      }
+      if (document.getElementById('client-phone')) {
+        document.getElementById('client-phone').value = c.phone || '';
+      }
+      if (document.getElementById('client-gstin')) {
+        document.getElementById('client-gstin').value = c.gstin || '';
+      }
+      if (document.getElementById('client-address')) {
+        document.getElementById('client-address').value = c.address || '';
+      }
     }, 50);
   };
 
@@ -5262,7 +5272,6 @@ export default function App() {
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th>Name</th>
                       <th>Company Name</th>
                       <th>Email</th>
                       <th>Phone</th>
@@ -5272,10 +5281,11 @@ export default function App() {
                     </tr>
                   </thead>
                   <tbody>
-                    {clients.filter(c => c.name.toLowerCase().includes(clientSearch.toLowerCase()) || (c.companyName || '').toLowerCase().includes(clientSearch.toLowerCase())).map(c => (
+                    {clients.filter(c => (c.companyName || c.name || '').toLowerCase().includes(clientSearch.toLowerCase())).map(c => (
                       <tr key={c._id}>
-                        <td className="font-semibold">{c.name}</td>
-                        <td>{c.companyName || '-'}</td>
+                        <td className="font-semibold" style={{ color: 'var(--color-primary)', fontSize: '14.5px' }}>
+                          🏢 {c.companyName || c.name}
+                        </td>
                         <td>{c.email || '-'}</td>
                         <td>{c.phone || '-'}</td>
                         <td className="font-medium text-primary">{c.gstin || 'Unregistered'}</td>
@@ -5288,7 +5298,7 @@ export default function App() {
                     ))}
                     {clients.length === 0 && (
                       <tr>
-                        <td colSpan="7" className="text-center text-muted">No client records found. Register your first buyer!</td>
+                        <td colSpan="6" className="text-center text-muted">No client records found. Register your first buyer!</td>
                       </tr>
                     )}
                   </tbody>
@@ -5297,10 +5307,10 @@ export default function App() {
             </div>
 
             <div className="mobile-cards-container">
-              {clients.filter(c => c.name.toLowerCase().includes(clientSearch.toLowerCase()) || (c.companyName || '').toLowerCase().includes(clientSearch.toLowerCase())).map(c => (
+              {clients.filter(c => (c.companyName || c.name || '').toLowerCase().includes(clientSearch.toLowerCase())).map(c => (
                 <div key={c._id} className="mobile-card">
                   <div className="mobile-card-header">
-                    <div className="mobile-card-title">{c.name}</div>
+                    <div className="mobile-card-title">🏢 {c.companyName || c.name}</div>
                     <span className="badge" style={{
                       backgroundColor: c.gstin ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
                       color: c.gstin ? 'var(--color-success)' : 'var(--color-danger)',
@@ -6809,15 +6819,9 @@ export default function App() {
             </div>
             <form id="client-form" onSubmit={handleClientSubmit}>
               <div className="modal-body" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="client-name">Contact Person Name *</label>
-                    <input type="text" id="client-name" required placeholder="e.g. John Doe" />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="client-company">Company/Business Name</label>
-                    <input type="text" id="client-company" placeholder="e.g. Coral Knit Wear" />
-                  </div>
+                <div className="form-group">
+                  <label htmlFor="client-company" style={{ fontWeight: 600 }}>Company / Buyer Name *</label>
+                  <input type="text" id="client-company" required placeholder="e.g. GRAY FIELD or GV Ventures" style={{ fontSize: '14.5px', padding: '10px 12px', borderRadius: '10px', width: '100%' }} />
                 </div>
                 <div className="form-row">
                   <div className="form-group">
