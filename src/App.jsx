@@ -3335,8 +3335,10 @@ export default function App() {
           </table>
           <script>
             window.onload = function() {
-              window.print();
-              setTimeout(function() { window.close(); }, 500);
+              setTimeout(function() {
+                window.focus();
+                window.print();
+              }, 250);
             };
           </script>
         </body>

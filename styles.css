@@ -2021,50 +2021,107 @@ input:checked + .slider:before {
    PRINT MEDIA STYLESHEET
    ========================================== */
 @media print {
-  /* Hide all app layouts except printout */
-  body * {
-    visibility: hidden;
-  }
-  
-  /* Reset background and layouts */
-  body {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-  }
-  
-  /* Make only the print-area element visible */
-  #print-area, #print-area * {
-    visibility: visible;
-  }
-  
-  /* Position the print area in top-left */
-  #print-area {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    padding: 0;
-    margin: 0;
-    background-color: #ffffff;
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
   }
 
-  /* Force background printing */
-  .invoice-printout {
-    box-shadow: none !important;
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Hide app navigation, sidebars, headers, floating widgets, and non-print elements */
+  header, nav, sidebar, .app-sidebar, .top-header, .no-print, .floating-chatbot-container, .floating-siri-bar, #app-splash-screen, .splash-screen, .btn, .btn-close, .modal-header-actions, .mobile-only-nav {
+    display: none !important;
+  }
+
+  /* Unconstrain root and app container */
+  #root, .app-container, main {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Force modal overlay to behave like a normal block container during print */
+  .modal-overlay {
+    position: static !important;
+    display: block !important;
+    background: transparent !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    width: 100% !important;
+    height: auto !important;
     padding: 0 !important;
     margin: 0 !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Force modal card to take full printable page */
+  .modal-card, .invoice-view-modal {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+
+  /* Ensure print area & invoice document are 100% visible and unconstrained */
+  #print-area, .print-area, .invoice-printout {
+    position: static !important;
+    display: block !important;
+    visibility: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
     background: #ffffff !important;
     color: #000000 !important;
   }
-  
+
+  .invoice-printout *, #print-area * {
+    visibility: visible !important;
+  }
+
+  /* Prevent row clipping in tables */
+  .invoice-printout table, #print-area table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto !important;
+  }
+
+  .invoice-printout tr, #print-area tr {
+    page-break-inside: avoid !important;
+    page-break-after: auto !important;
+  }
+
+  .invoice-printout th, .invoice-printout td, #print-area th, #print-area td {
+    color: #000000 !important;
+    border-color: #000000 !important;
+  }
+
   .invoice-printout-table th {
     background-color: #f1f5f9 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  
-  .no-print {
-    display: none !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }
 
