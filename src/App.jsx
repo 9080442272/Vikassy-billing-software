@@ -97,6 +97,99 @@ function AnimatedCounter({ value, prefix = '', suffix = '', isCurrency = false, 
   return <span>{prefix}{formattedStr}{suffix}</span>;
 }
 
+// --- Linear-Style Centered Empty State Component (Matching Figma / Linear.app UI) ---
+function LinearEmptyState({ 
+  icon = "ph-briefcase", 
+  title = "No items found", 
+  description = "Get started by creating a new entry.", 
+  actionLabel = "Create New Item", 
+  onAction 
+}) {
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '70px 24px',
+      textAlign: 'center',
+      backgroundColor: '#FFFFFF',
+      borderRadius: '12px',
+      border: '1px solid #E2E8F0',
+      width: '100%',
+      minHeight: '380px',
+      boxSizing: 'border-box',
+      margin: '12px 0'
+    }}>
+      {/* Linear Style Ring Icon Header */}
+      <div style={{
+        position: 'relative',
+        width: '72px',
+        height: '72px',
+        marginBottom: '18px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          borderRadius: '50%',
+          backgroundColor: '#EEF2FF',
+          border: '1.5px dashed #C7D2FE'
+        }}></div>
+        <div style={{
+          width: '50px',
+          height: '50px',
+          borderRadius: '14px',
+          backgroundColor: '#FFFFFF',
+          border: '1px solid #E2E8F0',
+          boxShadow: '0 4px 12px rgba(15, 23, 42, 0.06)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#4F46E5',
+          fontSize: '24px',
+          zIndex: 1
+        }}>
+          <i className={`ph ${icon}`}></i>
+        </div>
+      </div>
+
+      <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#0F172A', margin: '0 0 6px 0' }}>
+        {title}
+      </h3>
+      <p style={{ fontSize: '13px', color: '#64748B', maxWidth: '380px', margin: '0 0 20px 0', lineHeight: '20px' }}>
+        {description}
+      </p>
+
+      {onAction && (
+        <button
+          type="button"
+          onClick={onAction}
+          className="btn btn-primary"
+          style={{
+            padding: '8px 18px',
+            fontSize: '13px',
+            fontWeight: 600,
+            borderRadius: '20px',
+            backgroundColor: '#4F46E5',
+            color: '#FFFFFF',
+            border: 'none',
+            boxShadow: '0 2px 4px rgba(79, 70, 229, 0.25)',
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}
+        >
+          <i className="ph ph-plus" style={{ fontSize: '14px' }}></i> {actionLabel}
+        </button>
+      )}
+    </div>
+  );
+}
+
 // Indian Currency Number to Words converter helper
 function numberToWords(num) {
   const a = ['', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '];
@@ -5347,8 +5440,14 @@ export default function App() {
                         ))}
                       {upcomingOrders.length === 0 && (
                         <tr>
-                          <td colSpan="6" className="text-center text-muted" style={{ padding: '32px' }}>
-                            No production jobs found. Click <strong>"Create Job"</strong> to start a new job order.
+                          <td colSpan="8" style={{ padding: 0, border: 'none' }}>
+                            <LinearEmptyState 
+                              icon="ph-briefcase"
+                              title="No production job orders assigned to you"
+                              description="Get started by creating your first garment production job order to track cutting, stitching, QC, and dispatch."
+                              actionLabel="Create new job order"
+                              onAction={openCreateJobModal}
+                            />
                           </td>
                         </tr>
                       )}
@@ -5630,7 +5729,15 @@ export default function App() {
                     ))}
                     {clients.length === 0 && (
                       <tr>
-                        <td colSpan="6" className="text-center text-muted">No client records found. Register your first buyer!</td>
+                        <td colSpan="6" style={{ padding: 0, border: 'none' }}>
+                          <LinearEmptyState 
+                            icon="ph-users-three"
+                            title="No buyer client profiles registered"
+                            description="Add external buyer profiles, GSTIN numbers, and export shipping addresses to enable quick invoicing."
+                            actionLabel="Register new client"
+                            onAction={() => setIsClientModalOpen(true)}
+                          />
+                        </td>
                       </tr>
                     )}
                   </tbody>
@@ -6162,40 +6269,13 @@ export default function App() {
                                     </button>
                                   </>
                                 ) : (
-                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', padding: '24px 16px', maxWidth: '520px', margin: '0 auto', textAlign: 'center' }}>
-                                    <div style={{
-                                      width: '56px',
-                                      height: '56px',
-                                      borderRadius: '16px',
-                                      backgroundColor: 'var(--color-accent-light)',
-                                      color: 'var(--color-primary)',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justify: 'center',
-                                      fontSize: '28px',
-                                      border: '1px solid var(--color-border)',
-                                      boxShadow: '0 4px 14px rgba(94, 106, 210, 0.15)'
-                                    }}>
-                                      <i className="ph ph-user-plus"></i>
-                                    </div>
-                                    
-                                    <div>
-                                      <h3 style={{ margin: '0 0 6px 0', fontSize: '17px', fontWeight: 800, color: 'var(--color-text-primary)' }}>
-                                        No Employees Registered Yet
-                                      </h3>
-                                      <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: '1.5' }}>
-                                        Register tailors, cutting masters, piece-rate stitchers, and supervisors to start tracking daily attendance, piece-rate payouts, and monthly payroll.
-                                      </p>
-                                    </div>
-
-                                    <button 
-                                      className="btn btn-primary" 
-                                      onClick={() => setIsEmployeeModalOpen(true)}
-                                      style={{ padding: '10px 22px', fontSize: '13px', fontWeight: 700, borderRadius: '12px', boxShadow: '0 4px 14px rgba(94, 106, 210, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}
-                                    >
-                                      <i className="ph ph-user-plus" style={{ fontSize: '16px' }}></i> Add New Employee
-                                    </button>
-                                  </div>
+                                  <LinearEmptyState 
+                                    icon="ph-user-list"
+                                    title="No employees assigned to roster"
+                                    description="Register master tailors, piece-rate stitchers, and supervisors to track daily attendance and weekly salary payouts."
+                                    actionLabel="Add employee"
+                                    onAction={() => setIsEmployeeModalOpen(true)}
+                                  />
                                 )}
                               </div>
                             </td>
