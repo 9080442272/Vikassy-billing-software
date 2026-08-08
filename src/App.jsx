@@ -524,10 +524,12 @@ export default function App() {
   };
 
   const handleTestElevenLabsSpeech = async (customPhrase) => {
-    const textToSay = customPhrase || "Hello! This is your Eleven Labs AI voice assistant speaking from Varahi Exports.";
+    const textToSay = customPhrase || "Hello! This is your ElevenLabs Siri AI voice assistant speaking from Varahi Exports.";
     if (!elevenApiKey.trim()) {
-      alert("⚠️ Please enter your ElevenLabs API Key first!");
-      return;
+      if (!customPhrase) {
+        alert("⚠️ Please enter your ElevenLabs API Key in the Siri Voice widget or Settings page!");
+      }
+      return false;
     }
 
     setIsPlayingElevenTest(true);
@@ -543,8 +545,10 @@ export default function App() {
         if (res && res.success && res.audioData) {
           const audio = new Audio(res.audioData);
           await audio.play();
+          return true;
         } else {
-          alert(`❌ ElevenLabs Error: ${res?.error || 'Failed to synthesize speech'}`);
+          if (!customPhrase) alert(`❌ ElevenLabs Error: ${res?.error || 'Failed to synthesize speech'}`);
+          return false;
         }
       } else {
         const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${elevenVoiceId}`, {
@@ -566,13 +570,16 @@ export default function App() {
           const audioUrl = URL.createObjectURL(blob);
           const audio = new Audio(audioUrl);
           await audio.play();
+          return true;
         } else {
           const errData = await response.json().catch(() => ({}));
-          alert(`❌ ElevenLabs API Error: ${errData.detail?.message || 'Failed to generate voice'}`);
+          if (!customPhrase) alert(`❌ ElevenLabs API Error: ${errData.detail?.message || 'Failed to generate voice'}`);
+          return false;
         }
       }
     } catch (err) {
-      alert(`❌ Speech Generation Error: ${err.message}`);
+      if (!customPhrase) alert(`❌ Speech Generation Error: ${err.message}`);
+      return false;
     } finally {
       setIsPlayingElevenTest(false);
     }
@@ -1826,13 +1833,13 @@ export default function App() {
 
   // --- Voice AI Assistant (Speech Recognition & Speech Synthesis) ---
   // --- Voice AI Assistant (Speech Recognition & Speech Synthesis) ---
-  const speakText = (text) => {
+  const speakText = async (text) => {
     if (!text) return;
 
-    // Use ElevenLabs AI Voice if configured & enabled
-    if (elevenApiKey.trim() && isElevenEnabled) {
-      handleTestElevenLabsSpeech(text);
-      return;
+    // Try ElevenLabs Siri AI Voice Engine first
+    if (elevenApiKey.trim()) {
+      const handled = await handleTestElevenLabsSpeech(text);
+      if (handled) return;
     }
 
     // Fallback to Web Speech API
@@ -10569,6 +10576,49 @@ export default function App() {
             >
               <i className="ph ph-x"></i>
             </button>
+          </div>
+
+          {/* ElevenLabs Siri AI Voice Engine Control Row */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 12px', backgroundColor: 'rgba(124, 58, 237, 0.15)', borderRadius: '16px', border: '1px solid rgba(124, 58, 237, 0.3)', gap: '8px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 700, color: '#D8B4FE' }}>
+              <i className="ph ph-microphone-stage" style={{ fontSize: '14px', color: '#A78BFA' }}></i>
+              <span>ElevenLabs Siri AI Voice:</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <select
+                value={elevenVoiceId}
+                onChange={(e) => {
+                  const newVoice = e.target.value;
+                  setElevenVoiceId(newVoice);
+                  localStorage.setItem('varahi_eleven_voice', newVoice);
+                  speakText("Switched ElevenLabs Siri voice model.");
+                }}
+                style={{ backgroundColor: 'rgba(0,0,0,0.6)', color: '#F4F4F5', border: '1px solid rgba(167, 139, 250, 0.4)', borderRadius: '8px', fontSize: '11px', padding: '3px 8px', fontWeight: 600, outline: 'none' }}
+              >
+                <option value="21m00Tcm4TlvDq8ikWAM">👩 Rachel (Siri Female HD)</option>
+                <option value="pNInz6obpgDQGcFmaJgB">👨 Adam (Siri Male HD)</option>
+                <option value="EXAVITQu4vr4xnSDxMaL">👩 Bella (Siri Expressive HD)</option>
+                <option value="TxGEqnHWrfWFTfGW9XjX">👨 Josh (Siri Narrative HD)</option>
+                <option value="AZnzlk1XvdvUeBnXmlld">👩 Domi (Siri Confident HD)</option>
+              </select>
+
+              {!elevenApiKey.trim() ? (
+                <input
+                  type="password"
+                  placeholder="Paste ElevenLabs Key for HD Voice"
+                  value={elevenApiKey}
+                  onChange={(e) => {
+                    setElevenApiKey(e.target.value);
+                    localStorage.setItem('varahi_eleven_key', e.target.value);
+                  }}
+                  style={{ backgroundColor: 'rgba(0,0,0,0.6)', color: '#fff', border: '1px solid rgba(167, 139, 250, 0.5)', borderRadius: '8px', fontSize: '10.5px', padding: '3px 8px', width: '170px' }}
+                />
+              ) : (
+                <span style={{ fontSize: '10.5px', color: '#34D399', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  ✓ ElevenLabs HD Siri Active
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Quick Voice Command Chips Bar - EXACTLY 2 EXAMPLES */}
