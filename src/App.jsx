@@ -7,6 +7,48 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+// --- Safe Error Boundary for optional Convex cloud queries ---
+class SafeConvexErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error) {
+    console.warn("Convex server function notice:", error?.message || error);
+  }
+  render() {
+    if (this.state.hasError) return null;
+    return this.props.children;
+  }
+}
+
+function TwilioDataFetcher({ onData }) {
+  const data = useQuery(api.twilio?.getSettings);
+  useEffect(() => {
+    if (data && onData) onData(data);
+  }, [data]);
+  return null;
+}
+
+function ElevenLabsDataFetcher({ onData }) {
+  const data = useQuery(api.elevenlabs?.getSettings);
+  useEffect(() => {
+    if (data && onData) onData(data);
+  }, [data]);
+  return null;
+}
+
+function GoogleWorkspaceDataFetcher({ onData }) {
+  const data = useQuery(api.googleWorkspace?.getSettings);
+  useEffect(() => {
+    if (data && onData) onData(data);
+  }, [data]);
+  return null;
+}
+
 // Indian Currency Number to Words converter helper
 function numberToWords(num) {
   const a = ['', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '];
@@ -433,7 +475,6 @@ export default function App() {
   const clearAllDataMutation = useMutation(api.system.clearAllData);
 
   // --- Twilio SMS & WhatsApp Integration States & Convex Hooks ---
-  const twilioSettingsQuery = api.twilio && api.twilio.getSettings ? useQuery(api.twilio.getSettings) : null;
   const saveTwilioSettingsMutation = api.twilio && api.twilio.saveSettings ? useMutation(api.twilio.saveSettings) : null;
   const sendTwilioMessageAction = api.twilio && api.twilio.sendTwilioMessage ? useAction(api.twilio.sendTwilioMessage) : null;
 
@@ -449,18 +490,7 @@ export default function App() {
   const [testMsgType, setTestMsgType] = useState('sms');
   const [isSendingTwilioTest, setIsSendingTwilioTest] = useState(false);
 
-  useEffect(() => {
-    if (twilioSettingsQuery) {
-      if (twilioSettingsQuery.accountSid) setTwilioAccountSid(twilioSettingsQuery.accountSid);
-      if (twilioSettingsQuery.authToken) setTwilioAuthToken(twilioSettingsQuery.authToken);
-      if (twilioSettingsQuery.fromPhone) setTwilioFromPhone(twilioSettingsQuery.fromPhone);
-      if (twilioSettingsQuery.whatsappPhone) setTwilioWhatsappPhone(twilioSettingsQuery.whatsappPhone);
-      if (twilioSettingsQuery.isEnabled !== undefined) setIsTwilioEnabled(twilioSettingsQuery.isEnabled);
-    }
-  }, [twilioSettingsQuery]);
-
   // --- ElevenLabs AI Voice Integration States & Convex Hooks ---
-  const elevenLabsSettingsQuery = api.elevenlabs && api.elevenlabs.getSettings ? useQuery(api.elevenlabs.getSettings) : null;
   const saveElevenLabsSettingsMutation = api.elevenlabs && api.elevenlabs.saveSettings ? useMutation(api.elevenlabs.saveSettings) : null;
   const generateSpeechAction = api.elevenlabs && api.elevenlabs.generateSpeech ? useAction(api.elevenlabs.generateSpeech) : null;
 
@@ -470,15 +500,6 @@ export default function App() {
   const [isElevenEnabled, setIsElevenEnabled] = useState(() => localStorage.getItem('varahi_eleven_enabled') === 'true');
   const [showElevenApiKey, setShowElevenApiKey] = useState(false);
   const [isPlayingElevenTest, setIsPlayingElevenTest] = useState(false);
-
-  useEffect(() => {
-    if (elevenLabsSettingsQuery) {
-      if (elevenLabsSettingsQuery.apiKey) setElevenApiKey(elevenLabsSettingsQuery.apiKey);
-      if (elevenLabsSettingsQuery.voiceId) setElevenVoiceId(elevenLabsSettingsQuery.voiceId);
-      if (elevenLabsSettingsQuery.modelId) setElevenModelId(elevenLabsSettingsQuery.modelId);
-      if (elevenLabsSettingsQuery.isEnabled !== undefined) setIsElevenEnabled(elevenLabsSettingsQuery.isEnabled);
-    }
-  }, [elevenLabsSettingsQuery]);
 
   const handleSaveElevenLabsSettings = async (e) => {
     if (e) e.preventDefault();
@@ -558,7 +579,6 @@ export default function App() {
   };
 
   // --- Google Workspace & Enterprise SSO Integration States & Convex Hooks ---
-  const googleWorkspaceSettingsQuery = api.googleWorkspace && api.googleWorkspace.getSettings ? useQuery(api.googleWorkspace.getSettings) : null;
   const saveGoogleWorkspaceSettingsMutation = api.googleWorkspace && api.googleWorkspace.saveSettings ? useMutation(api.googleWorkspace.saveSettings) : null;
 
   const [googleClientId, setGoogleClientId] = useState(() => localStorage.getItem('varahi_google_client_id') || '470877995175-98uq9m0k20l9eaf27p2j9r6r8r0j1qkr.apps.googleusercontent.com');
@@ -569,18 +589,6 @@ export default function App() {
   const [isDomainRestricted, setIsDomainRestricted] = useState(() => localStorage.getItem('varahi_google_domain_restricted') === 'true');
   const [isGoogleEnabled, setIsGoogleEnabled] = useState(() => localStorage.getItem('varahi_google_enabled') !== 'false');
   const [showGoogleSecret, setShowGoogleSecret] = useState(false);
-
-  useEffect(() => {
-    if (googleWorkspaceSettingsQuery) {
-      if (googleWorkspaceSettingsQuery.googleClientId) setGoogleClientId(googleWorkspaceSettingsQuery.googleClientId);
-      if (googleWorkspaceSettingsQuery.googleClientSecret) setGoogleClientSecret(googleWorkspaceSettingsQuery.googleClientSecret);
-      if (googleWorkspaceSettingsQuery.googleWorkspaceDomain) setGoogleDomain(googleWorkspaceSettingsQuery.googleWorkspaceDomain);
-      if (googleWorkspaceSettingsQuery.autoSyncDrive !== undefined) setAutoSyncDrive(googleWorkspaceSettingsQuery.autoSyncDrive);
-      if (googleWorkspaceSettingsQuery.autoSyncSheets !== undefined) setAutoSyncSheets(googleWorkspaceSettingsQuery.autoSyncSheets);
-      if (googleWorkspaceSettingsQuery.isDomainRestricted !== undefined) setIsDomainRestricted(googleWorkspaceSettingsQuery.isDomainRestricted);
-      if (googleWorkspaceSettingsQuery.isEnabled !== undefined) setIsGoogleEnabled(googleWorkspaceSettingsQuery.isEnabled);
-    }
-  }, [googleWorkspaceSettingsQuery]);
 
   const handleSaveGoogleWorkspaceSettings = async (e) => {
     if (e) e.preventDefault();
@@ -3866,6 +3874,37 @@ export default function App() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', width: '100%' }}>
+      <SafeConvexErrorBoundary>
+        <TwilioDataFetcher onData={(data) => {
+          if (data?.accountSid) setTwilioAccountSid(data.accountSid);
+          if (data?.authToken) setTwilioAuthToken(data.authToken);
+          if (data?.fromPhone) setTwilioFromPhone(data.fromPhone);
+          if (data?.whatsappPhone) setTwilioWhatsappPhone(data.whatsappPhone);
+          if (data?.isEnabled !== undefined) setIsTwilioEnabled(data.isEnabled);
+        }} />
+      </SafeConvexErrorBoundary>
+
+      <SafeConvexErrorBoundary>
+        <ElevenLabsDataFetcher onData={(data) => {
+          if (data?.apiKey) setElevenApiKey(data.apiKey);
+          if (data?.voiceId) setElevenVoiceId(data.voiceId);
+          if (data?.modelId) setElevenModelId(data.modelId);
+          if (data?.isEnabled !== undefined) setIsElevenEnabled(data.isEnabled);
+        }} />
+      </SafeConvexErrorBoundary>
+
+      <SafeConvexErrorBoundary>
+        <GoogleWorkspaceDataFetcher onData={(data) => {
+          if (data?.googleClientId) setGoogleClientId(data.googleClientId);
+          if (data?.googleClientSecret) setGoogleClientSecret(data.googleClientSecret);
+          if (data?.googleWorkspaceDomain) setGoogleDomain(data.googleWorkspaceDomain);
+          if (data?.autoSyncDrive !== undefined) setAutoSyncDrive(data.autoSyncDrive);
+          if (data?.autoSyncSheets !== undefined) setAutoSyncSheets(data.autoSyncSheets);
+          if (data?.isDomainRestricted !== undefined) setIsDomainRestricted(data.isDomainRestricted);
+          if (data?.isEnabled !== undefined) setIsGoogleEnabled(data.isEnabled);
+        }} />
+      </SafeConvexErrorBoundary>
+
       {/* Sidebar Navigation */}
       <aside className="sidebar">
         {/* HRFusion Style Modern Workspace Switcher Header */}
