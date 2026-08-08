@@ -103,7 +103,8 @@ function LinearEmptyState({
   title = "No items found", 
   description = "Get started by creating a new entry.", 
   actionLabel = "Create New Item", 
-  onAction 
+  onAction,
+  hasBorder = false
 }) {
   return (
     <div style={{
@@ -115,11 +116,11 @@ function LinearEmptyState({
       textAlign: 'center',
       backgroundColor: '#FFFFFF',
       borderRadius: '12px',
-      border: '1px solid #E2E8F0',
+      border: hasBorder ? '1px solid #E2E8F0' : 'none',
       width: '100%',
-      minHeight: '380px',
+      minHeight: '340px',
       boxSizing: 'border-box',
-      margin: '12px 0'
+      margin: '0 auto'
     }}>
       {/* Linear Style Ring Icon Header */}
       <div style={{
@@ -5367,6 +5368,15 @@ export default function App() {
                 </div>
 
               </div>
+            ) : upcomingOrders.length === 0 ? (
+              <LinearEmptyState 
+                icon="ph-briefcase"
+                title="No production job orders assigned to you"
+                description="Get started by creating your first garment production job order to track cutting, stitching, QC, and dispatch."
+                actionLabel="Create new job order"
+                onAction={openCreateJobModal}
+                hasBorder={true}
+              />
             ) : (
               <div className="table-card bg-surface border desktop-table-container" style={{ marginTop: '10px' }}>
                 <div className="table-responsive">
@@ -5377,19 +5387,21 @@ export default function App() {
                         <th>Style #</th>
                         <th>Client Name</th>
                         <th>Order & Shipment Qty</th>
-                        <th>Delivery Target Date</th>
-                        <th>Estimated Budget (₹)</th>
+                        <th>Delivery Due Date</th>
+                        <th>Estimated Value</th>
                         <th>Status</th>
                         <th className="text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {upcomingOrders
-                        .filter(order => {
-                          if (jobsSubTab === 'ongoing') return order.status === 'In Production';
-                          if (jobsSubTab === 'completed') return order.status === 'Delivered' || order.status === 'Ready';
-                          if (jobsSubTab === 'delayed') return new Date(order.deliveryDate) < new Date();
-                          return true;
+                        .filter(o => {
+                          const matchesSearch = !kanbanSearchQuery || 
+                            (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) ||
+                            (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) ||
+                            (o.product && o.product.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
+                          const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
+                          return matchesSearch && matchesPriority;
                         })
                         .map(order => (
                           <tr key={order._id} style={{ cursor: 'pointer' }} onClick={() => openViewEditJobModal(order)}>
@@ -5438,19 +5450,6 @@ export default function App() {
                             </td>
                           </tr>
                         ))}
-                      {upcomingOrders.length === 0 && (
-                        <tr>
-                          <td colSpan="8" style={{ padding: 0, border: 'none' }}>
-                            <LinearEmptyState 
-                              icon="ph-briefcase"
-                              title="No production job orders assigned to you"
-                              description="Get started by creating your first garment production job order to track cutting, stitching, QC, and dispatch."
-                              actionLabel="Create new job order"
-                              onAction={openCreateJobModal}
-                            />
-                          </td>
-                        </tr>
-                      )}
                     </tbody>
                   </table>
                 </div>
@@ -5698,52 +5697,50 @@ export default function App() {
               </div>
             </div>
 
-            <div className="table-card bg-surface border desktop-table-container">
-              <div className="table-responsive">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Company Name</th>
-                      <th>Email</th>
-                      <th>Phone</th>
-                      <th>GSTIN</th>
-                      <th>Address</th>
-                      <th className="text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {clients.filter(c => (c.companyName || c.name || '').toLowerCase().includes(clientSearch.toLowerCase())).map(c => (
-                      <tr key={c._id}>
-                        <td className="font-semibold" style={{ color: 'var(--color-primary)', fontSize: '14.5px' }}>
-                          🏢 {c.companyName || c.name}
-                        </td>
-                        <td>{c.email || '-'}</td>
-                        <td>{c.phone || '-'}</td>
-                        <td className="font-medium text-primary">{c.gstin || 'Unregistered'}</td>
-                        <td>{c.address || '-'}</td>
-                        <td className="text-right">
-                          <button className="btn-icon" onClick={() => openEditClient(c)}><i className="ph ph-pencil-simple"></i></button>
-                          <button className="btn-icon text-red" onClick={() => deleteClient(c._id)}><i className="ph ph-trash"></i></button>
-                        </td>
-                      </tr>
-                    ))}
-                    {clients.length === 0 && (
+            {clients.filter(c => (c.companyName || c.name || '').toLowerCase().includes(clientSearch.toLowerCase())).length === 0 ? (
+              <LinearEmptyState 
+                icon="ph-users-three"
+                title="No buyer client profiles registered"
+                description="Add external buyer profiles, GSTIN numbers, and export shipping addresses to enable quick invoicing."
+                actionLabel="Register new client"
+                onAction={() => setIsClientModalOpen(true)}
+                hasBorder={true}
+              />
+            ) : (
+              <div className="table-card bg-surface border desktop-table-container">
+                <div className="table-responsive">
+                  <table className="data-table">
+                    <thead>
                       <tr>
-                        <td colSpan="6" style={{ padding: 0, border: 'none' }}>
-                          <LinearEmptyState 
-                            icon="ph-users-three"
-                            title="No buyer client profiles registered"
-                            description="Add external buyer profiles, GSTIN numbers, and export shipping addresses to enable quick invoicing."
-                            actionLabel="Register new client"
-                            onAction={() => setIsClientModalOpen(true)}
-                          />
-                        </td>
+                        <th>Company Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>GSTIN</th>
+                        <th>Address</th>
+                        <th className="text-right">Actions</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {clients.filter(c => (c.companyName || c.name || '').toLowerCase().includes(clientSearch.toLowerCase())).map(c => (
+                        <tr key={c._id}>
+                          <td className="font-semibold" style={{ color: 'var(--color-primary)', fontSize: '14.5px' }}>
+                            🏢 {c.companyName || c.name}
+                          </td>
+                          <td>{c.email || '-'}</td>
+                          <td>{c.phone || '-'}</td>
+                          <td className="font-medium text-primary">{c.gstin || 'Unregistered'}</td>
+                          <td>{c.address || '-'}</td>
+                          <td className="text-right">
+                            <button className="btn-icon" onClick={() => openEditClient(c)}><i className="ph ph-pencil-simple"></i></button>
+                            <button className="btn-icon text-red" onClick={() => deleteClient(c._id)}><i className="ph ph-trash"></i></button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="mobile-cards-container">
               {clients.filter(c => (c.companyName || c.name || '').toLowerCase().includes(clientSearch.toLowerCase())).map(c => (
@@ -5828,103 +5825,109 @@ export default function App() {
               </button>
             </div>
 
-            <div className="table-card bg-surface border desktop-table-container">
-              <div className="table-responsive">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Invoice No</th>
-                      <th>Company / Buyer</th>
-                      <th>Date</th>
-                      <th>Tax Scheme</th>
-                      <th className="text-right">Subtotal</th>
-                      <th className="text-right">GST Tax</th>
-                      <th className="text-right">Discount</th>
-                      <th className="text-right">Grand Total</th>
-                      <th className="text-center">Payment Status</th>
-                      <th className="text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {bills.filter(b => b.billNumber.toLowerCase().includes(billSearch.toLowerCase())).map(b => {
-                      const c = clients.find(cl => cl._id === b.clientId);
-                      const isPaid = (b.paymentStatus === 'Paid' || b.status === 'Paid');
-                      return (
-                        <tr key={b._id}>
-                          <td className="font-semibold text-primary">{b.billNumber}</td>
-                          <td className="font-medium">🏢 {c ? (c.companyName || c.name) : 'Corporate Client'}</td>
-                          <td>{formatDate(b.date)}</td>
-                          <td>{b.billType === 'with-gst' ? 'With GST (5%)' : 'Without GST'}</td>
-                          <td className="text-right">{formatCurrency(b.subtotal)}</td>
-                          <td className="text-right">{formatCurrency(b.totalGst)}</td>
-                          <td className="text-right text-red">-{formatCurrency(b.discount)}</td>
-                          <td className="text-right font-semibold text-green">{formatCurrency(b.totalAmount)}</td>
-                          <td className="text-center">
-                            <button
-                              type="button"
-                              onClick={() => toggleBillPaymentStatus(b)}
-                              title="Click to toggle Payment Received status"
-                              style={{
-                                border: isPaid ? '1px solid #A7F3D0' : '1px solid #FDE68A',
-                                backgroundColor: isPaid ? '#ECFDF5' : '#FFFBEB',
-                                color: isPaid ? '#047857' : '#B45309',
-                                borderRadius: '12px',
-                                padding: '4px 10px',
-                                fontSize: '11px',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                transition: 'all 0.15s ease'
-                              }}
-                            >
-                              <i className={`ph ${isPaid ? 'ph-check-circle' : 'ph-clock-countdown'}`} style={{ fontSize: '13px' }}></i>
-                              {isPaid ? 'Payment Received' : 'Payment Pending'}
-                            </button>
-                          </td>
-                          <td className="text-right" onClick={(e) => e.stopPropagation()}>
-                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
-                              <button 
-                                type="button"
-                                className="btn btn-secondary btn-sm" 
-                                onClick={() => { setViewingInvoice(b); setIsInvoiceViewOpen(true); }}
-                                title="Preview Invoice"
-                                style={{ padding: '5px 12px', fontSize: '12px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px', borderRadius: '8px' }}
-                              >
-                                <i className="ph ph-eye" style={{ fontSize: '14px' }}></i> Preview
-                              </button>
-
-                              <button 
-                                type="button"
-                                className="btn btn-primary btn-sm" 
-                                onClick={() => { 
-                                  setViewingInvoice(b); 
-                                  setIsInvoiceViewOpen(true); 
-                                  setTimeout(() => window.print(), 350);
-                                }}
-                                title="Print Tax Invoice Document"
-                                style={{ padding: '5px 12px', fontSize: '12px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px', borderRadius: '8px' }}
-                              >
-                                <i className="ph ph-printer" style={{ fontSize: '14px' }}></i> Print
-                              </button>
-
-                              <button className="btn-icon" onClick={() => openEditBill(b)} title="Edit Invoice"><i className="ph ph-pencil-simple"></i></button>
-                              <button className="btn-icon text-red" onClick={() => deleteBill(b._id)} title="Delete Invoice"><i className="ph ph-trash"></i></button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                    {bills.length === 0 && (
+            {bills.filter(b => b.billNumber.toLowerCase().includes(billSearch.toLowerCase())).length === 0 ? (
+              <LinearEmptyState 
+                icon="ph-receipt"
+                title="No GST tax invoices created yet"
+                description="Generate tax invoices for buyers, manage shipment quantities, and track payment settlements."
+                actionLabel="Create new invoice"
+                onAction={() => { setEditingBill(null); setIsBillModalOpen(true); }}
+                hasBorder={true}
+              />
+            ) : (
+              <div className="table-card bg-surface border desktop-table-container">
+                <div className="table-responsive">
+                  <table className="data-table">
+                    <thead>
                       <tr>
-                        <td colSpan="10" className="text-center text-muted">No invoices logged. Log an invoice to calculate sales records.</td>
+                        <th>Invoice No</th>
+                        <th>Company / Buyer</th>
+                        <th>Date</th>
+                        <th>Tax Scheme</th>
+                        <th className="text-right">Subtotal</th>
+                        <th className="text-right">GST Tax</th>
+                        <th className="text-right">Discount</th>
+                        <th className="text-right">Grand Total</th>
+                        <th className="text-center">Payment Status</th>
+                        <th className="text-right">Actions</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {bills.filter(b => b.billNumber.toLowerCase().includes(billSearch.toLowerCase())).map(b => {
+                        const c = clients.find(cl => cl._id === b.clientId);
+                        const isPaid = (b.paymentStatus === 'Paid' || b.status === 'Paid');
+                        return (
+                          <tr key={b._id}>
+                            <td className="font-semibold text-primary">{b.billNumber}</td>
+                            <td className="font-medium">🏢 {c ? (c.companyName || c.name) : 'Corporate Client'}</td>
+                            <td>{formatDate(b.date)}</td>
+                            <td>{b.billType === 'with-gst' ? 'With GST (5%)' : 'Without GST'}</td>
+                            <td className="text-right">{formatCurrency(b.subtotal)}</td>
+                            <td className="text-right">{formatCurrency(b.totalGst)}</td>
+                            <td className="text-right text-red">-{formatCurrency(b.discount)}</td>
+                            <td className="text-right font-semibold text-green">{formatCurrency(b.totalAmount)}</td>
+                            <td className="text-center">
+                              <button
+                                type="button"
+                                onClick={() => toggleBillPaymentStatus(b)}
+                                title="Click to toggle Payment Received status"
+                                style={{
+                                  border: isPaid ? '1px solid #A7F3D0' : '1px solid #FDE68A',
+                                  backgroundColor: isPaid ? '#ECFDF5' : '#FFFBEB',
+                                  color: isPaid ? '#047857' : '#B45309',
+                                  borderRadius: '12px',
+                                  padding: '4px 10px',
+                                  fontSize: '11px',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  transition: 'all 0.15s ease'
+                                }}
+                              >
+                                <i className={`ph ${isPaid ? 'ph-check-circle' : 'ph-clock-countdown'}`} style={{ fontSize: '13px' }}></i>
+                                {isPaid ? 'Payment Received' : 'Payment Pending'}
+                              </button>
+                            </td>
+                            <td className="text-right" onClick={(e) => e.stopPropagation()}>
+                              <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                <button 
+                                  type="button"
+                                  className="btn btn-secondary btn-sm" 
+                                  onClick={() => { setViewingInvoice(b); setIsInvoiceViewOpen(true); }}
+                                  title="Preview Invoice"
+                                  style={{ padding: '5px 12px', fontSize: '12px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px', borderRadius: '8px' }}
+                                >
+                                  <i className="ph ph-eye" style={{ fontSize: '14px' }}></i> Preview
+                                </button>
+
+                                <button 
+                                  type="button"
+                                  className="btn btn-primary btn-sm" 
+                                  onClick={() => { 
+                                    setViewingInvoice(b); 
+                                    setIsInvoiceViewOpen(true); 
+                                    setTimeout(() => window.print(), 350);
+                                  }}
+                                  title="Print Tax Invoice Document"
+                                  style={{ padding: '5px 12px', fontSize: '12px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px', borderRadius: '8px' }}
+                                >
+                                  <i className="ph ph-printer" style={{ fontSize: '14px' }}></i> Print
+                                </button>
+
+                                <button className="btn-icon" onClick={() => openEditBill(b)} title="Edit Invoice"><i className="ph ph-pencil-simple"></i></button>
+                                <button className="btn-icon text-red" onClick={() => deleteBill(b._id)} title="Delete Invoice"><i className="ph ph-trash"></i></button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="mobile-cards-container">
               {bills.filter(b => b.billNumber.toLowerCase().includes(billSearch.toLowerCase())).map(b => {
@@ -6216,75 +6219,68 @@ export default function App() {
                   </button>
                 </div>
 
-                <div className="table-card bg-surface border desktop-table-container">
-                  <div className="table-responsive">
-                    <table className="data-table">
-                      <thead>
-                        <tr>
-                          <th>Name</th>
-                          <th>Phone</th>
-                          <th>Role</th>
-                          <th>Sub Category</th>
-                          <th className="text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {employees.filter(e => e.name.toLowerCase().includes(employeeSearch.toLowerCase())).map(emp => (
-                          <tr key={emp._id}>
-                            <td 
-                              onClick={() => openEditEmployee(emp)} 
-                              style={{ cursor: 'pointer' }}
-                              title={`Click to edit ${emp.name}'s profile`}
-                            >
-                              <div style={{ fontWeight: 700, color: 'var(--color-primary)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                                <span>{emp.name}</span>
-                                <i className="ph ph-pencil-simple" style={{ fontSize: '12px', opacity: 0.7 }}></i>
-                              </div>
-                            </td>
-                            <td>{emp.phone || '-'}</td>
-                            <td>
-                              <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{emp.role}</span>
-                            </td>
-                            <td>{emp.subCategory || '-'}</td>
-                            <td className="text-right">
-                              <button className="btn-icon" onClick={() => openEditEmployee(emp)} title="Edit Employee"><i className="ph ph-pencil-simple"></i></button>
-                              <button className="btn-icon text-red" onClick={() => deleteEmployee(emp._id)} title="Delete Employee"><i className="ph ph-trash"></i></button>
-                            </td>
-                          </tr>
-                        ))}
-                        {employees.filter(e => e.name.toLowerCase().includes(employeeSearch.toLowerCase())).length === 0 && (
+                {employees.filter(e => e.name.toLowerCase().includes(employeeSearch.toLowerCase())).length === 0 ? (
+                  employeeSearch ? (
+                    <div style={{ padding: '40px', textAlign: 'center', backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F172A', marginBottom: '12px' }}>
+                        No employee matching "{employeeSearch}" was found.
+                      </div>
+                      <button className="btn btn-secondary btn-sm" onClick={() => setEmployeeSearch('')}>
+                        <i className="ph ph-arrow-left"></i> Go Back to All Employees
+                      </button>
+                    </div>
+                  ) : (
+                    <LinearEmptyState 
+                      icon="ph-user-list"
+                      title="No employees assigned to roster"
+                      description="Register master tailors, piece-rate stitchers, and supervisors to track daily attendance and weekly salary payouts."
+                      actionLabel="Add employee"
+                      onAction={() => setIsEmployeeModalOpen(true)}
+                      hasBorder={true}
+                    />
+                  )
+                ) : (
+                  <div className="table-card bg-surface border desktop-table-container">
+                    <div className="table-responsive">
+                      <table className="data-table">
+                        <thead>
                           <tr>
-                            <td colSpan="5" className="text-center text-muted" style={{ padding: '36px 16px' }}>
-                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-                                <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'rgba(124,58,237,0.1)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
-                                  <i className="ph ph-user-minus"></i>
-                                </div>
-                                {employeeSearch ? (
-                                  <>
-                                    <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
-                                      No employee matching "{employeeSearch}" was found.
-                                    </div>
-                                    <button className="btn btn-primary" onClick={() => setEmployeeSearch('')} style={{ marginTop: '4px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                                      <i className="ph ph-arrow-left"></i> Go Back to All Employees
-                                    </button>
-                                  </>
-                                ) : (
-                                  <LinearEmptyState 
-                                    icon="ph-user-list"
-                                    title="No employees assigned to roster"
-                                    description="Register master tailors, piece-rate stitchers, and supervisors to track daily attendance and weekly salary payouts."
-                                    actionLabel="Add employee"
-                                    onAction={() => setIsEmployeeModalOpen(true)}
-                                  />
-                                )}
-                              </div>
-                            </td>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Role</th>
+                            <th>Sub Category</th>
+                            <th className="text-right">Actions</th>
                           </tr>
-                        )}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {employees.filter(e => e.name.toLowerCase().includes(employeeSearch.toLowerCase())).map(emp => (
+                            <tr key={emp._id}>
+                              <td 
+                                onClick={() => openEditEmployee(emp)} 
+                                style={{ cursor: 'pointer' }}
+                                title={`Click to edit ${emp.name}'s profile`}
+                              >
+                                <div style={{ fontWeight: 700, color: 'var(--color-primary)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                  <span>{emp.name}</span>
+                                  <i className="ph ph-pencil-simple" style={{ fontSize: '12px', opacity: 0.7 }}></i>
+                                </div>
+                              </td>
+                              <td>{emp.phone || '-'}</td>
+                              <td>
+                                <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{emp.role}</span>
+                              </td>
+                              <td>{emp.subCategory || '-'}</td>
+                              <td className="text-right">
+                                <button className="btn-icon" onClick={() => openEditEmployee(emp)} title="Edit Employee"><i className="ph ph-pencil-simple"></i></button>
+                                <button className="btn-icon text-red" onClick={() => deleteEmployee(emp._id)} title="Delete Employee"><i className="ph ph-trash"></i></button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="mobile-cards-container">
                   {employees.filter(e => e.name.toLowerCase().includes(employeeSearch.toLowerCase())).map(emp => (
