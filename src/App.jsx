@@ -49,6 +49,44 @@ function GoogleWorkspaceDataFetcher({ onData }) {
   return null;
 }
 
+// --- Smooth Count-Up Animation Component for KPI Numbers (Figma UI Motion) ---
+function AnimatedCounter({ value, prefix = '', suffix = '', isCurrency = false, duration = 1200, decimals = 0 }) {
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    let startTimestamp = null;
+    const targetNum = typeof value === 'number' ? value : parseFloat(value) || 0;
+    const startNum = 0;
+
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      
+      // Smooth easeOutCubic curve
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      const current = startNum + (targetNum - startNum) * easeProgress;
+
+      setDisplayValue(current);
+
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      }
+    };
+
+    window.requestAnimationFrame(step);
+  }, [value, duration]);
+
+  if (isCurrency) {
+    return <span>{formatCurrency(Math.round(displayValue))}</span>;
+  }
+
+  const formattedStr = decimals > 0 
+    ? displayValue.toFixed(decimals) 
+    : Math.round(displayValue).toLocaleString('en-IN');
+
+  return <span>{prefix}{formattedStr}{suffix}</span>;
+}
+
 // Indian Currency Number to Words converter helper
 function numberToWords(num) {
   const a = ['', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '];
@@ -4466,7 +4504,7 @@ export default function App() {
                       </div>
                     </div>
                     <div style={{ fontSize: '24px', fontWeight: 800, color: '#111827', fontFamily: 'var(--font-mono)', marginBottom: '8px' }}>
-                      {formatCurrency(Math.round(totalInvoicedRevenue / 28 || 185000))}
+                      <AnimatedCounter isCurrency value={Math.round(totalInvoicedRevenue / 28 || 185000)} />
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
                       <span style={{ color: '#10B981', fontWeight: 700, backgroundColor: '#ECFDF5', padding: '2px 8px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
@@ -4493,13 +4531,13 @@ export default function App() {
                       </div>
                     </div>
                     <div style={{ fontSize: '24px', fontWeight: 800, color: '#111827', fontFamily: 'var(--font-mono)', marginBottom: '8px' }}>
-                      {formatCurrency(totalInvoicedRevenue)}
+                      <AnimatedCounter isCurrency value={totalInvoicedRevenue} />
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
                       <span style={{ color: '#4F46E5', fontWeight: 700, backgroundColor: '#EEF2FF', padding: '2px 8px', borderRadius: '6px' }}>
                         +18.6% vs last month
                       </span>
-                      <span style={{ color: '#9CA3AF' }}>({bills.length} Bills)</span>
+                      <span style={{ color: '#9CA3AF' }}>(<AnimatedCounter value={bills.length} /> Bills)</span>
                     </div>
                   </div>
 
@@ -4520,11 +4558,11 @@ export default function App() {
                       </div>
                     </div>
                     <div style={{ fontSize: '24px', fontWeight: 800, color: '#111827', fontFamily: 'var(--font-mono)', marginBottom: '8px' }}>
-                      {formatCurrency(totalPendingAmount)}
+                      <AnimatedCounter isCurrency value={totalPendingAmount} />
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
                       <span style={{ color: '#D97706', fontWeight: 700, backgroundColor: '#FEF3C7', padding: '2px 8px', borderRadius: '6px' }}>
-                        {pendingInvoices.length} Unpaid Invoices
+                        <AnimatedCounter value={pendingInvoices.length} /> Unpaid Invoices
                       </span>
                       <span style={{ color: '#9CA3AF' }}>Overdue</span>
                     </div>
@@ -4724,16 +4762,16 @@ export default function App() {
                       <div style={{ backgroundColor: '#FEF3C7', padding: '14px', borderRadius: '12px', border: '1px solid #FDE68A', marginBottom: '12px' }}>
                         <div style={{ fontSize: '12px', color: '#B45309', fontWeight: 700, textTransform: 'uppercase' }}>Total Uncollected Receivables</div>
                         <div style={{ fontSize: '22px', fontWeight: 800, color: '#92400E', fontFamily: 'var(--font-mono)', marginTop: '4px' }}>
-                          {formatCurrency(totalPendingAmount)}
+                          <AnimatedCounter isCurrency value={totalPendingAmount} />
                         </div>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', color: '#4B5563', padding: '6px 0', borderBottom: '1px solid #F3F4F6' }}>
                         <span>Due Today</span>
-                        <strong style={{ color: '#111827' }}>{formatCurrency(Math.round(totalPendingAmount * 0.4))}</strong>
+                        <strong style={{ color: '#111827' }}><AnimatedCounter isCurrency value={Math.round(totalPendingAmount * 0.4)} /></strong>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', color: '#4B5563', padding: '6px 0' }}>
                         <span>Overdue (30+ Days)</span>
-                        <strong style={{ color: '#EF4444' }}>{formatCurrency(Math.round(totalPendingAmount * 0.6))}</strong>
+                        <strong style={{ color: '#EF4444' }}><AnimatedCounter isCurrency value={Math.round(totalPendingAmount * 0.6)} /></strong>
                       </div>
                     </div>
 
