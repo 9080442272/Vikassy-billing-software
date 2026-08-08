@@ -49,6 +49,16 @@ function GoogleWorkspaceDataFetcher({ onData }) {
   return null;
 }
 
+// --- Format currency in INR (Top-level Global Helper) ---
+function formatCurrency(val) {
+  const num = parseFloat(val) || 0;
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    minimumFractionDigits: 2
+  }).format(num);
+}
+
 // --- Smooth Count-Up Animation Component for KPI Numbers (Figma UI Motion) ---
 function AnimatedCounter({ value, prefix = '', suffix = '', isCurrency = false, duration = 1200, decimals = 0 }) {
   const [displayValue, setDisplayValue] = useState(0);
