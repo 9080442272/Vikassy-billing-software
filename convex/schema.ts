@@ -197,4 +197,16 @@ export default defineSchema({
     packingRate: v.optional(v.number()),
     createdAt: v.string(),
   }).index("by_status", ["status"]).index("by_stage", ["stage"]),
+
+  settings: defineTable({
+    key: v.string(),
+    accountSid: v.optional(v.string()),
+    authToken: v.optional(v.string()),
+    fromPhone: v.optional(v.string()),
+    whatsappPhone: v.optional(v.string()),
+    isEnabled: v.optional(v.boolean()),
+    autoSendInvoices: v.optional(v.boolean()),
+    autoSendAdvances: v.optional(v.boolean()),
+    updatedAt: v.string(),
+  }).index("by_key", ["key"]),
 });

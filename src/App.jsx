@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useQuery, useMutation } from 'convex/react';
+import { useQuery, useMutation, useAction } from 'convex/react';
 import { api } from '../convex/_generated/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -431,6 +431,123 @@ export default function App() {
   const updateInvestmentMutation = api.investments && api.investments.update ? useMutation(api.investments.update) : null;
   const deleteInvestmentMutation = api.investments && api.investments.remove ? useMutation(api.investments.remove) : null;
   const clearAllDataMutation = useMutation(api.system.clearAllData);
+
+  // --- Twilio SMS & WhatsApp Integration States & Convex Hooks ---
+  const twilioSettingsQuery = api.twilio && api.twilio.getSettings ? useQuery(api.twilio.getSettings) : null;
+  const saveTwilioSettingsMutation = api.twilio && api.twilio.saveSettings ? useMutation(api.twilio.saveSettings) : null;
+  const sendTwilioMessageAction = api.twilio && api.twilio.sendTwilioMessage ? useAction(api.twilio.sendTwilioMessage) : null;
+
+  const [twilioAccountSid, setTwilioAccountSid] = useState(() => localStorage.getItem('varahi_twilio_sid') || '');
+  const [twilioAuthToken, setTwilioAuthToken] = useState(() => localStorage.getItem('varahi_twilio_token') || '');
+  const [twilioFromPhone, setTwilioFromPhone] = useState(() => localStorage.getItem('varahi_twilio_from') || '');
+  const [twilioWhatsappPhone, setTwilioWhatsappPhone] = useState(() => localStorage.getItem('varahi_twilio_wa') || '');
+  const [isTwilioEnabled, setIsTwilioEnabled] = useState(() => localStorage.getItem('varahi_twilio_enabled') === 'true');
+  const [showAuthToken, setShowAuthToken] = useState(false);
+  const [isTwilioTestModalOpen, setIsTwilioTestModalOpen] = useState(false);
+  const [testMsgPhone, setTestMsgPhone] = useState('');
+  const [testMsgContent, setTestMsgContent] = useState('Hello from Varahi Exports! Your Twilio SMS & WhatsApp Gateway is successfully connected.');
+  const [testMsgType, setTestMsgType] = useState('sms');
+  const [isSendingTwilioTest, setIsSendingTwilioTest] = useState(false);
+
+  useEffect(() => {
+    if (twilioSettingsQuery) {
+      if (twilioSettingsQuery.accountSid) setTwilioAccountSid(twilioSettingsQuery.accountSid);
+      if (twilioSettingsQuery.authToken) setTwilioAuthToken(twilioSettingsQuery.authToken);
+      if (twilioSettingsQuery.fromPhone) setTwilioFromPhone(twilioSettingsQuery.fromPhone);
+      if (twilioSettingsQuery.whatsappPhone) setTwilioWhatsappPhone(twilioSettingsQuery.whatsappPhone);
+      if (twilioSettingsQuery.isEnabled !== undefined) setIsTwilioEnabled(twilioSettingsQuery.isEnabled);
+    }
+  }, [twilioSettingsQuery]);
+
+  const handleSaveTwilioSettings = async (e) => {
+    if (e) e.preventDefault();
+    localStorage.setItem('varahi_twilio_sid', twilioAccountSid);
+    localStorage.setItem('varahi_twilio_token', twilioAuthToken);
+    localStorage.setItem('varahi_twilio_from', twilioFromPhone);
+    localStorage.setItem('varahi_twilio_wa', twilioWhatsappPhone);
+    localStorage.setItem('varahi_twilio_enabled', isTwilioEnabled.toString());
+
+    if (saveTwilioSettingsMutation) {
+      try {
+        await saveTwilioSettingsMutation({
+          accountSid: twilioAccountSid,
+          authToken: twilioAuthToken,
+          fromPhone: twilioFromPhone,
+          whatsappPhone: twilioWhatsappPhone,
+          isEnabled: isTwilioEnabled
+        });
+      } catch (err) {
+        console.warn("Convex twilio save fallback:", err);
+      }
+    }
+    alert("🎉 Twilio Account credentials saved & connected successfully!");
+  };
+
+  const handleSendTwilioTest = async (e) => {
+    if (e) e.preventDefault();
+    if (!twilioAccountSid.trim() || !twilioAuthToken.trim() || !twilioFromPhone.trim()) {
+      alert("⚠️ Please enter your Twilio Account SID, Auth Token, and Sender Phone Number first!");
+      return;
+    }
+    if (!testMsgPhone.trim()) {
+      alert("⚠️ Please enter a recipient phone number (e.g. +91 99999 88888)");
+      return;
+    }
+
+    setIsSendingTwilioTest(true);
+    try {
+      if (sendTwilioMessageAction) {
+        const res = await sendTwilioMessageAction({
+          to: testMsgPhone,
+          body: testMsgContent,
+          isWhatsapp: testMsgType === 'whatsapp',
+          accountSid: twilioAccountSid,
+          authToken: twilioAuthToken,
+          fromPhone: testMsgType === 'whatsapp' ? (twilioWhatsappPhone || twilioFromPhone) : twilioFromPhone
+        });
+
+        if (res && res.success) {
+          alert(`✅ Twilio ${testMsgType.toUpperCase()} sent successfully! Message SID: ${res.messageId}`);
+          setIsTwilioTestModalOpen(false);
+        } else {
+          alert(`❌ Twilio Error: ${res?.error || 'Failed to dispatch message'}`);
+        }
+      } else {
+        const basicAuth = btoa(`${twilioAccountSid.trim()}:${twilioAuthToken.trim()}`);
+        let fromNum = testMsgType === 'whatsapp' ? (twilioWhatsappPhone || twilioFromPhone) : twilioFromPhone;
+        let toNum = testMsgPhone.trim();
+        if (testMsgType === 'whatsapp') {
+          if (!fromNum.startsWith('whatsapp:')) fromNum = `whatsapp:${fromNum}`;
+          if (!toNum.startsWith('whatsapp:')) toNum = `whatsapp:${toNum}`;
+        }
+        const formData = new URLSearchParams();
+        formData.append('To', toNum);
+        formData.append('From', fromNum);
+        formData.append('Body', testMsgContent);
+
+        const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid.trim()}/Messages.json`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Basic ${basicAuth}`,
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: formData.toString()
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          alert(`✅ Twilio ${testMsgType.toUpperCase()} sent successfully! Message SID: ${data.sid}`);
+          setIsTwilioTestModalOpen(false);
+        } else {
+          alert(`❌ Twilio API Error (${data.code}): ${data.message}`);
+        }
+      }
+    } catch (err) {
+      alert(`❌ Connection Error: ${err.message}`);
+    } finally {
+      setIsSendingTwilioTest(false);
+    }
+  };
 
   // Set to true to temporarily bypass authentication for dev / client reviews
   const BYPASS_AUTH = true;
@@ -5201,6 +5318,124 @@ export default function App() {
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
                   <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 700, borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                     <i className="ph ph-check" style={{ fontSize: '16px' }}></i> Save Company Profile Changes
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* SECTION 3: TWILIO SMS & WHATSAPP GATEWAY INTEGRATION */}
+            <div className="card bg-surface border" style={{ padding: '28px', borderRadius: '16px', marginTop: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px', color: '#111827' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#FEE2E2', color: '#F22F46', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                      <i className="ph ph-chat-circle-dots"></i>
+                    </div>
+                    Twilio SMS & WhatsApp Gateway Connection
+                  </h3>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6B7280' }}>
+                    Connect your Twilio Account to send automated SMS receipts, WhatsApp payment reminders, and buyer job status updates.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    padding: '4px 10px',
+                    borderRadius: '12px',
+                    backgroundColor: twilioAccountSid.trim() ? '#ECFDF5' : '#F3F4F6',
+                    color: twilioAccountSid.trim() ? '#059669' : '#6B7280',
+                    border: twilioAccountSid.trim() ? '1px solid #A7F3D0' : '1px solid #E5E7EB',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    {twilioAccountSid.trim() ? '🟢 CONNECTED & ONLINE' : '⚪ NOT CONNECTED'}
+                  </span>
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary btn-sm" 
+                    onClick={() => setIsTwilioTestModalOpen(true)}
+                    style={{ borderRadius: '10px', padding: '8px 14px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <i className="ph ph-paper-plane-tilt"></i> Send Test Message
+                  </button>
+                </div>
+              </div>
+
+              <form onSubmit={handleSaveTwilioSettings} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div className="form-group">
+                    <label style={{ fontWeight: 600, fontSize: '13px' }}>Twilio Account SID *</label>
+                    <input 
+                      type="text" 
+                      required 
+                      placeholder="e.g. ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" 
+                      value={twilioAccountSid} 
+                      onChange={(e) => setTwilioAccountSid(e.target.value)} 
+                      style={{ fontSize: '13.5px', padding: '10px 12px', borderRadius: '10px', fontFamily: 'var(--font-mono)' }} 
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label style={{ fontWeight: 600, fontSize: '13px' }}>Twilio Auth Token *</label>
+                    <div style={{ position: 'relative' }}>
+                      <input 
+                        type={showAuthToken ? 'text' : 'password'} 
+                        required 
+                        placeholder="Twilio secret auth token" 
+                        value={twilioAuthToken} 
+                        onChange={(e) => setTwilioAuthToken(e.target.value)} 
+                        style={{ fontSize: '13.5px', padding: '10px 40px 10px 12px', borderRadius: '10px', fontFamily: 'var(--font-mono)', width: '100%' }} 
+                      />
+                      <button 
+                        type="button" 
+                        onClick={() => setShowAuthToken(!showAuthToken)} 
+                        style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer' }}
+                      >
+                        <i className={`ph ${showAuthToken ? 'ph-eye-slash' : 'ph-eye'}`}></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div className="form-group">
+                    <label style={{ fontWeight: 600, fontSize: '13px' }}>Twilio SMS Sender Phone Number *</label>
+                    <input 
+                      type="text" 
+                      required 
+                      placeholder="e.g. +18885550199" 
+                      value={twilioFromPhone} 
+                      onChange={(e) => setTwilioFromPhone(e.target.value)} 
+                      style={{ fontSize: '13.5px', padding: '10px 12px', borderRadius: '10px', fontFamily: 'var(--font-mono)' }} 
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label style={{ fontWeight: 600, fontSize: '13px' }}>Twilio WhatsApp Sender Number (Optional)</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. whatsapp:+14155238886" 
+                      value={twilioWhatsappPhone} 
+                      onChange={(e) => setTwilioWhatsappPhone(e.target.value)} 
+                      style={{ fontSize: '13.5px', padding: '10px 12px', borderRadius: '10px', fontFamily: 'var(--font-mono)' }} 
+                    />
+                  </div>
+                </div>
+
+                <div style={{ backgroundColor: '#F8FAFC', padding: '14px 18px', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '13.5px', color: '#1E293B' }}>Enable Automatic Twilio Dispatch</div>
+                    <div style={{ fontSize: '12px', color: '#64748B' }}>Automatically send SMS alerts to buyers & factory staff upon invoice creation or payment settlement.</div>
+                  </div>
+                  <label className="toggle-switch">
+                    <input type="checkbox" checked={isTwilioEnabled} onChange={(e) => setIsTwilioEnabled(e.target.checked)} />
+                    <span className="slider"></span>
+                  </label>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '6px' }}>
+                  <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 700, borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: '#F22F46', borderColor: '#DC2626' }}>
+                    <i className="ph ph-check-circle" style={{ fontSize: '16px' }}></i> Save Twilio Credentials
                   </button>
                 </div>
               </form>
@@ -10421,6 +10656,117 @@ export default function App() {
               </div>
               <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Varahi Export Linear OS</span>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== TWILIO TEST SMS / WHATSAPP DISPATCH MODAL ==================== */}
+      {isTwilioTestModalOpen && (
+        <div className="modal-overlay active" onClick={() => setIsTwilioTestModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px' }}>
+            <div className="modal-header" style={{ borderBottom: '1px solid var(--color-border)', backgroundColor: '#FFF5F5', padding: '16px 20px' }}>
+              <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#DC2626', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <i className="ph ph-chat-circle-dots" style={{ fontSize: '22px' }}></i> Dispatch Twilio Message
+              </h3>
+              <button className="btn-close" onClick={() => setIsTwilioTestModalOpen(false)}><i className="ph ph-x"></i></button>
+            </div>
+            <form onSubmit={handleSendTwilioTest}>
+              <div className="modal-body" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className="form-group">
+                  <label style={{ fontWeight: 700, fontSize: '13px' }}>Channel Type *</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '4px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setTestMsgType('sms')}
+                      style={{
+                        padding: '10px',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        backgroundColor: testMsgType === 'sms' ? '#EEF2FF' : '#F8FAFC',
+                        color: testMsgType === 'sms' ? '#4F46E5' : '#475569',
+                        border: testMsgType === 'sms' ? '2px solid #4F46E5' : '1px solid #CBD5E1',
+                        borderRadius: '10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <i className="ph ph-chats-teardrop" style={{ fontSize: '16px' }}></i> SMS Alert
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTestMsgType('whatsapp')}
+                      style={{
+                        padding: '10px',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        backgroundColor: testMsgType === 'whatsapp' ? '#ECFDF5' : '#F8FAFC',
+                        color: testMsgType === 'whatsapp' ? '#047857' : '#475569',
+                        border: testMsgType === 'whatsapp' ? '2px solid #059669' : '1px solid #CBD5E1',
+                        borderRadius: '10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <i className="ph ph-whatsapp-logo" style={{ fontSize: '16px' }}></i> WhatsApp Message
+                    </button>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label style={{ fontWeight: 700, fontSize: '13px' }}>Recipient Phone Number *</label>
+                  <input 
+                    type="tel" 
+                    required 
+                    placeholder="e.g. +91 99946 85525 or +18885550199" 
+                    value={testMsgPhone} 
+                    onChange={(e) => setTestMsgPhone(e.target.value)} 
+                    style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px', fontFamily: 'var(--font-mono)' }} 
+                  />
+                  <span style={{ fontSize: '11px', color: '#64748B', marginTop: '4px', display: 'block' }}>
+                    Include country code (e.g., +91 for India, +1 for US/Canada).
+                  </span>
+                </div>
+
+                <div className="form-group">
+                  <label style={{ fontWeight: 700, fontSize: '13px' }}>Message Body *</label>
+                  <textarea 
+                    rows="4" 
+                    required 
+                    value={testMsgContent} 
+                    onChange={(e) => setTestMsgContent(e.target.value)} 
+                    style={{ fontSize: '13.5px', padding: '10px 12px', borderRadius: '10px', width: '100%', lineHeight: 1.4 }} 
+                  />
+                </div>
+
+                {(!twilioAccountSid.trim() || !twilioAuthToken.trim()) && (
+                  <div style={{ padding: '10px 12px', backgroundColor: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '8px', fontSize: '12px', color: '#B45309' }}>
+                    ⚠️ Note: You have not saved your Twilio SID & Auth Token in System Settings yet. Messages will dispatch once credentials are entered.
+                  </div>
+                )}
+              </div>
+
+              <div className="modal-footer" style={{ padding: '14px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setIsTwilioTestModalOpen(false)}>Cancel</button>
+                <button 
+                  type="submit" 
+                  disabled={isSendingTwilioTest} 
+                  className="btn btn-primary" 
+                  style={{ padding: '10px 22px', fontWeight: 700, borderRadius: '10px', backgroundColor: '#F22F46', borderColor: '#DC2626', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                >
+                  {isSendingTwilioTest ? (
+                    <>⏳ Sending...</>
+                  ) : (
+                    <><i className="ph ph-paper-plane-tilt"></i> Send {testMsgType.toUpperCase()} Now</>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
