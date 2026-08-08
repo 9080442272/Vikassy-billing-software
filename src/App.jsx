@@ -9471,71 +9471,31 @@ export default function App() {
                   </select>
                 </div>
 
-                {/* Job Orders Dynamic Dropdowns & Client Linking Options */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <label style={{ fontWeight: 600, margin: 0 }}>Link to Production Job Order / Style (Optional)</label>
-                    <button
-                      type="button"
-                      onClick={() => setLinkedJobOrdersList(prev => [...prev, ''])}
-                      style={{ border: 'none', background: 'transparent', color: '#4F46E5', fontSize: '12px', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                    >
-                      <i className="ph ph-plus-circle"></i> + Add Another Job Order
-                    </button>
-                  </div>
-
-                  {linkedJobOrdersList.map((jobVal, idx) => (
-                    <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <select 
-                        value={jobVal}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setLinkedJobOrdersList(prev => prev.map((item, i) => i === idx ? val : item));
-                          const foundJob = customLocalJobs.find(j => (j.styleNumber ? `Style ${j.styleNumber}` : j.orderTitle) === val);
-                          if (foundJob && foundJob.clientName && !advSelectedClient) {
-                            setAdvSelectedClient(foundJob.clientName);
-                          }
-                        }}
-                        style={{ fontSize: '13.5px', padding: '10px 12px', borderRadius: '10px', width: '100%', flex: 1 }}
-                      >
-                        <option value="">{idx === 0 ? '-- Select Linked Job Order (General Advance) --' : `-- Select Additional Job Order ${idx + 1} --`}</option>
-                        {customLocalJobs.map(j => {
-                          const title = j.styleNumber ? `Style ${j.styleNumber}` : j.orderTitle;
-                          return (
-                            <option key={j._id} value={title}>
-                              📦 {title} {j.clientName ? `(${j.clientName})` : ''} — {(j.orderQty || j.quantity || 0).toLocaleString()} Pcs
-                            </option>
-                          );
-                        })}
-                      </select>
-                      {linkedJobOrdersList.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => setLinkedJobOrdersList(prev => prev.filter((_, i) => i !== idx))}
-                          style={{ border: 'none', background: '#FEE2E2', color: '#EF4444', borderRadius: '8px', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
-                          title="Remove Job Order"
-                        >
-                          <i className="ph ph-trash" style={{ fontSize: '14px' }}></i>
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
+                {/* Single Job Order Dropdown */}
                 <div className="form-group">
-                  <label style={{ fontWeight: 600 }}>Link to Customer / Buyer (Optional)</label>
+                  <label style={{ fontWeight: 600 }}>Link to Production Job Order / Style (Optional)</label>
                   <select 
-                    name="linkedClient"
-                    value={advSelectedClient}
-                    onChange={(e) => setAdvSelectedClient(e.target.value)}
-                    style={{ fontSize: '13.5px', padding: '10px 12px', borderRadius: '10px', width: '100%' }}
+                    name="linkedJob"
+                    value={linkedJobOrdersList[0] || ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setLinkedJobOrdersList([val]);
+                      const foundJob = customLocalJobs.find(j => (j.styleNumber ? `Style ${j.styleNumber}` : j.orderTitle) === val);
+                      if (foundJob && foundJob.clientName) {
+                        setAdvSelectedClient(foundJob.clientName);
+                      }
+                    }}
+                    style={{ fontSize: '13.5px', padding: '10px 12px', borderRadius: '8px', width: '100%' }}
                   >
-                    <option value="">-- Select Customer / Buyer --</option>
-                    {clients.map(c => (
-                      <option key={c._id} value={c.name}>
-                        🏢 {c.name} {c.companyName ? `(${c.companyName})` : ''}
-                      </option>
-                    ))}
+                    <option value="">-- Select Linked Job Order (General Advance) --</option>
+                    {customLocalJobs.map(j => {
+                      const title = j.styleNumber ? `Style ${j.styleNumber}` : j.orderTitle;
+                      return (
+                        <option key={j._id} value={title}>
+                          📦 {title} {j.clientName ? `(${j.clientName})` : ''} — {(j.orderQty || j.quantity || 0).toLocaleString()} Pcs
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
 
