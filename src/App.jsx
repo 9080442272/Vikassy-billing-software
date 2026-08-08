@@ -6150,14 +6150,21 @@ export default function App() {
                                 <span className="badge badge-success">{pr.status}</span>
                               </td>
                               <td className="text-right">
-                                <button className="btn btn-secondary btn-sm" onClick={() => alert(`Printing weekly slip for ${pr.empName} (${pr.month})...`)}>
-                                  <i className="ph ph-printer"></i> Slip
-                                </button>
+                                <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                  <button className="btn btn-secondary btn-sm" onClick={() => alert(`Printing weekly slip for ${pr.empName} (${pr.month})...`)} title="Print Slip">
+                                    <i className="ph ph-printer"></i> Slip
+                                  </button>
+                                  <button type="button" className="btn-icon" onClick={() => setIsDisbursePayrollModalOpen(true)} title="Edit Weekly Payout">
+                                    <i className="ph ph-pencil-simple"></i>
+                                  </button>
+                                  <button type="button" className="btn-icon text-red" onClick={() => { if (confirm(`Are you sure you want to delete weekly payout record for ${pr.empName}?`)) { setPayrollRecords(prev => prev.filter(p => p.id !== pr.id)); } }} title="Delete Weekly Payout">
+                                    <i className="ph ph-trash"></i>
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           ))}
 
-                          {/* Advance Records */}
                           {advanceRecords.map(adv => (
                             <tr key={`adv-${adv.id}`}>
                               <td className="text-muted">{adv.date}</td>
@@ -6168,9 +6175,17 @@ export default function App() {
                               <td className="font-bold text-primary">₹{Number(adv.amount).toLocaleString('en-IN')}</td>
                               <td><span className="badge badge-warning">Advance Issued</span></td>
                               <td className="text-right">
-                                <button className="btn btn-secondary btn-sm" onClick={() => alert(`Advance receipt generated for ${adv.empName}`)}>
-                                  <i className="ph ph-receipt"></i> Receipt
-                                </button>
+                                <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                  <button className="btn btn-secondary btn-sm" onClick={() => alert(`Advance receipt generated for ${adv.empName}`)} title="Print Receipt">
+                                    <i className="ph ph-receipt"></i> Receipt
+                                  </button>
+                                  <button type="button" className="btn-icon" onClick={() => setIsAdvanceModalOpen(true)} title="Edit Advance">
+                                    <i className="ph ph-pencil-simple"></i>
+                                  </button>
+                                  <button type="button" className="btn-icon text-red" onClick={() => { if (confirm(`Are you sure you want to delete advance transaction for ${adv.empName} (₹${adv.amount})?`)) { setAdvanceRecords(prev => prev.filter(a => a.id !== adv.id)); } }} title="Delete Advance Transaction">
+                                    <i className="ph ph-trash"></i>
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           ))}
