@@ -6020,155 +6020,166 @@ export default function App() {
             </div>
 
             {employeesSubTab === 'attendance' ? (
-              <div className="table-card bg-surface border" style={{ marginTop: '20px' }}>
-                <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Daily Shift & Attendance Log</h3>
-                  <button className="btn btn-primary btn-sm" onClick={() => setIsAttendanceModalOpen(true)}>
-                    <i className="ph ph-plus"></i> Log Today's Attendance
-                  </button>
+              attendanceRecords.length === 0 ? (
+                <div style={{ marginTop: '20px' }}>
+                  <LinearEmptyState 
+                    icon="ph-clock-afternoon"
+                    title="No daily attendance logged today"
+                    description="Track daily check-in times, shifts, overtime hours, and attendance status for factory workers."
+                    actionLabel="Log Today's Attendance"
+                    onAction={() => setIsAttendanceModalOpen(true)}
+                    hasBorder={true}
+                  />
                 </div>
-                <div className="table-responsive">
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Employee</th>
-                        <th>Role</th>
-                        <th>Shift Details</th>
-                        <th>Check-in Time</th>
-                        <th>Attendance Status</th>
-                        <th className="text-right">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {attendanceRecords.map((record) => (
-                        <tr key={record._id || record.id}>
-                          <td className="text-muted">{record.date}</td>
-                          <td className="font-semibold">{record.empName}</td>
-                          <td>{record.role || 'Staff'}</td>
-                          <td>{record.shift || 'General Shift'}</td>
-                          <td>{record.checkIn || '08:00 AM'}</td>
-                          <td>
-                            <span className={`badge ${
-                              (record.status || '').includes('Present') ? 'badge-success' :
-                              (record.status || '').includes('Overtime') ? 'badge-info' :
-                              (record.status || '').includes('Half-Day') ? 'badge-warning' : 'badge-danger'
-                            }`}>
-                              {record.status}
-                            </span>
-                          </td>
-                          <td className="text-right" onClick={(e) => e.stopPropagation()}>
-                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
-                              <button className="btn btn-secondary btn-sm" onClick={() => setIsAttendanceModalOpen(true)}>
-                                Update
-                              </button>
-                              <button
-                                type="button"
-                                className="btn-icon text-red"
-                                onClick={() => deleteAttendanceRecord(record)}
-                                title="Delete Attendance Log"
-                              >
-                                <i className="ph ph-trash"></i>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                      {attendanceRecords.length === 0 && (
-                        <tr>
-                          <td colSpan="7" className="text-center text-muted" style={{ padding: '24px' }}>
-                            No attendance entries logged today. Click "+ Log Today's Attendance".
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            ) : (employeesSubTab === 'salary' || employeesSubTab === 'payroll') ? (
-              <div style={{ marginTop: '20px' }}>
-                {/* Unified Single Weekly Payouts & Advances Log */}
-                <div className="table-card bg-surface border">
-                  <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                    <div>
-                      <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Weekly Payouts & Advance Deductions Log</h3>
-                      <p className="small text-muted" style={{ margin: '2px 0 0 0' }}>Unified record of weekly payouts, piece-rate wages, and salary advance deductions.</p>
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                      <button className="btn btn-secondary btn-sm text-primary" onClick={() => setIsAdvanceModalOpen(true)} style={{ fontWeight: 700 }}>
-                        <i className="ph ph-hand-coins"></i> Give Advance
-                      </button>
-                      <button className="btn btn-primary btn-sm" onClick={() => setIsDisbursePayrollModalOpen(true)}>
-                        <i className="ph ph-money"></i> Disburse Weekly Payout
-                      </button>
-                    </div>
+              ) : (
+                <div className="table-card bg-surface border" style={{ marginTop: '20px' }}>
+                  <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Daily Shift & Attendance Log</h3>
+                    <button className="btn btn-primary btn-sm" onClick={() => setIsAttendanceModalOpen(true)}>
+                      <i className="ph ph-plus"></i> Log Today's Attendance
+                    </button>
                   </div>
-
                   <div className="table-responsive">
                     <table className="data-table">
                       <thead>
                         <tr>
-                          <th>Date / Period</th>
+                          <th>Date</th>
                           <th>Employee</th>
-                          <th>Transaction Type</th>
-                          <th>Salary Amount (₹)</th>
-                          <th>Advances / Deductions (₹)</th>
-                          <th>Net Paid (₹)</th>
-                          <th>Status</th>
+                          <th>Role</th>
+                          <th>Shift Details</th>
+                          <th>Check-in Time</th>
+                          <th>Attendance Status</th>
                           <th className="text-right">Action</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {/* Weekly Payout Records */}
-                        {payrollRecords.map(pr => (
-                          <tr key={`pr-${pr.id}`}>
-                            <td className="text-muted">{pr.month}</td>
-                            <td className="font-semibold">{pr.empName}</td>
-                            <td><span className="badge badge-success">Weekly Payout</span></td>
-                            <td>{formatCurrency(pr.baseSalary)}</td>
-                            <td className="text-red">-{formatCurrency(pr.deductions)}</td>
-                            <td className="font-bold text-primary">{formatCurrency(pr.netPayable)}</td>
+                        {attendanceRecords.map((record) => (
+                          <tr key={record._id || record.id}>
+                            <td className="text-muted">{record.date}</td>
+                            <td className="font-semibold">{record.empName}</td>
+                            <td>{record.role || 'Staff'}</td>
+                            <td>{record.shift || 'General Shift'}</td>
+                            <td>{record.checkIn || '08:00 AM'}</td>
                             <td>
-                              <span className="badge badge-success">{pr.status}</span>
+                              <span className={`badge ${
+                                (record.status || '').includes('Present') ? 'badge-success' :
+                                (record.status || '').includes('Overtime') ? 'badge-info' :
+                                (record.status || '').includes('Half-Day') ? 'badge-warning' : 'badge-danger'
+                              }`}>
+                                {record.status}
+                              </span>
                             </td>
-                            <td className="text-right">
-                              <button className="btn btn-secondary btn-sm" onClick={() => alert(`Printing weekly slip for ${pr.empName} (${pr.month})...`)}>
-                                <i className="ph ph-printer"></i> Slip
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-
-                        {/* Advance Records */}
-                        {advanceRecords.map(adv => (
-                          <tr key={`adv-${adv.id}`}>
-                            <td className="text-muted">{adv.date}</td>
-                            <td className="font-semibold">{adv.empName}</td>
-                            <td><span className="badge badge-purple">{adv.type || 'Salary Advance'}</span></td>
-                            <td className="text-muted">-</td>
-                            <td className="font-bold text-red">₹{Number(adv.amount).toLocaleString('en-IN')}</td>
-                            <td className="font-bold text-primary">₹{Number(adv.amount).toLocaleString('en-IN')}</td>
-                            <td><span className="badge badge-warning">Advance Issued</span></td>
-                            <td className="text-right">
-                              <button className="btn btn-secondary btn-sm" onClick={() => alert(`Advance receipt generated for ${adv.empName}`)}>
-                                <i className="ph ph-receipt"></i> Receipt
-                              </button>
+                            <td className="text-right" onClick={(e) => e.stopPropagation()}>
+                              <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                <button className="btn btn-secondary btn-sm" onClick={() => setIsAttendanceModalOpen(true)}>
+                                  Update
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn-icon text-red"
+                                  onClick={() => deleteAttendanceRecord(record)}
+                                  title="Delete Attendance Log"
+                                >
+                                  <i className="ph ph-trash"></i>
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))}
-
-                        {payrollRecords.length === 0 && advanceRecords.length === 0 && (
-                          <tr>
-                            <td colSpan="8" className="text-center text-muted" style={{ padding: '24px' }}>
-                              No payout or advance transactions found. Click "+ Disburse Weekly Payout" or "+ Give Advance".
-                            </td>
-                          </tr>
-                        )}
                       </tbody>
                     </table>
                   </div>
                 </div>
-              </div>
+              )
+            ) : (employeesSubTab === 'salary' || employeesSubTab === 'payroll') ? (
+              payrollRecords.length === 0 && advanceRecords.length === 0 ? (
+                <div style={{ marginTop: '20px' }}>
+                  <LinearEmptyState 
+                    icon="ph-hand-coins"
+                    title="No weekly payouts or advances recorded"
+                    description="Disburse weekly piece-rate payouts, record salary advance issues, and print wage receipts."
+                    actionLabel="Disburse Weekly Payout"
+                    onAction={() => setIsDisbursePayrollModalOpen(true)}
+                    hasBorder={true}
+                  />
+                </div>
+              ) : (
+                <div style={{ marginTop: '20px' }}>
+                  {/* Unified Single Weekly Payouts & Advances Log */}
+                  <div className="table-card bg-surface border">
+                    <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Weekly Payouts & Advance Deductions Log</h3>
+                        <p className="small text-muted" style={{ margin: '2px 0 0 0' }}>Unified record of weekly payouts, piece-rate wages, and salary advance deductions.</p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <button className="btn btn-secondary btn-sm text-primary" onClick={() => setIsAdvanceModalOpen(true)} style={{ fontWeight: 700 }}>
+                          <i className="ph ph-hand-coins"></i> Give Advance
+                        </button>
+                        <button className="btn btn-primary btn-sm" onClick={() => setIsDisbursePayrollModalOpen(true)}>
+                          <i className="ph ph-money"></i> Disburse Weekly Payout
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="table-responsive">
+                      <table className="data-table">
+                        <thead>
+                          <tr>
+                            <th>Date / Period</th>
+                            <th>Employee</th>
+                            <th>Transaction Type</th>
+                            <th>Salary Amount (₹)</th>
+                            <th>Advances / Deductions (₹)</th>
+                            <th>Net Paid (₹)</th>
+                            <th>Status</th>
+                            <th className="text-right">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {/* Weekly Payout Records */}
+                          {payrollRecords.map(pr => (
+                            <tr key={`pr-${pr.id}`}>
+                              <td className="text-muted">{pr.month}</td>
+                              <td className="font-semibold">{pr.empName}</td>
+                              <td><span className="badge badge-success">Weekly Payout</span></td>
+                              <td>{formatCurrency(pr.baseSalary)}</td>
+                              <td className="text-red">-{formatCurrency(pr.deductions)}</td>
+                              <td className="font-bold text-primary">{formatCurrency(pr.netPayable)}</td>
+                              <td>
+                                <span className="badge badge-success">{pr.status}</span>
+                              </td>
+                              <td className="text-right">
+                                <button className="btn btn-secondary btn-sm" onClick={() => alert(`Printing weekly slip for ${pr.empName} (${pr.month})...`)}>
+                                  <i className="ph ph-printer"></i> Slip
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+
+                          {/* Advance Records */}
+                          {advanceRecords.map(adv => (
+                            <tr key={`adv-${adv.id}`}>
+                              <td className="text-muted">{adv.date}</td>
+                              <td className="font-semibold">{adv.empName}</td>
+                              <td><span className="badge badge-purple">{adv.type || 'Salary Advance'}</span></td>
+                              <td className="text-muted">-</td>
+                              <td className="font-bold text-red">₹{Number(adv.amount).toLocaleString('en-IN')}</td>
+                              <td className="font-bold text-primary">₹{Number(adv.amount).toLocaleString('en-IN')}</td>
+                              <td><span className="badge badge-warning">Advance Issued</span></td>
+                              <td className="text-right">
+                                <button className="btn btn-secondary btn-sm" onClick={() => alert(`Advance receipt generated for ${adv.empName}`)}>
+                                  <i className="ph ph-receipt"></i> Receipt
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )
             ) : (
               <>
                 <div className="search-filter-row" style={{ marginBottom: '20px', display: 'flex', gap: '12px', alignItems: 'center' }}>
