@@ -7304,7 +7304,7 @@ export default function App() {
                   </div>
                 )}
 
-                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div className="form-group">
                     <label htmlFor="bill-shipment-qty">Shipment Qty (Pcs) *</label>
                     <input 
@@ -7331,10 +7331,6 @@ export default function App() {
                       onChange={(e) => handleRateChange(e.target.value)} 
                       style={{ fontSize: '14.5px', padding: '12px 14px', fontWeight: 700, color: '#4F46E5' }} 
                     />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="bill-subtotal-input">Subtotal (₹) *</label>
-                    <input type="number" id="bill-subtotal-input" min="0" step="any" required placeholder="0.00" value={billSubtotal} onChange={(e) => handleSubtotalChange(e.target.value)} style={{ fontSize: '14.5px', padding: '12px 14px', fontWeight: 700 }} />
                   </div>
                 </div>
 
