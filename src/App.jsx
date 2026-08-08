@@ -459,6 +459,104 @@ export default function App() {
     }
   }, [twilioSettingsQuery]);
 
+  // --- ElevenLabs AI Voice Integration States & Convex Hooks ---
+  const elevenLabsSettingsQuery = api.elevenlabs && api.elevenlabs.getSettings ? useQuery(api.elevenlabs.getSettings) : null;
+  const saveElevenLabsSettingsMutation = api.elevenlabs && api.elevenlabs.saveSettings ? useMutation(api.elevenlabs.saveSettings) : null;
+  const generateSpeechAction = api.elevenlabs && api.elevenlabs.generateSpeech ? useAction(api.elevenlabs.generateSpeech) : null;
+
+  const [elevenApiKey, setElevenApiKey] = useState(() => localStorage.getItem('varahi_eleven_key') || '');
+  const [elevenVoiceId, setElevenVoiceId] = useState(() => localStorage.getItem('varahi_eleven_voice') || '21m00Tcm4TlvDq8ikWAM');
+  const [elevenModelId, setElevenModelId] = useState(() => localStorage.getItem('varahi_eleven_model') || 'eleven_multilingual_v2');
+  const [isElevenEnabled, setIsElevenEnabled] = useState(() => localStorage.getItem('varahi_eleven_enabled') === 'true');
+  const [showElevenApiKey, setShowElevenApiKey] = useState(false);
+  const [isPlayingElevenTest, setIsPlayingElevenTest] = useState(false);
+
+  useEffect(() => {
+    if (elevenLabsSettingsQuery) {
+      if (elevenLabsSettingsQuery.apiKey) setElevenApiKey(elevenLabsSettingsQuery.apiKey);
+      if (elevenLabsSettingsQuery.voiceId) setElevenVoiceId(elevenLabsSettingsQuery.voiceId);
+      if (elevenLabsSettingsQuery.modelId) setElevenModelId(elevenLabsSettingsQuery.modelId);
+      if (elevenLabsSettingsQuery.isEnabled !== undefined) setIsElevenEnabled(elevenLabsSettingsQuery.isEnabled);
+    }
+  }, [elevenLabsSettingsQuery]);
+
+  const handleSaveElevenLabsSettings = async (e) => {
+    if (e) e.preventDefault();
+    localStorage.setItem('varahi_eleven_key', elevenApiKey);
+    localStorage.setItem('varahi_eleven_voice', elevenVoiceId);
+    localStorage.setItem('varahi_eleven_model', elevenModelId);
+    localStorage.setItem('varahi_eleven_enabled', isElevenEnabled.toString());
+
+    if (saveElevenLabsSettingsMutation) {
+      try {
+        await saveElevenLabsSettingsMutation({
+          apiKey: elevenApiKey,
+          voiceId: elevenVoiceId,
+          modelId: elevenModelId,
+          isEnabled: isElevenEnabled
+        });
+      } catch (err) {
+        console.warn("Convex elevenlabs save fallback:", err);
+      }
+    }
+    alert("🎉 ElevenLabs AI Voice credentials saved & connected successfully!");
+  };
+
+  const handleTestElevenLabsSpeech = async (customPhrase) => {
+    const textToSay = customPhrase || "Hello! This is your Eleven Labs AI voice assistant speaking from Varahi Exports.";
+    if (!elevenApiKey.trim()) {
+      alert("⚠️ Please enter your ElevenLabs API Key first!");
+      return;
+    }
+
+    setIsPlayingElevenTest(true);
+    try {
+      if (generateSpeechAction) {
+        const res = await generateSpeechAction({
+          text: textToSay,
+          apiKey: elevenApiKey,
+          voiceId: elevenVoiceId,
+          modelId: elevenModelId
+        });
+
+        if (res && res.success && res.audioData) {
+          const audio = new Audio(res.audioData);
+          await audio.play();
+        } else {
+          alert(`❌ ElevenLabs Error: ${res?.error || 'Failed to synthesize speech'}`);
+        }
+      } else {
+        const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${elevenVoiceId}`, {
+          method: 'POST',
+          headers: {
+            'Accept': 'audio/mpeg',
+            'Content-Type': 'application/json',
+            'xi-api-key': elevenApiKey.trim()
+          },
+          body: JSON.stringify({
+            text: textToSay,
+            model_id: elevenModelId,
+            voice_settings: { stability: 0.5, similarity_boost: 0.75 }
+          })
+        });
+
+        if (response.ok) {
+          const blob = await response.blob();
+          const audioUrl = URL.createObjectURL(blob);
+          const audio = new Audio(audioUrl);
+          await audio.play();
+        } else {
+          const errData = await response.json().catch(() => ({}));
+          alert(`❌ ElevenLabs API Error: ${errData.detail?.message || 'Failed to generate voice'}`);
+        }
+      }
+    } catch (err) {
+      alert(`❌ Speech Generation Error: ${err.message}`);
+    } finally {
+      setIsPlayingElevenTest(false);
+    }
+  };
+
   const handleSaveTwilioSettings = async (e) => {
     if (e) e.preventDefault();
     localStorage.setItem('varahi_twilio_sid', twilioAccountSid);
@@ -1668,6 +1766,15 @@ export default function App() {
   // --- Voice AI Assistant (Speech Recognition & Speech Synthesis) ---
   // --- Voice AI Assistant (Speech Recognition & Speech Synthesis) ---
   const speakText = (text) => {
+    if (!text) return;
+
+    // Use ElevenLabs AI Voice if configured & enabled
+    if (elevenApiKey.trim() && isElevenEnabled) {
+      handleTestElevenLabsSpeech(text);
+      return;
+    }
+
+    // Fallback to Web Speech API
     if ('speechSynthesis' in window) {
       try {
         window.speechSynthesis.cancel();
@@ -5436,6 +5543,119 @@ export default function App() {
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '6px' }}>
                   <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 700, borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: '#F22F46', borderColor: '#DC2626' }}>
                     <i className="ph ph-check-circle" style={{ fontSize: '16px' }}></i> Save Twilio Credentials
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* SECTION 4: ELEVENLABS AI VOICE SYNTHESIS INTEGRATION */}
+            <div className="card bg-surface border" style={{ padding: '28px', borderRadius: '16px', marginTop: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px', color: '#111827' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#F3E8FF', color: '#7C3AED', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                      <i className="ph ph-microphone"></i>
+                    </div>
+                    ElevenLabs AI Voice Synthesis Connection
+                  </h3>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6B7280' }}>
+                    Connect ElevenLabs API to generate realistic human-like AI spoken responses for your voice financial assistant.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    padding: '4px 10px',
+                    borderRadius: '12px',
+                    backgroundColor: elevenApiKey.trim() ? '#F3E8FF' : '#F3F4F6',
+                    color: elevenApiKey.trim() ? '#7C3AED' : '#6B7280',
+                    border: elevenApiKey.trim() ? '1px solid #DDD6FE' : '1px solid #E5E7EB',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    {elevenApiKey.trim() ? '💜 ELEVENLABS CONNECTED' : '⚪ NOT CONNECTED'}
+                  </span>
+                  <button 
+                    type="button" 
+                    disabled={isPlayingElevenTest}
+                    className="btn btn-secondary btn-sm" 
+                    onClick={() => handleTestElevenLabsSpeech()}
+                    style={{ borderRadius: '10px', padding: '8px 14px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <i className="ph ph-speaker-high"></i> {isPlayingElevenTest ? 'Generating...' : 'Test AI Voice'}
+                  </button>
+                </div>
+              </div>
+
+              <form onSubmit={handleSaveElevenLabsSettings} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                <div className="form-group">
+                  <label style={{ fontWeight: 600, fontSize: '13px' }}>ElevenLabs API Key *</label>
+                  <div style={{ position: 'relative' }}>
+                    <input 
+                      type={showElevenApiKey ? 'text' : 'password'} 
+                      required 
+                      placeholder="e.g. sk_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" 
+                      value={elevenApiKey} 
+                      onChange={(e) => setElevenApiKey(e.target.value)} 
+                      style={{ fontSize: '13.5px', padding: '10px 40px 10px 12px', borderRadius: '10px', fontFamily: 'var(--font-mono)', width: '100%' }} 
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => setShowElevenApiKey(!showElevenApiKey)} 
+                      style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer' }}
+                    >
+                      <i className={`ph ${showElevenApiKey ? 'ph-eye-slash' : 'ph-eye'}`}></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div className="form-group">
+                    <label style={{ fontWeight: 600, fontSize: '13px' }}>Select ElevenLabs AI Speaker Voice *</label>
+                    <select 
+                      value={elevenVoiceId} 
+                      onChange={(e) => setElevenVoiceId(e.target.value)} 
+                      style={{ fontSize: '13.5px', padding: '10px 12px', borderRadius: '10px', fontWeight: 600 }}
+                    >
+                      <option value="21m00Tcm4TlvDq8ikWAM">👩 Rachel (Warm & Professional)</option>
+                      <option value="pNInz6obpgDQGcFmaJgB">👨 Adam (Deep & Authoritative)</option>
+                      <option value="EXAVITQu4vr4xnSDxMaL">👩 Bella (Expressive & Friendly)</option>
+                      <option value="TxGEqnHWrfWFTfGW9XjX">👨 Josh (Narrative & Clear)</option>
+                      <option value="ErXwobaYiN019PkySvjV">👨 Antoni (Well-rounded American)</option>
+                      <option value="AZnzlk1XvdvUeBnXmlld">👩 Domi (Strong & Confident)</option>
+                      <option value="VR6AewLTigWG4xSOukaG">👨 Arnold (Crisp & Distinct)</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label style={{ fontWeight: 600, fontSize: '13px' }}>AI Model Architecture *</label>
+                    <select 
+                      value={elevenModelId} 
+                      onChange={(e) => setElevenModelId(e.target.value)} 
+                      style={{ fontSize: '13.5px', padding: '10px 12px', borderRadius: '10px' }}
+                    >
+                      <option value="eleven_multilingual_v2">Eleven Multilingual v2 (Recommended - High Quality)</option>
+                      <option value="eleven_turbo_v2_5">Eleven Turbo v2.5 (Ultra Fast - Low Latency)</option>
+                      <option value="eleven_monolingual_v1">Eleven Monolingual v1 (English Legacy)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ backgroundColor: '#F8FAFC', padding: '14px 18px', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '13.5px', color: '#1E293B' }}>Use ElevenLabs Voice for App Assistant</div>
+                    <div style={{ fontSize: '12px', color: '#64748B' }}>Synthesize assistant voice output with ElevenLabs instead of browser default voices.</div>
+                  </div>
+                  <label className="toggle-switch">
+                    <input type="checkbox" checked={isElevenEnabled} onChange={(e) => setIsElevenEnabled(e.target.checked)} />
+                    <span className="slider"></span>
+                  </label>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '6px' }}>
+                  <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 700, borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: '#7C3AED', borderColor: '#6D28D9' }}>
+                    <i className="ph ph-check-circle" style={{ fontSize: '16px' }}></i> Save ElevenLabs Credentials
                   </button>
                 </div>
               </form>
