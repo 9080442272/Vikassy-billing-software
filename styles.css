@@ -16,73 +16,47 @@ i.ph, i[class^="ph-"], i[class*=" ph-"], span.ph, span[class^="ph-"], span[class
    ========================================== */
 
 :root {
-  --background: 210 40% 98%;
-  --foreground: 222.2 84% 4.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
-  --primary: 238.9 59% 59.6%;     /* Linear Electric Violet #5E6AD2 */
-  --primary-foreground: 0 0% 100%;
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 238.9 59% 59.6%;
-  --accent-foreground: 222.2 47.4% 11.2%;
-  --destructive: 343 89.8% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 238.9 59% 59.6%;
-  --radius: 0.75rem;
+  /* Font Family Stack */
+  --font-family-base: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-heading: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-body: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "Inter", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 
-  /* Linear.app Official Design System Tokens (Light Mode Defaults) */
-  --color-primary: #5E6AD2;       /* Linear Electric Indigo */
-  --color-primary-hover: #4F56E5; /* Deep Linear Indigo */
-  --color-secondary: #6E56CF;     /* Linear Violet */
-  --color-accent: #5E6AD2;        /* Linear Accent */
-  --color-accent-light: rgba(94, 106, 210, 0.1);
-  
-  --color-background: #FAFAFA;    /* Linear Light Workspace Canvas */
-  --color-surface: #FFFFFF;       /* Pure White Cards */
-  --color-surface-hover: #F4F4F6; /* Subtle Card Hover */
-  --color-sidebar-bg: #F4F4F6;   /* Linear Light Grey Sidebar Canvas */
-  --color-sidebar-border: #E6E6EB;
-  --color-sidebar-item-hover: #EFEFF2;
-  --color-sidebar-item-active: #E4E4E9;
-  --color-foreground: #0F172A;    /* Primary Linear Crisp Text */
-  --color-text-primary: #0F172A;  /* Primary Text */
-  --color-text-secondary: #626670;/* Linear Muted Text */
-  --color-muted: #F1F3F5;         /* Muted Fill */
-  --color-border: rgba(0, 0, 0, 0.08); /* Linear 1px Fine Border */
-  --color-border-hover: rgba(94, 106, 210, 0.4);
-  --color-border-focus: #5E6AD2;  /* Linear Focus Ring */
+  /* Color System */
+  --color-primary: #4F46E5;
+  --color-primary-hover: #4338CA;
+  --color-primary-light: #EEF2FF;
+  --color-secondary: #64748B;
+  --color-background: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-border: #E2E8F0;
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #64748B;
+  --color-disabled: #94A3B8;
+  --color-hover-surface: #F1F5F9;
+  --color-selected-surface: #EEF2FF;
   --color-on-primary: #FFFFFF;
-  
-  --color-destructive: #F43F5E;   /* Linear Coral Rose */
-  --color-success: #10B981;       /* Linear Emerald Green */
-  --color-warning: #F59E0B;       /* Linear Amber */
-  
-  /* Linear Typography System (Inter everywhere) */
-  --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
-  --font-mono: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
-  
-  /* Linear Motion & Elevation */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 16px 32px -4px rgba(0, 0, 0, 0.08), 0 0 24px rgba(94, 106, 210, 0.15);
-  --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-border: rgba(0, 0, 0, 0.08);
-  --glass-blur: blur(12px);
-  
+
+  /* Semantic Colors */
+  --color-success: #16A34A;
+  --color-success-bg: #F0FDF4;
+  --color-warning: #D97706;
+  --color-warning-bg: #FFFBEB;
+  --color-error: #DC2626;
+  --color-error-bg: #FEF2F2;
+  --color-info: #2563EB;
+  --color-info-bg: #EFF6FF;
+
+  /* Elevational Radii & Transitions */
   --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  
-  --transition-fast: 120ms cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-normal: 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.1);
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
 }
 
 /* Linear Dark Theme (.dark or html[data-theme='dark']) */
@@ -137,7 +111,87 @@ i.ph, i[class^="ph-"], i[class*=" ph-"], span.ph, span[class^="ph-"], span[class
   --shadow-md: 0 4px 16px -2px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 16px 36px -4px rgba(0, 0, 0, 0.7), 0 0 28px rgba(94, 106, 210, 0.25);
   --glass-bg: rgba(20, 21, 27, 0.85);
-  --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+/* ==========================================================================
+   VIKASSY UI TYPOGRAPHY HIERARCHY (Inter / Clean Sans-Serif)
+   ========================================================================== */
+
+h1, .page-title {
+  font-size: 32px !important;
+  line-height: 40px !important;
+  font-weight: 600 !important;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+}
+
+h2, .section-heading {
+  font-size: 20px !important;
+  line-height: 28px !important;
+  font-weight: 600 !important;
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+}
+
+h3, .card-heading, .component-heading {
+  font-size: 16px !important;
+  line-height: 24px !important;
+  font-weight: 600 !important;
+  color: var(--color-text-primary);
+}
+
+body, p, .body-text {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+  color: var(--color-text-primary);
+}
+
+.body-strong, strong, b {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+label, .form-label {
+  font-size: 12px !important;
+  line-height: 16px !important;
+  font-weight: 600 !important;
+  color: var(--color-text-secondary);
+}
+
+.caption, .helper-text, .subtitle {
+  font-size: 12px !important;
+  line-height: 16px !important;
+  font-weight: 400 !important;
+  color: var(--color-text-tertiary) !important;
+}
+
+.table-text, td {
+  font-size: 14px !important;
+  line-height: 20px !important;
+  font-weight: 400 !important;
+}
+
+.table-value-important {
+  font-size: 14px !important;
+  line-height: 20px !important;
+  font-weight: 500 !important;
+  color: var(--color-text-primary) !important;
+}
+
+.kpi-number {
+  font-size: 30px !important;
+  line-height: 38px !important;
+  font-weight: 600 !important;
+  color: var(--color-text-primary) !important;
+}
+
+.large-financial-number {
+  font-size: 34px !important;
+  line-height: 42px !important;
+  font-weight: 600 !important;
+  color: var(--color-text-primary) !important;
 }
 
 /* ==========================================================================
@@ -146,9 +200,9 @@ i.ph, i[class^="ph-"], i[class*=" ph-"], span.ph, span[class^="ph-"], span[class
 
 /* 1. Visible Focus Ring & Keyboard Navigation Indicator */
 *:focus-visible {
-  outline: 2px solid var(--color-primary, #5E6AD2) !important;
+  outline: 2px solid #4F46E5 !important;
   outline-offset: 2px !important;
-  box-shadow: 0 0 0 3px rgba(94, 106, 210, 0.3) !important;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2) !important;
 }
 
 button:focus-visible, 
@@ -157,7 +211,7 @@ input:focus-visible,
 select:focus-visible, 
 textarea:focus-visible, 
 [tabindex]:focus-visible {
-  outline: 2px solid #5E6AD2 !important;
+  outline: 2px solid #4F46E5 !important;
   outline-offset: 2px !important;
 }
 
@@ -208,30 +262,45 @@ input[type="date"],
 
 /* 5. High Contrast Status Badges & Text (WCAG Contrast Ratio >= 4.5:1) */
 .badge-success, .badge-paid {
-  background-color: #ECFDF5 !important;
-  color: #047857 !important;
-  border: 1px solid #A7F3D0 !important;
-  font-weight: 700;
+  background-color: #F0FDF4 !important;
+  color: #16A34A !important;
+  border: 1px solid #DCFCE7 !important;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 2px 8px;
 }
 
 .badge-warning, .badge-pending {
   background-color: #FFFBEB !important;
-  color: #B45309 !important;
+  color: #D97706 !important;
   border: 1px solid #FDE68A !important;
-  font-weight: 700;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 2px 8px;
 }
 
-.badge-danger, .badge-overdue {
+.badge-danger, .badge-overdue, .badge-error {
   background-color: #FEF2F2 !important;
-  color: #B91C1C !important;
+  color: #DC2626 !important;
   border: 1px solid #FCA5A5 !important;
-  font-weight: 700;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+
+.badge-info {
+  background-color: #EFF6FF !important;
+  color: #2563EB !important;
+  border: 1px solid #BFDBFE !important;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 2px 8px;
 }
 
 /* 6. Form Input High Contrast Borders & Active Focus Highlights */
 input:focus, select:focus, textarea:focus {
-  border-color: #5E6AD2 !important;
-  box-shadow: 0 0 0 3px rgba(94, 106, 210, 0.2) !important;
+  border-color: #4F46E5 !important;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15) !important;
 }
 
 /* ==========================================
@@ -513,38 +582,38 @@ button, input, select, textarea {
 }
 
 .btn-primary {
-  background-color: var(--color-primary);
-  color: var(--color-on-primary);
-  border-color: var(--color-primary-hover);
-  box-shadow: 0 4px 14px rgba(110, 86, 207, 0.25);
+  background-color: #4F46E5 !important;
+  color: #FFFFFF !important;
+  border: 1px solid #4338CA !important;
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.05) !important;
+  font-weight: 600 !important;
+  border-radius: var(--radius-md) !important;
 }
 
 .btn-primary:hover {
-  background-color: var(--color-primary-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(110, 86, 207, 0.35);
+  background-color: #4338CA !important;
 }
 
 .btn-accent {
-  background-color: var(--color-primary);
-  color: #ffffff;
-  box-shadow: 0 4px 14px rgba(110, 86, 207, 0.25);
+  background-color: #4F46E5 !important;
+  color: #ffffff !important;
 }
 
 .btn-accent:hover {
-  background-color: var(--color-primary-hover);
-  transform: translateY(-1px);
+  background-color: #4338CA !important;
 }
 
 .btn-secondary {
-  background-color: var(--color-muted);
-  border-color: var(--color-border);
-  color: var(--color-text-primary);
+  background-color: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #0F172A !important;
+  font-weight: 600 !important;
+  border-radius: var(--radius-md) !important;
 }
 
 .btn-secondary:hover {
-  background-color: var(--color-surface-hover);
-  border-color: var(--color-text-secondary);
+  background-color: #F8FAFC !important;
+  border-color: #CBD5E1 !important;
 }
 
 .btn-sm {
