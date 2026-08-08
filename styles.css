@@ -413,8 +413,8 @@ button, input, select, textarea {
 .avatar {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-  color: var(--color-on-primary);
+  background-color: var(--color-primary, #4F46E5);
+  color: #FFFFFF;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -940,12 +940,8 @@ kbd, .linear-kbd {
 }
 
 .metric-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--color-border);
-}
-
-.metric-card:hover::before {
-  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+  border-color: #CBD5E1;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
 .metric-card-header {
