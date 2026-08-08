@@ -4069,40 +4069,40 @@ export default function App() {
           )}
         </div>
 
-        <nav className="nav-menu">
+        <nav className="nav-menu" role="navigation" aria-label="Main Navigation">
           <div style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '8px 8px 4px 8px' }}>
             Main Menu ▾
           </div>
-          <button className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => handleTabChange('dashboard')}>
-            <i className="ph ph-layout"></i>
+          <button className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} aria-current={activeTab === 'dashboard' ? 'page' : undefined} aria-label="Navigate to Dashboard" onClick={() => handleTabChange('dashboard')}>
+            <i className="ph ph-layout" aria-hidden="true"></i>
             <span>Dashboard</span>
           </button>
-          <button className={`nav-item ${activeTab === 'clients' ? 'active' : ''}`} onClick={() => handleTabChange('clients')}>
-            <i className="ph ph-users-three"></i>
+          <button className={`nav-item ${activeTab === 'clients' ? 'active' : ''}`} aria-current={activeTab === 'clients' ? 'page' : undefined} aria-label="Navigate to Clients" onClick={() => handleTabChange('clients')}>
+            <i className="ph ph-users-three" aria-hidden="true"></i>
             <span>Clients</span>
           </button>
-          <button className={`nav-item ${activeTab === 'jobs' ? 'active' : ''}`} onClick={() => handleTabChange('jobs')}>
-            <i className="ph ph-briefcase"></i>
+          <button className={`nav-item ${activeTab === 'jobs' ? 'active' : ''}`} aria-current={activeTab === 'jobs' ? 'page' : undefined} aria-label="Navigate to Jobs" onClick={() => handleTabChange('jobs')}>
+            <i className="ph ph-briefcase" aria-hidden="true"></i>
             <span>Jobs</span>
           </button>
-          <button className={`nav-item ${activeTab === 'employees' ? 'active' : ''}`} onClick={() => handleTabChange('employees')}>
-            <i className="ph ph-user-list"></i>
+          <button className={`nav-item ${activeTab === 'employees' ? 'active' : ''}`} aria-current={activeTab === 'employees' ? 'page' : undefined} aria-label="Navigate to Employees" onClick={() => handleTabChange('employees')}>
+            <i className="ph ph-user-list" aria-hidden="true"></i>
             <span>Employees</span>
           </button>
-          <button className={`nav-item ${activeTab === 'bills' ? 'active' : ''}`} onClick={() => handleTabChange('bills')}>
-            <i className="ph ph-receipt"></i>
+          <button className={`nav-item ${activeTab === 'bills' ? 'active' : ''}`} aria-current={activeTab === 'bills' ? 'page' : undefined} aria-label="Navigate to Invoices" onClick={() => handleTabChange('bills')}>
+            <i className="ph ph-receipt" aria-hidden="true"></i>
             <span>Invoice</span>
           </button>
 
           <div style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '14px 8px 4px 8px' }}>
             Operations & Financials ▾
           </div>
-          <button className={`nav-item ${activeTab === 'expenses' ? 'active' : ''}`} onClick={() => handleTabChange('expenses')}>
-            <i className="ph ph-coins"></i>
+          <button className={`nav-item ${activeTab === 'expenses' ? 'active' : ''}`} aria-current={activeTab === 'expenses' ? 'page' : undefined} aria-label="Navigate to Capital & Investment" onClick={() => handleTabChange('expenses')}>
+            <i className="ph ph-coins" aria-hidden="true"></i>
             <span>Capital & Investment</span>
           </button>
-          <button className={`nav-item ${activeTab === 'operational-expenses' ? 'active' : ''}`} onClick={() => handleTabChange('operational-expenses')}>
-            <i className="ph ph-building-office"></i>
+          <button className={`nav-item ${activeTab === 'operational-expenses' ? 'active' : ''}`} aria-current={activeTab === 'operational-expenses' ? 'page' : undefined} aria-label="Navigate to Factory Expenses & Bills" onClick={() => handleTabChange('operational-expenses')}>
+            <i className="ph ph-building-office" aria-hidden="true"></i>
             <span>Factory Expenses & Bills</span>
           </button>
 

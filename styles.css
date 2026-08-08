@@ -140,6 +140,100 @@ i.ph, i[class^="ph-"], i[class*=" ph-"], span.ph, span[class^="ph-"], span[class
   --glass-border: rgba(255, 255, 255, 0.08);
 }
 
+/* ==========================================================================
+   FIGMA UI DESIGN PRINCIPLE 5: ACCESSIBILITY (WCAG 2.1 AA Standards)
+   ========================================================================== */
+
+/* 1. Visible Focus Ring & Keyboard Navigation Indicator */
+*:focus-visible {
+  outline: 2px solid var(--color-primary, #5E6AD2) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(94, 106, 210, 0.3) !important;
+}
+
+button:focus-visible, 
+a:focus-visible, 
+input:focus-visible, 
+select:focus-visible, 
+textarea:focus-visible, 
+[tabindex]:focus-visible {
+  outline: 2px solid #5E6AD2 !important;
+  outline-offset: 2px !important;
+}
+
+/* 2. Touch Target Boundaries & Minimum Hit Areas (Figma 40-44px Rule) */
+button, 
+.btn, 
+input[type="button"], 
+input[type="submit"], 
+input[type="reset"], 
+.nav-item, 
+.tab-trigger, 
+select, 
+input[type="text"], 
+input[type="number"], 
+input[type="email"], 
+input[type="password"], 
+input[type="tel"], 
+input[type="date"], 
+.icon-button {
+  min-height: 40px;
+}
+
+/* 3. Screen Reader Helper Utility (.sr-only & .visually-hidden) */
+.sr-only,
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* 4. Motion Sensitivity & Accessibility (@media prefers-reduced-motion) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 5. High Contrast Status Badges & Text (WCAG Contrast Ratio >= 4.5:1) */
+.badge-success, .badge-paid {
+  background-color: #ECFDF5 !important;
+  color: #047857 !important;
+  border: 1px solid #A7F3D0 !important;
+  font-weight: 700;
+}
+
+.badge-warning, .badge-pending {
+  background-color: #FFFBEB !important;
+  color: #B45309 !important;
+  border: 1px solid #FDE68A !important;
+  font-weight: 700;
+}
+
+.badge-danger, .badge-overdue {
+  background-color: #FEF2F2 !important;
+  color: #B91C1C !important;
+  border: 1px solid #FCA5A5 !important;
+  font-weight: 700;
+}
+
+/* 6. Form Input High Contrast Borders & Active Focus Highlights */
+input:focus, select:focus, textarea:focus {
+  border-color: #5E6AD2 !important;
+  box-shadow: 0 0 0 3px rgba(94, 106, 210, 0.2) !important;
+}
+
 /* ==========================================
    RESET & LAYOUT SETUP
    ========================================== */
