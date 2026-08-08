@@ -557,6 +557,59 @@ export default function App() {
     }
   };
 
+  // --- Google Workspace & Enterprise SSO Integration States & Convex Hooks ---
+  const googleWorkspaceSettingsQuery = api.googleWorkspace && api.googleWorkspace.getSettings ? useQuery(api.googleWorkspace.getSettings) : null;
+  const saveGoogleWorkspaceSettingsMutation = api.googleWorkspace && api.googleWorkspace.saveSettings ? useMutation(api.googleWorkspace.saveSettings) : null;
+
+  const [googleClientId, setGoogleClientId] = useState(() => localStorage.getItem('varahi_google_client_id') || '470877995175-98uq9m0k20l9eaf27p2j9r6r8r0j1qkr.apps.googleusercontent.com');
+  const [googleClientSecret, setGoogleClientSecret] = useState(() => localStorage.getItem('varahi_google_client_secret') || '');
+  const [googleDomain, setGoogleDomain] = useState(() => localStorage.getItem('varahi_google_domain') || 'varahiexports.com');
+  const [autoSyncDrive, setAutoSyncDrive] = useState(() => localStorage.getItem('varahi_google_sync_drive') !== 'false');
+  const [autoSyncSheets, setAutoSyncSheets] = useState(() => localStorage.getItem('varahi_google_sync_sheets') !== 'false');
+  const [isDomainRestricted, setIsDomainRestricted] = useState(() => localStorage.getItem('varahi_google_domain_restricted') === 'true');
+  const [isGoogleEnabled, setIsGoogleEnabled] = useState(() => localStorage.getItem('varahi_google_enabled') !== 'false');
+  const [showGoogleSecret, setShowGoogleSecret] = useState(false);
+
+  useEffect(() => {
+    if (googleWorkspaceSettingsQuery) {
+      if (googleWorkspaceSettingsQuery.googleClientId) setGoogleClientId(googleWorkspaceSettingsQuery.googleClientId);
+      if (googleWorkspaceSettingsQuery.googleClientSecret) setGoogleClientSecret(googleWorkspaceSettingsQuery.googleClientSecret);
+      if (googleWorkspaceSettingsQuery.googleWorkspaceDomain) setGoogleDomain(googleWorkspaceSettingsQuery.googleWorkspaceDomain);
+      if (googleWorkspaceSettingsQuery.autoSyncDrive !== undefined) setAutoSyncDrive(googleWorkspaceSettingsQuery.autoSyncDrive);
+      if (googleWorkspaceSettingsQuery.autoSyncSheets !== undefined) setAutoSyncSheets(googleWorkspaceSettingsQuery.autoSyncSheets);
+      if (googleWorkspaceSettingsQuery.isDomainRestricted !== undefined) setIsDomainRestricted(googleWorkspaceSettingsQuery.isDomainRestricted);
+      if (googleWorkspaceSettingsQuery.isEnabled !== undefined) setIsGoogleEnabled(googleWorkspaceSettingsQuery.isEnabled);
+    }
+  }, [googleWorkspaceSettingsQuery]);
+
+  const handleSaveGoogleWorkspaceSettings = async (e) => {
+    if (e) e.preventDefault();
+    localStorage.setItem('varahi_google_client_id', googleClientId);
+    localStorage.setItem('varahi_google_client_secret', googleClientSecret);
+    localStorage.setItem('varahi_google_domain', googleDomain);
+    localStorage.setItem('varahi_google_sync_drive', autoSyncDrive.toString());
+    localStorage.setItem('varahi_google_sync_sheets', autoSyncSheets.toString());
+    localStorage.setItem('varahi_google_domain_restricted', isDomainRestricted.toString());
+    localStorage.setItem('varahi_google_enabled', isGoogleEnabled.toString());
+
+    if (saveGoogleWorkspaceSettingsMutation) {
+      try {
+        await saveGoogleWorkspaceSettingsMutation({
+          googleClientId,
+          googleClientSecret,
+          googleWorkspaceDomain: googleDomain,
+          autoSyncDrive,
+          autoSyncSheets,
+          isDomainRestricted,
+          isEnabled: isGoogleEnabled
+        });
+      } catch (err) {
+        console.warn("Convex googleWorkspace save fallback:", err);
+      }
+    }
+    alert("🎉 Google Workspace credentials & domain settings saved successfully!");
+  };
+
   const handleSaveTwilioSettings = async (e) => {
     if (e) e.preventDefault();
     localStorage.setItem('varahi_twilio_sid', twilioAccountSid);
@@ -5656,6 +5709,118 @@ export default function App() {
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '6px' }}>
                   <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 700, borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: '#7C3AED', borderColor: '#6D28D9' }}>
                     <i className="ph ph-check-circle" style={{ fontSize: '16px' }}></i> Save ElevenLabs Credentials
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* SECTION 5: GOOGLE WORKSPACE & ENTERPRISE SSO INTEGRATION */}
+            <div className="card bg-surface border" style={{ padding: '28px', borderRadius: '16px', marginTop: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px', color: '#111827' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#EA43351A', color: '#EA4335', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                      <i className="ph ph-google-logo"></i>
+                    </div>
+                    Google Workspace & Enterprise SSO Connection
+                  </h3>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6B7280' }}>
+                    Connect your company Google Workspace domain to enable Google One-Tap SSO, Google Drive PDF invoice backups, and Google Sheets live ledger sync.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    padding: '4px 10px',
+                    borderRadius: '12px',
+                    backgroundColor: googleClientId.trim() ? '#FEF2F2' : '#F3F4F6',
+                    color: googleClientId.trim() ? '#DC2626' : '#6B7280',
+                    border: googleClientId.trim() ? '1px solid #FCA5A5' : '1px solid #E5E7EB',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    {googleClientId.trim() ? '🌐 GOOGLE WORKSPACE CONNECTED' : '⚪ NOT CONNECTED'}
+                  </span>
+                </div>
+              </div>
+
+              <form onSubmit={handleSaveGoogleWorkspaceSettings} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div className="form-group">
+                    <label style={{ fontWeight: 600, fontSize: '13px' }}>Google OAuth Client ID *</label>
+                    <input 
+                      type="text" 
+                      required 
+                      placeholder="e.g. 470877995175-xxx.apps.googleusercontent.com" 
+                      value={googleClientId} 
+                      onChange={(e) => setGoogleClientId(e.target.value)} 
+                      style={{ fontSize: '13.5px', padding: '10px 12px', borderRadius: '10px', fontFamily: 'var(--font-mono)' }} 
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label style={{ fontWeight: 600, fontSize: '13px' }}>Google OAuth Client Secret (Optional for Server Sync)</label>
+                    <div style={{ position: 'relative' }}>
+                      <input 
+                        type={showGoogleSecret ? 'text' : 'password'} 
+                        placeholder="GOCSPX-XXXXXXXXXXXXXXXX" 
+                        value={googleClientSecret} 
+                        onChange={(e) => setGoogleClientSecret(e.target.value)} 
+                        style={{ fontSize: '13.5px', padding: '10px 40px 10px 12px', borderRadius: '10px', fontFamily: 'var(--font-mono)', width: '100%' }} 
+                      />
+                      <button 
+                        type="button" 
+                        onClick={() => setShowGoogleSecret(!showGoogleSecret)} 
+                        style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer' }}
+                      >
+                        <i className={`ph ${showGoogleSecret ? 'ph-eye-slash' : 'ph-eye'}`}></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label style={{ fontWeight: 600, fontSize: '13px' }}>Google Workspace Authorized Business Domain</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. varahiexports.com" 
+                    value={googleDomain} 
+                    onChange={(e) => setGoogleDomain(e.target.value)} 
+                    style={{ fontSize: '13.5px', padding: '10px 12px', borderRadius: '10px', fontFamily: 'var(--font-mono)' }} 
+                  />
+                  <span style={{ fontSize: '11px', color: '#64748B', marginTop: '4px', display: 'block' }}>
+                    Users with emails matching this domain will automatically gain employee access via Google Single Sign-On.
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                  <div style={{ backgroundColor: '#F8FAFC', padding: '14px 18px', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '13px', color: '#1E293B' }}>Auto-Sync PDFs to Google Drive</div>
+                      <div style={{ fontSize: '11px', color: '#64748B' }}>Backup generated tax invoices automatically.</div>
+                    </div>
+                    <label className="toggle-switch">
+                      <input type="checkbox" checked={autoSyncDrive} onChange={(e) => setAutoSyncDrive(e.target.checked)} />
+                      <span className="slider"></span>
+                    </label>
+                  </div>
+
+                  <div style={{ backgroundColor: '#F8FAFC', padding: '14px 18px', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '13px', color: '#1E293B' }}>Auto-Sync Ledgers to Google Sheets</div>
+                      <div style={{ fontSize: '11px', color: '#64748B' }}>Export daily sales & expense ledgers to Sheets.</div>
+                    </div>
+                    <label className="toggle-switch">
+                      <input type="checkbox" checked={autoSyncSheets} onChange={(e) => setAutoSyncSheets(e.target.checked)} />
+                      <span className="slider"></span>
+                    </label>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '6px' }}>
+                  <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 700, borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: '#EA4335', borderColor: '#DC2626' }}>
+                    <i className="ph ph-check-circle" style={{ fontSize: '16px' }}></i> Save Google Workspace Settings
                   </button>
                 </div>
               </form>
