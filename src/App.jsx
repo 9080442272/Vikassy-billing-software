@@ -5421,26 +5421,26 @@ export default function App() {
           <section id="settings-view" className="tab-view active" style={{ padding: '0 4px 40px 4px' }}>
             <header className="view-header" style={{ marginBottom: '24px' }}>
               <div>
-                <h1 style={{ fontSize: '28px', fontWeight: 800, margin: '0 0 4px 0' }}>System Settings & Multi-Company Configuration</h1>
-                <p className="subtitle" style={{ margin: 0, color: 'var(--color-text-secondary)' }}>Manage legal companies, export branches, user role permissions, and GST registrations.</p>
+                <h1 style={{ fontSize: '28px', fontWeight: 700, margin: '0 0 4px 0', color: '#0F172A' }}>System Settings & Multi-Company Configuration</h1>
+                <p className="subtitle" style={{ margin: 0, color: '#475569' }}>Manage legal companies, export branches, user role permissions, and GST registrations.</p>
               </div>
             </header>
 
             {/* SECTION 1: MULTI-COMPANY & BRANCHES DIRECTORY */}
-            <div className="card bg-surface border" style={{ padding: '24px', borderRadius: '16px', marginBottom: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+            <div className="card bg-surface border" style={{ padding: '24px', borderRadius: '12px', marginBottom: '24px', backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(15,23,42,0.04)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px', color: '#111827' }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#EEF2FF', color: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '10px', color: '#0F172A' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#EEF2FF', color: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
                       <i className="ph ph-buildings"></i>
                     </div>
                     Registered Companies & Export Branch Units ({companies.length})
                   </h3>
-                  <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6B7280' }}>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#64748B' }}>
                     Switch active accounting ledgers or register new branch locations.
                   </p>
                 </div>
-                <button className="btn btn-primary btn-sm" onClick={() => setIsAddBranchModalOpen(true)} style={{ borderRadius: '10px', padding: '8px 16px', fontWeight: 700 }}>
+                <button className="btn btn-primary btn-sm" onClick={() => setIsAddBranchModalOpen(true)} style={{ borderRadius: '8px', padding: '8px 16px', fontWeight: 600 }}>
                   <i className="ph ph-plus"></i> Add Company / Branch
                 </button>
               </div>
@@ -5462,10 +5462,10 @@ export default function App() {
                     {companies.map((comp) => {
                       const isActive = comp.id === activeCompanyId;
                       return (
-                        <tr key={comp.id} style={{ backgroundColor: isActive ? '#F5F3FF' : 'transparent' }}>
-                          <td className="font-bold" style={{ color: isActive ? '#4F46E5' : '#111827' }}>
+                        <tr key={comp.id} style={{ backgroundColor: isActive ? '#EEF2FF' : 'transparent' }}>
+                          <td className="font-bold" style={{ color: isActive ? '#4F46E5' : '#0F172A' }}>
                             {comp.name}
-                            <span style={{ marginLeft: '8px', fontSize: '10px', padding: '2px 6px', borderRadius: '8px', backgroundColor: comp.badge === 'HQ' ? '#EEF2FF' : '#F3F4F6', color: comp.badge === 'HQ' ? '#4F46E5' : '#4B5563', fontWeight: 700 }}>
+                            <span style={{ marginLeft: '8px', fontSize: '10px', padding: '2px 6px', borderRadius: '6px', backgroundColor: comp.badge === 'HQ' ? '#EEF2FF' : '#F1F5F9', color: comp.badge === 'HQ' ? '#4F46E5' : '#475569', fontWeight: 600 }}>
                               {comp.badge || 'Branch'}
                             </span>
                           </td>
@@ -5475,11 +5475,11 @@ export default function App() {
                           <td className="font-mono">{comp.phone || '+91 99946 85525'}</td>
                           <td className="text-center">
                             {isActive ? (
-                              <span style={{ fontSize: '11px', fontWeight: 800, color: '#059669', backgroundColor: '#ECFDF5', border: '1px solid #A7F3D0', padding: '4px 10px', borderRadius: '12px' }}>
+                              <span style={{ fontSize: '11px', fontWeight: 600, color: '#16A34A', backgroundColor: '#F0FDF4', border: '1px solid #DCFCE7', padding: '3px 9px', borderRadius: '6px' }}>
                                 🟢 ACTIVE LEDGER
                               </span>
                             ) : (
-                              <span style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', backgroundColor: '#F3F4F6', padding: '4px 10px', borderRadius: '12px' }}>
+                              <span style={{ fontSize: '11px', fontWeight: 500, color: '#64748B', backgroundColor: '#F1F5F9', padding: '3px 9px', borderRadius: '6px' }}>
                                 Inactive
                               </span>
                             )}
@@ -5489,12 +5489,12 @@ export default function App() {
                               <button 
                                 className="btn btn-secondary btn-sm" 
                                 onClick={() => setActiveCompanyId(comp.id)}
-                                style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '8px', fontWeight: 700, color: '#4F46E5', borderColor: '#C7D2FE' }}
+                                style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '8px', fontWeight: 600, color: '#4F46E5', borderColor: '#E2E8F0' }}
                               >
                                 Switch to This
                               </button>
                             ) : (
-                              <span style={{ fontSize: '12px', fontWeight: 700, color: '#4F46E5' }}>Currently Selected</span>
+                              <span style={{ fontSize: '12px', fontWeight: 600, color: '#4F46E5' }}>Currently Selected</span>
                             )}
                             {companies.length > 1 && !isActive && (
                               <button 
@@ -5504,7 +5504,7 @@ export default function App() {
                                     setCompanies(prev => prev.filter(c => c.id !== comp.id));
                                   }
                                 }}
-                                style={{ marginLeft: '8px', color: '#EF4444', padding: '4px 8px' }}
+                                style={{ marginLeft: '8px', color: '#DC2626', padding: '4px 8px' }}
                                 title="Remove Branch"
                               >
                                 <i className="ph ph-trash"></i>
@@ -5520,9 +5520,9 @@ export default function App() {
             </div>
 
             {/* SECTION 2: ACTIVE COMPANY PROFILE FORM */}
-            <div className="card bg-surface border" style={{ padding: '28px', borderRadius: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
-              <h3 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px', color: '#111827' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#EEF2FF', color: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+            <div className="card bg-surface border" style={{ padding: '24px', borderRadius: '12px', backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(15,23,42,0.04)' }}>
+              <h3 style={{ margin: '0 0 20px 0', fontSize: '16px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '10px', color: '#0F172A' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#EEF2FF', color: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
                   <i className="ph ph-note-pencil"></i>
                 </div>
                 Active Profile: {activeCompany.name} ({activeCompany.branch})
