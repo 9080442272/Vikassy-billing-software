@@ -8257,20 +8257,25 @@ export default function App() {
             </div>
             <form id="employee-form" onSubmit={handleEmployeeSubmit}>
               <div className="modal-body" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="employee-name">Full Name *</label>
-                    <input type="text" id="employee-name" required placeholder="e.g. John Doe" />
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', height: '20px', marginBottom: '6px' }}>
+                      <label htmlFor="employee-name" style={{ margin: 0, fontSize: '12px', fontWeight: 600, color: '#475569' }}>Full Name *</label>
+                    </div>
+                    <input type="text" id="employee-name" required placeholder="e.g. John Doe" style={{ height: '42px', fontSize: '14px', padding: '10px 14px', borderRadius: '8px', border: '1px solid #E2E8F0', width: '100%', boxSizing: 'border-box' }} />
                   </div>
-                  <div className="form-group">
-                    <label htmlFor="employee-phone">Phone Number</label>
-                    <input type="tel" id="employee-phone" placeholder="e.g. +91 99999 88888" />
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', height: '20px', marginBottom: '6px' }}>
+                      <label htmlFor="employee-phone" style={{ margin: 0, fontSize: '12px', fontWeight: 600, color: '#475569' }}>Phone Number</label>
+                    </div>
+                    <input type="tel" id="employee-phone" placeholder="e.g. +91 99999 88888" style={{ height: '42px', fontSize: '14px', padding: '10px 14px', borderRadius: '8px', border: '1px solid #E2E8F0', width: '100%', boxSizing: 'border-box' }} />
                   </div>
                 </div>
-                <div className="form-row" style={{ alignItems: 'flex-start' }}>
-                  <div className="form-group">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <label htmlFor="employee-role" style={{ margin: 0 }}>Staff Role *</label>
+
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '20px', marginBottom: '6px' }}>
+                      <label htmlFor="employee-role" style={{ margin: 0, fontSize: '12px', fontWeight: 600, color: '#475569' }}>Staff Role *</label>
                       <button
                         type="button"
                         onClick={() => {
@@ -8282,9 +8287,9 @@ export default function App() {
                         style={{
                           border: 'none',
                           background: 'transparent',
-                          color: 'var(--color-primary)',
-                          fontSize: '11.5px',
-                          fontWeight: 700,
+                          color: '#4F46E5',
+                          fontSize: '12px',
+                          fontWeight: 600,
                           cursor: 'pointer',
                           display: 'inline-flex',
                           alignItems: 'center',
@@ -8309,7 +8314,7 @@ export default function App() {
                             setSelectedStaffRole(e.target.value);
                           }
                         }}
-                        style={{ fontSize: '14px', padding: '12px 14px', width: '100%', borderRadius: '10px' }}
+                        style={{ height: '42px', fontSize: '14px', padding: '10px 14px', width: '100%', borderRadius: '8px', border: '1px solid #E2E8F0', boxSizing: 'border-box', backgroundColor: '#FFFFFF' }}
                       >
                         {customStaffRoles.map(r => (
                           <option key={r} value={r}>{r}</option>
@@ -8317,7 +8322,7 @@ export default function App() {
                         <option value="ADD_CUSTOM">✏️ + Add Custom Role...</option>
                       </select>
                     ) : (
-                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center', height: '42px' }}>
                         <input 
                           type="text"
                           id="employee-custom-role-input"
@@ -8325,7 +8330,7 @@ export default function App() {
                           placeholder="e.g. Quality Auditor, CAD Master..."
                           value={customRoleInputVal}
                           onChange={(e) => setCustomRoleInputVal(e.target.value)}
-                          style={{ fontSize: '13.5px', padding: '10px 12px', flex: 1, borderRadius: '10px', border: '1.5px solid var(--color-primary)' }}
+                          style={{ height: '42px', fontSize: '13.5px', padding: '10px 12px', flex: 1, borderRadius: '8px', border: '1.5px solid #4F46E5', boxSizing: 'border-box' }}
                         />
                         <button
                           type="button"
@@ -8341,7 +8346,7 @@ export default function App() {
                               setCustomRoleInputVal("");
                             }
                           }}
-                          style={{ padding: '10px 14px', fontSize: '12px', fontWeight: 700, borderRadius: '10px', whiteSpace: 'nowrap' }}
+                          style={{ height: '42px', padding: '0 14px', fontSize: '12px', fontWeight: 600, borderRadius: '8px', whiteSpace: 'nowrap' }}
                         >
                           Add
                         </button>
@@ -8349,9 +8354,11 @@ export default function App() {
                     )}
                   </div>
 
-                  <div className="form-group">
-                    <label htmlFor="employee-subcategory">Sub Category / Specialization</label>
-                    <input type="text" id="employee-subcategory" placeholder="e.g. Singer / Overlock / Flatlock" />
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', height: '20px', marginBottom: '6px' }}>
+                      <label htmlFor="employee-subcategory" style={{ margin: 0, fontSize: '12px', fontWeight: 600, color: '#475569' }}>Sub Category / Specialization</label>
+                    </div>
+                    <input type="text" id="employee-subcategory" placeholder="e.g. Singer / Overlock / Flatlock" style={{ height: '42px', fontSize: '14px', padding: '10px 14px', borderRadius: '8px', border: '1px solid #E2E8F0', width: '100%', boxSizing: 'border-box' }} />
                   </div>
                 </div>
               </div>
