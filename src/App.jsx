@@ -5596,20 +5596,6 @@ export default function App() {
                             ) : (
                               <span style={{ fontSize: '12px', fontWeight: 600, color: '#4F46E5' }}>Currently Selected</span>
                             )}
-                            {companies.length > 1 && !isActive && (
-                              <button 
-                                className="btn-ghost" 
-                                onClick={() => {
-                                  if (confirm(`Are you sure you want to remove ${comp.name} (${comp.branch})?`)) {
-                                    setCompanies(prev => prev.filter(c => c.id !== comp.id));
-                                  }
-                                }}
-                                style={{ marginLeft: '8px', color: '#DC2626', padding: '4px 8px' }}
-                                title="Remove Branch"
-                              >
-                                <i className="ph ph-trash"></i>
-                              </button>
-                            )}
                           </td>
                         </tr>
                       );
