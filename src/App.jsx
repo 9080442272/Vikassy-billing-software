@@ -906,17 +906,21 @@ export default function App() {
   };
 
   const [isProfilePopoverOpen, setIsProfilePopoverOpen] = useState(false);
+  const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false);
 
-  // Click outside listener to automatically close profile settings popover
+  // Click outside listener to automatically close profile settings & notification dropdown popovers
   useEffect(() => {
     const handleOutsideClick = (e) => {
       if (isProfilePopoverOpen && !e.target.closest('.user-profile')) {
         setIsProfilePopoverOpen(false);
       }
+      if (isNotificationDropdownOpen && !e.target.closest('.notification-bell-container')) {
+        setIsNotificationDropdownOpen(false);
+      }
     };
     document.addEventListener('click', handleOutsideClick);
     return () => document.removeEventListener('click', handleOutsideClick);
-  }, [isProfilePopoverOpen]);
+  }, [isProfilePopoverOpen, isNotificationDropdownOpen]);
 
   // Modal Open States
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
@@ -4324,21 +4328,24 @@ export default function App() {
             </button>
           </div>
 
-          <div className="linear-header-right" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="linear-header-right notification-bell-container" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button 
               type="button"
               className="btn-icon" 
-              onClick={() => handleTabChange('notifications')}
-              title="Global Notification Center"
-              aria-label="Global Notification Center"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsNotificationDropdownOpen(!isNotificationDropdownOpen);
+              }}
+              title="Notifications"
+              aria-label="Notifications"
               style={{
                 position: 'relative',
                 width: '38px',
                 height: '38px',
                 borderRadius: '10px',
-                backgroundColor: activeTab === 'notifications' ? 'var(--color-accent-light)' : '#F8FAFC',
-                color: activeTab === 'notifications' ? 'var(--color-primary)' : '#475569',
-                border: activeTab === 'notifications' ? '1px solid var(--color-primary)' : '1px solid #E2E8F0',
+                backgroundColor: isNotificationDropdownOpen ? 'var(--color-accent-light)' : '#F8FAFC',
+                color: isNotificationDropdownOpen ? 'var(--color-primary)' : '#475569',
+                border: isNotificationDropdownOpen ? '1px solid var(--color-primary)' : '1px solid #E2E8F0',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -4361,6 +4368,98 @@ export default function App() {
                 }}></span>
               )}
             </button>
+
+            {/* Notification Center Dropdown Popover */}
+            {isNotificationDropdownOpen && (
+              <div 
+                className="card border"
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 10px)',
+                  right: '0',
+                  width: '360px',
+                  maxHeight: '480px',
+                  overflowY: 'auto',
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '14px',
+                  boxShadow: '0 12px 32px rgba(15, 23, 42, 0.18)',
+                  border: '1px solid #E2E8F0',
+                  zIndex: 1050,
+                  padding: '0'
+                }}
+              >
+                {/* Dropdown Header */}
+                <div style={{ padding: '14px 16px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#FAFAFA', borderRadius: '14px 14px 0 0' }}>
+                  <div style={{ fontWeight: 800, fontSize: '14px', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <i className="ph ph-bell" style={{ color: 'var(--color-primary)', fontSize: '16px' }}></i> Notifications
+                    <span className="badge badge-purple" style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '8px' }}>
+                      {activityAuditLogs.length}
+                    </span>
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={() => alert("All notifications marked as read!")}
+                    style={{ border: 'none', background: 'transparent', color: '#4F46E5', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <i className="ph ph-checks"></i> Mark read
+                  </button>
+                </div>
+
+                {/* Dropdown Audit Activity Stream Feed */}
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {activityAuditLogs.length === 0 ? (
+                    <div style={{ padding: '24px', textAlign: 'center', color: '#64748B', fontSize: '13px' }}>
+                      No new notifications.
+                    </div>
+                  ) : (
+                    activityAuditLogs.map(log => (
+                      <div 
+                        key={log.id} 
+                        style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '12px',
+                          padding: '12px 16px',
+                          borderBottom: '1px solid #F1F5F9',
+                          transition: 'background-color 0.15s ease',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <div style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '8px',
+                          backgroundColor: `${log.color}15`,
+                          color: log.color,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '16px',
+                          flexShrink: 0,
+                          marginTop: '2px'
+                        }}>
+                          <i className={`ph ${log.icon}`}></i>
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: '13px', fontWeight: 600, color: '#1E293B', lineHeight: '1.4' }}>
+                            {log.user} <span style={{ fontWeight: 400, color: '#64748B' }}>{log.action}</span> <span style={{ color: '#4F46E5', fontWeight: 600 }}>{log.target}</span>
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
+                            {log.time}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Dropdown Footer */}
+                <div style={{ padding: '10px 16px', textAlign: 'center', borderTop: '1px solid #F1F5F9', backgroundColor: '#FAFAFA', borderRadius: '0 0 14px 14px' }}>
+                  <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 500 }}>Global Activity Audit Stream</span>
+                </div>
+              </div>
+            )}
           </div>
         </header>
 
