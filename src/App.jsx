@@ -6526,9 +6526,11 @@ export default function App() {
                     Track order execution funding sources (e.g. CEO brought amount from MD to run order, Bank/Director loans) and factory bill drawdowns.
                   </p>
                 </div>
-                <button className="btn btn-primary" onClick={() => setIsInvestmentModalOpen(true)} style={{ padding: '10px 20px', fontSize: '13.5px', fontWeight: 800, borderRadius: '12px', boxShadow: '0 4px 14px rgba(94, 106, 210, 0.35)', display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                  <i className="ph ph-plus-circle" style={{ fontSize: '18px' }}></i> Log Investment / Capital
-                </button>
+                {investmentRecords.length > 0 && (
+                  <button className="btn btn-primary" onClick={() => setIsInvestmentModalOpen(true)} style={{ padding: '10px 20px', fontSize: '13.5px', fontWeight: 800, borderRadius: '12px', boxShadow: '0 4px 14px rgba(94, 106, 210, 0.35)', display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                    <i className="ph ph-plus-circle" style={{ fontSize: '18px' }}></i> Log Investment / Capital
+                  </button>
+                )}
               </header>
 
               {/* KPI Cards */}
@@ -6595,109 +6597,113 @@ export default function App() {
               </div>
 
               {/* Main Ledger Table Card */}
-              <div className="table-card bg-surface border" style={{ padding: '20px', borderRadius: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Order Investment & Bills Ledger</h3>
-                    <p className="small text-muted" style={{ margin: '4px 0 0 0' }}>
-                      Audit breakdown of capital sources, investors, target order allocations, and factory bills drawdown.
-                    </p>
+              {investmentRecords.length === 0 ? (
+                <LinearEmptyState 
+                  icon="ph-bank"
+                  title="No capital or investments logged"
+                  description="Track order execution funding sources, MD/director loans, and factory bill drawdowns."
+                  actionLabel="Log Investment / Capital"
+                  onAction={() => setIsInvestmentModalOpen(true)}
+                  hasBorder={true}
+                />
+              ) : (
+                <div className="table-card bg-surface border" style={{ padding: '20px', borderRadius: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Order Investment & Bills Ledger</h3>
+                      <p className="small text-muted" style={{ margin: '4px 0 0 0' }}>
+                        Audit breakdown of capital sources, investors, target order allocations, and factory bills drawdown.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="table-responsive">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Source Category</th>
+                          <th>Target Order / Purpose</th>
+                          <th className="text-right">Capital Amount</th>
+                          <th>Factory Bills Paid from this Capital</th>
+                          <th className="text-right">Remaining Capital</th>
+                          <th className="text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {investmentRecords.map((rec) => {
+                          const recName = rec.type || 'CEO brought amount from MD';
+                          const linkedBills = operationalExpenses.filter(op => 
+                            op.fundedByCapitalSource === recName || 
+                            op.fundedByCapitalSource === rec.linkedOrder ||
+                            (rec.type && op.fundedByCapitalSource?.includes(rec.type))
+                          );
+                          const spentFromThisCap = linkedBills.reduce((s, op) => s + (parseFloat(op.amount) || 0), 0);
+                          const remainingThisCap = Math.max(0, rec.amount - spentFromThisCap);
+
+                          return (
+                            <tr key={rec.id}>
+                              <td className="text-muted">{rec.date}</td>
+                              <td>
+                                <span className="badge badge-purple" style={{ fontSize: '11.5px', fontWeight: 700 }}>
+                                  {rec.type || 'CEO brought amount from MD'}
+                                </span>
+                              </td>
+                              <td>
+                                <span className="font-semibold text-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                  <i className="ph ph-tag" style={{ fontSize: '12px' }}></i> {rec.linkedOrder || 'Run Production Order'}
+                                </span>
+                              </td>
+                              <td className="text-right font-semibold" style={{ color: '#10B981', fontSize: '14px', fontFamily: 'var(--font-mono)' }}>
+                                + {formatCurrency(Math.abs(rec.amount))}
+                              </td>
+                              <td>
+                                {linkedBills.length > 0 ? (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#DC2626' }}>
+                                      - {formatCurrency(spentFromThisCap)} ({linkedBills.length} Bills Paid)
+                                    </span>
+                                    <div style={{ fontSize: '11px', color: '#6B7280', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                      {linkedBills.map(b => (
+                                        <span key={b.id} style={{ backgroundColor: '#F3F4F6', padding: '1px 6px', borderRadius: '4px' }}>
+                                          {b.category} ({formatCurrency(b.amount)})
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <span className="text-muted" style={{ fontSize: '12px' }}>No bills drawn yet</span>
+                                )}
+                              </td>
+                              <td className="text-right font-semibold" style={{ color: remainingThisCap > 0 ? '#2563EB' : '#9CA3AF', fontSize: '13.5px', fontFamily: 'var(--font-mono)' }}>
+                                {formatCurrency(remainingThisCap)}
+                              </td>
+                              <td className="text-right" onClick={(e) => e.stopPropagation()}>
+                                <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                  <button 
+                                    className="btn-icon text-primary" 
+                                    onClick={() => openEditInvestment(rec)} 
+                                    title="Edit Investment Record"
+                                  >
+                                    <i className="ph ph-pencil-simple"></i>
+                                  </button>
+                                  <button 
+                                    className="btn-icon text-red" 
+                                    onClick={() => deleteInvestmentRecord(rec)} 
+                                    title="Delete Record"
+                                  >
+                                    <i className="ph ph-trash"></i>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
-
-                <div className="table-responsive">
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Source Category</th>
-                        <th>Target Order / Purpose</th>
-                        <th className="text-right">Capital Amount</th>
-                        <th>Factory Bills Paid from this Capital</th>
-                        <th className="text-right">Remaining Capital</th>
-                        <th className="text-right">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {investmentRecords.map((rec) => {
-                        const recName = rec.type || 'CEO brought amount from MD';
-                        const linkedBills = operationalExpenses.filter(op => 
-                          op.fundedByCapitalSource === recName || 
-                          op.fundedByCapitalSource === rec.linkedOrder ||
-                          (rec.type && op.fundedByCapitalSource?.includes(rec.type))
-                        );
-                        const spentFromThisCap = linkedBills.reduce((s, op) => s + (parseFloat(op.amount) || 0), 0);
-                        const remainingThisCap = Math.max(0, rec.amount - spentFromThisCap);
-
-                        return (
-                          <tr key={rec.id}>
-                            <td className="text-muted">{rec.date}</td>
-                            <td>
-                              <span className="badge badge-purple" style={{ fontSize: '11.5px', fontWeight: 700 }}>
-                                {rec.type || 'CEO brought amount from MD'}
-                              </span>
-                            </td>
-                            <td>
-                              <span className="font-semibold text-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                                <i className="ph ph-tag" style={{ fontSize: '12px' }}></i> {rec.linkedOrder || 'Run Production Order'}
-                              </span>
-                            </td>
-                            <td className="text-right font-semibold" style={{ color: '#10B981', fontSize: '14px', fontFamily: 'var(--font-mono)' }}>
-                              + {formatCurrency(Math.abs(rec.amount))}
-                            </td>
-                            <td>
-                              {linkedBills.length > 0 ? (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#DC2626' }}>
-                                    - {formatCurrency(spentFromThisCap)} ({linkedBills.length} Bills Paid)
-                                  </span>
-                                  <div style={{ fontSize: '11px', color: '#6B7280', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                                    {linkedBills.map(b => (
-                                      <span key={b.id} style={{ backgroundColor: '#F3F4F6', padding: '1px 6px', borderRadius: '4px' }}>
-                                        {b.category} ({formatCurrency(b.amount)})
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              ) : (
-                                <span className="text-muted" style={{ fontSize: '12px' }}>No bills drawn yet</span>
-                              )}
-                            </td>
-                            <td className="text-right font-semibold" style={{ color: remainingThisCap > 0 ? '#2563EB' : '#9CA3AF', fontSize: '13.5px', fontFamily: 'var(--font-mono)' }}>
-                              {formatCurrency(remainingThisCap)}
-                            </td>
-                            <td className="text-right" onClick={(e) => e.stopPropagation()}>
-                              <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
-                                <button 
-                                  className="btn-icon text-primary" 
-                                  onClick={() => openEditInvestment(rec)} 
-                                  title="Edit Investment Record"
-                                >
-                                  <i className="ph ph-pencil-simple"></i>
-                                </button>
-                                <button 
-                                  className="btn-icon text-red" 
-                                  onClick={() => deleteInvestmentRecord(rec)} 
-                                  title="Delete Record"
-                                >
-                                  <i className="ph ph-trash"></i>
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                      {investmentRecords.length === 0 && (
-                        <tr>
-                          <td colSpan="7" className="text-center text-muted" style={{ padding: '32px' }}>
-                            No investment records logged. Click <strong>"Log Investment / Capital"</strong> to record capital sourcing.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              )}
             </section>
           );
         })()}
@@ -6718,13 +6724,15 @@ export default function App() {
                     Track recurring company rent, EB electricity bills, auto & transport freight, petrol/fuel, maintenance, and factory overheads.
                   </p>
                 </div>
-                <button 
-                  className="btn btn-primary" 
-                  onClick={() => { setEditingOpExpense(null); setIsOpExpenseModalOpen(true); }} 
-                  style={{ padding: '10px 20px', fontSize: '13.5px', fontWeight: 800, borderRadius: '12px', boxShadow: '0 4px 14px rgba(94, 106, 210, 0.35)', display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
-                >
-                  <i className="ph ph-plus-circle" style={{ fontSize: '18px' }}></i> Log Operational Expense
-                </button>
+                {operationalExpenses.length > 0 && (
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={() => { setEditingOpExpense(null); setIsOpExpenseModalOpen(true); }} 
+                    style={{ padding: '10px 20px', fontSize: '13.5px', fontWeight: 800, borderRadius: '12px', boxShadow: '0 4px 14px rgba(94, 106, 210, 0.35)', display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+                  >
+                    <i className="ph ph-plus-circle" style={{ fontSize: '18px' }}></i> Log Operational Expense
+                  </button>
+                )}
               </header>
 
               {/* KPI Metrics */}
@@ -6791,93 +6799,97 @@ export default function App() {
               </div>
 
               {/* Main Table Card */}
+              {operationalExpenses.length === 0 ? (
+                <LinearEmptyState 
+                  icon="ph-receipt"
+                  title="No operational expenses logged"
+                  description="Track recurring company rent, EB electricity bills, auto & transport freight, petrol/fuel, maintenance, and factory overheads."
+                  actionLabel="Log Operational Expense"
+                  onAction={() => { setEditingOpExpense(null); setIsOpExpenseModalOpen(true); }}
+                  hasBorder={true}
+                />
+              ) : (
                 <div className="table-card bg-surface border" style={{ padding: '20px', borderRadius: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Operational Expenditure Ledger</h3>
-                    <p className="small text-muted" style={{ margin: '4px 0 0 0' }}>
-                      Detailed audit log of company rent, EB bills, transport auto freight, petrol, and pantry expenses.
-                    </p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Operational Expenditure Ledger</h3>
+                      <p className="small text-muted" style={{ margin: '4px 0 0 0' }}>
+                        Detailed audit log of company rent, EB bills, transport auto freight, petrol, and pantry expenses.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="table-responsive">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Category</th>
+                          <th>Voucher / Receipt No.</th>
+                          <th>Payment Mode</th>
+                          <th>Funded By Capital Source</th>
+                          <th>Notes / Purpose</th>
+                          <th className="text-right">Amount (₹)</th>
+                          <th className="text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {operationalExpenses.map((op) => (
+                          <tr key={op.id}>
+                            <td className="text-muted">{op.date}</td>
+                            <td>
+                              <span className={`badge ${
+                                op.category?.includes('Rent') ? 'badge-purple' :
+                                op.category?.includes('EB') ? 'badge-warning' :
+                                op.category?.includes('Auto') || op.category?.includes('Petrol') ? 'badge-success' : 'badge-neutral'
+                              }`} style={{ fontSize: '12px', fontWeight: 700 }}>
+                                {op.category}
+                              </span>
+                            </td>
+                            <td className="font-mono text-muted">{op.voucherNo || 'N/A'}</td>
+                            <td>
+                              <span style={{ fontSize: '12px', fontWeight: 600, color: '#4B5563' }}>
+                                💳 {op.mode || 'Cash'}
+                              </span>
+                            </td>
+                            <td>
+                              {op.fundedByCapitalSource ? (
+                                <span className="badge badge-purple" style={{ fontSize: '11px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                  🏦 {op.fundedByCapitalSource}
+                                </span>
+                              ) : (
+                                <span className="text-muted" style={{ fontSize: '12px' }}>General Cash</span>
+                              )}
+                            </td>
+                            <td style={{ fontSize: '13px', color: '#374151' }}>{op.notes || '-'}</td>
+                            <td className="text-right font-semibold" style={{ color: '#DC2626', fontSize: '14px', fontFamily: 'var(--font-mono)' }}>
+                              - {formatCurrency(op.amount)}
+                            </td>
+                            <td className="text-right">
+                              <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                                <button 
+                                  className="btn-icon text-primary" 
+                                  onClick={() => { setEditingOpExpense(op); setIsOpExpenseModalOpen(true); }}
+                                  title="Edit Expense"
+                                >
+                                  <i className="ph ph-pencil-simple"></i>
+                                </button>
+                                <button 
+                                  className="btn-icon text-red" 
+                                  onClick={() => setOperationalExpenses(prev => prev.filter(item => item.id !== op.id))}
+                                  title="Delete Expense"
+                                >
+                                  <i className="ph ph-trash"></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
-
-                <div className="table-responsive">
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Category</th>
-                        <th>Voucher / Receipt No.</th>
-                        <th>Payment Mode</th>
-                        <th>Funded By Capital Source</th>
-                        <th>Notes / Purpose</th>
-                        <th className="text-right">Amount (₹)</th>
-                        <th className="text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {operationalExpenses.map((op) => (
-                        <tr key={op.id}>
-                          <td className="text-muted">{op.date}</td>
-                          <td>
-                            <span className={`badge ${
-                              op.category?.includes('Rent') ? 'badge-purple' :
-                              op.category?.includes('EB') ? 'badge-warning' :
-                              op.category?.includes('Auto') || op.category?.includes('Petrol') ? 'badge-success' : 'badge-neutral'
-                            }`} style={{ fontSize: '12px', fontWeight: 700 }}>
-                              {op.category}
-                            </span>
-                          </td>
-                          <td className="font-mono text-muted">{op.voucherNo || 'N/A'}</td>
-                          <td>
-                            <span style={{ fontSize: '12px', fontWeight: 600, color: '#4B5563' }}>
-                              💳 {op.mode || 'Cash'}
-                            </span>
-                          </td>
-                          <td>
-                            {op.fundedByCapitalSource ? (
-                              <span className="badge badge-purple" style={{ fontSize: '11px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                                🏦 {op.fundedByCapitalSource}
-                              </span>
-                            ) : (
-                              <span className="text-muted" style={{ fontSize: '12px' }}>General Cash</span>
-                            )}
-                          </td>
-                          <td style={{ fontSize: '13px', color: '#374151' }}>{op.notes || '-'}</td>
-                          <td className="text-right font-semibold" style={{ color: '#DC2626', fontSize: '14px', fontFamily: 'var(--font-mono)' }}>
-                            - {formatCurrency(op.amount)}
-                          </td>
-                          <td className="text-right">
-                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                              <button 
-                                className="btn-icon text-primary" 
-                                onClick={() => { setEditingOpExpense(op); setIsOpExpenseModalOpen(true); }}
-                                title="Edit Expense"
-                              >
-                                <i className="ph ph-pencil-simple"></i>
-                              </button>
-                              <button 
-                                className="btn-icon text-red" 
-                                onClick={() => setOperationalExpenses(prev => prev.filter(item => item.id !== op.id))}
-                                title="Delete Expense"
-                              >
-                                <i className="ph ph-trash"></i>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                      {operationalExpenses.length === 0 && (
-                        <tr>
-                          <td colSpan="8" className="text-center text-muted" style={{ padding: '32px' }}>
-                            No operational expenses logged. Click <strong>"Log Operational Expense"</strong> to add company bills.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              )}
             </section>
           );
         })()}
