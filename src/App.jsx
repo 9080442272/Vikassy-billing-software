@@ -4806,7 +4806,7 @@ export default function App() {
             <header className="view-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
               <div>
                 <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 800 }}>Jobs & Production Orders</h1>
-                <p className="subtitle" style={{ margin: '4px 0 0 0', color: 'var(--color-text-secondary)' }}>Track export manufacturing jobs, daily progress, staff assignments, and delays.</p>
+                <p className="subtitle" style={{ margin: '4px 0 0 0', color: 'var(--color-text-secondary)' }}>Track export manufacturing jobs, order quantities, delivery schedules, and stage progress.</p>
               </div>
               {upcomingOrders.length > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -4820,385 +4820,125 @@ export default function App() {
                 </div>
               )}
             </header>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                {/* Weekly Production Cycle Sprint Card */}
 
-                {/* Weekly Production Cycle Sprint Card */}
-                {(() => {
-                  const filteredJobs = upcomingOrders.filter(o => {
-                    const matchesSearch = !kanbanSearchQuery || 
-                      (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) ||
-                      (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) ||
-                      (o.product && o.product.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
-                    const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
-                    return matchesSearch && matchesPriority;
-                  });
-
-                  // Calculate Weighted Completion Progress %
-                  const totalCount = filteredJobs.length;
-                  const completedCount = filteredJobs.filter(o => o.stage === 'Completed / Delivered' || o.status === 'Delivered').length;
-                  const packedCount = filteredJobs.filter(o => o.stage === 'Packing & Ready' || o.status === 'Ready').length;
-                  const qcCount = filteredJobs.filter(o => o.stage === 'QC Inspection' || o.status === 'QC Inspection').length;
-                  const stitchingCount = filteredJobs.filter(o => o.stage === 'Stitching Assembly' || o.status === 'In Production').length;
-                  
-                  const progressPct = totalCount > 0 
-                    ? Math.round(((completedCount * 1.0 + packedCount * 0.8 + qcCount * 0.6 + stitchingCount * 0.4) / totalCount) * 100)
-                    : 0;
-
-                  return (
-                    <div className="cycle-progress-card">
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', width: '100%' }}>
-                        
-                        {/* Left Side: Target Icon + Title + Velocity Badge */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                          <div style={{ width: '38px', height: '38px', borderRadius: '10px', backgroundColor: 'var(--color-accent-light)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0, border: '1px solid var(--color-border)' }}>
-                            <i className="ph ph-target"></i>
-                          </div>
-                          <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                              <span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-text-primary)' }}>Cycle 28 — July Export Production Sprint</span>
-                              <span className="badge badge-purple" style={{ fontSize: '12px', fontWeight: 800, padding: '3px 10px', borderRadius: '12px' }}>
-                                ⚡ {progressPct}% Velocity
-                              </span>
-                            </div>
-                            <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', display: 'block', marginTop: '2px' }}>
-                              Target Shipment: Aug 15, 2026 • <strong>{completedCount} of {filteredJobs.length} Orders Completed</strong>
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Right Side: Explicit Count Chip */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'var(--color-muted)', padding: '6px 14px', borderRadius: '12px', border: '1px solid var(--color-border)', flexShrink: 0 }}>
-                          <span style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-primary)', fontFamily: 'var(--font-mono)' }}>{progressPct}%</span>
-                          <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', fontWeight: 600 }}>({completedCount}/{filteredJobs.length} Done)</span>
-                        </div>
-
-                      </div>
-
-                      {/* Progress Bar with inner percentage label */}
-                      <div className="cycle-progress-bar" style={{ position: 'relative', height: '14px', borderRadius: '7px', marginTop: '6px' }}>
-                        <div className="cycle-progress-fill" style={{ width: `${Math.min(100, Math.max(14, progressPct))}%`, height: '100%', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '8px', fontSize: '10px', fontWeight: 800, color: '#FFFFFF' }}>
-                          {progressPct}%
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {/* LINEAR KANBAN BOARD (5 PRODUCTION STAGES) */}
-                <div className="linear-kanban-board">
-                  
-                  {/* Column 1: Backlog & Cutting */}
-                  <div className="linear-kanban-column">
-                    <div className="kanban-column-header">
-                      <div className="kanban-column-title">
-                        <i className="ph ph-scissors" style={{ color: '#F59E0B', fontSize: '16px' }}></i>
-                        <span>Backlog & Cutting</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <button 
-                          type="button" 
-                          onClick={() => setJobsSubTab('create')} 
-                          style={{ border: '1px solid rgba(245, 158, 11, 0.3)', background: 'rgba(245, 158, 11, 0.1)', color: '#D97706', fontSize: '11px', fontWeight: 800, padding: '3px 9px', borderRadius: '8px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                          title="Add new job order to Backlog"
-                        >
-                          <i className="ph ph-plus" style={{ fontSize: '12px' }}></i> Add Job
-                        </button>
-                        <span className="kanban-column-count">
-                          {upcomingOrders.filter(o => {
-                            const matchesStage = (!o.stage && (!o.status || o.status === 'Pending' || o.status === 'Cutting' || o.status === 'Planned')) || o.stage === 'Backlog & Cutting';
-                            const matchesSearch = !kanbanSearchQuery || (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) || (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
-                            const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
-                            return matchesStage && matchesSearch && matchesPriority;
-                          }).length}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="kanban-cards-container">
-                      {upcomingOrders
-                        .filter(o => {
-                          const matchesStage = (!o.stage && (!o.status || o.status === 'Pending' || o.status === 'Cutting' || o.status === 'Planned')) || o.stage === 'Backlog & Cutting';
-                          const matchesSearch = !kanbanSearchQuery || (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) || (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
-                          const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
-                          return matchesStage && matchesSearch && matchesPriority;
-                        })
-                        .map(order => {
-                          const isOverdue = new Date(order.deliveryDate) < new Date() && order.stage !== 'Completed / Delivered';
-                          return (
-                            <div key={order._id} className="kanban-card" onClick={() => setSelectedJobModal(order)}>
-                              {isOverdue && (
-                                <div className="overdue-card-banner">
-                                  <i className="ph ph-warning-circle"></i> OVERDUE DELAY
-                                </div>
-                              )}
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span className={`priority-badge ${order.priority?.toLowerCase() || 'urgent'}`}>
-                                  {order.priority === 'Urgent' ? <><i className="ph ph-warning"></i> Urgent</> : order.priority === 'High' ? <><i className="ph ph-fire"></i> High</> : order.priority === 'Medium' ? <><i className="ph ph-circle-dashed"></i> Medium</> : <><i className="ph ph-check-circle"></i> Low</>}
-                                </span>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                                    <i className="ph ph-calendar-blank"></i> {formatDate(order.deliveryDate)}
-                                  </span>
-                                  <button 
-                                    type="button" 
-                                    className="btn-icon text-red" 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      deleteUpcomingOrder(order._id, order);
-                                    }}
-                                    title="Delete Job Order"
-                                    style={{ padding: '2px 4px', fontSize: '13px', border: 'none', background: 'transparent', cursor: 'pointer', opacity: 0.8 }}
-                                  >
-                                    <i className="ph ph-trash"></i>
-                                  </button>
-                                </div>
-                              </div>
-                              <div className="kanban-card-title">{order.orderTitle}</div>
-                              <div className="kanban-card-client"><i className="ph ph-user" style={{ color: 'var(--color-primary)' }}></i> {order.clientName}</div>
-                              <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <i className="ph ph-t-shirt" style={{ color: 'var(--color-primary)' }}></i> {order.quantity ? order.quantity.toLocaleString() + ' Pcs' : '2,500 Pcs'}
-                              </div>
-                              <div className="kanban-card-footer">
-                                <span style={{ fontWeight: 700, color: 'var(--color-primary)' }}><i className="ph ph-currency-inr" style={{ fontSize: '12px' }}></i> {formatCurrency(order.estimatedValue)}</span>
-                                <span className="badge" style={{ fontSize: '10px', display: 'flex', alignItems: 'center', gap: '3px' }}><i className="ph ph-factory"></i> {order.productionUnit || 'Cutting Unit'}</span>
-                              </div>
-                              <div style={{ fontSize: '10.5px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                                <i className="ph ph-user-gear" style={{ fontSize: '11px', color: '#5E6AD2' }}></i> {order.assignedWorker || 'Kartick (Master Lead)'}
-                              </div>
-                            </div>
-                          );
-                        })}
-                    </div>
-                  </div>
-
-                  {/* Column 2: Stitching Assembly */}
-                  <div className="linear-kanban-column">
-                    <div className="kanban-column-header">
-                      <div className="kanban-column-title">
-                        <i className="ph ph-needle" style={{ color: '#5E6AD2', fontSize: '16px' }}></i>
-                        <span>Stitching Assembly</span>
-                      </div>
-                      <span className="kanban-column-count">
-                        {upcomingOrders.filter(o => {
-                          const matchesStage = o.stage === 'Stitching Assembly' || (!o.stage && (o.status === 'In Production' || o.status === 'Stitching'));
-                          const matchesSearch = !kanbanSearchQuery || (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) || (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
-                          const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
-                          return matchesStage && matchesSearch && matchesPriority;
-                        }).length}
-                      </span>
-                    </div>
-
-                    <div className="kanban-cards-container">
-                      {upcomingOrders
-                        .filter(o => {
-                          const matchesStage = o.stage === 'Stitching Assembly' || (!o.stage && (o.status === 'In Production' || o.status === 'Stitching'));
-                          const matchesSearch = !kanbanSearchQuery || (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) || (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
-                          const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
-                          return matchesStage && matchesSearch && matchesPriority;
-                        })
-                        .map(order => {
-                          const isOverdue = new Date(order.deliveryDate) < new Date() && order.stage !== 'Completed / Delivered';
-                          return (
-                            <div key={order._id} className="kanban-card" onClick={() => setSelectedJobModal(order)}>
-                              {isOverdue && (
-                                <div className="overdue-card-banner">
-                                  <i className="ph ph-warning-circle"></i> OVERDUE DELAY
-                                </div>
-                              )}
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span className={`priority-badge ${order.priority?.toLowerCase() || 'high'}`}>
-                                  {order.priority === 'Urgent' ? <><i className="ph ph-warning"></i> Urgent</> : order.priority === 'High' ? <><i className="ph ph-fire"></i> High</> : order.priority === 'Medium' ? <><i className="ph ph-circle-dashed"></i> Medium</> : <><i className="ph ph-check-circle"></i> Low</>}
-                                </span>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                                    <i className="ph ph-calendar-blank"></i> {formatDate(order.deliveryDate)}
-                                  </span>
-                                  <button 
-                                    type="button" 
-                                    className="btn-icon text-red" 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      deleteUpcomingOrder(order._id, order);
-                                    }}
-                                    title="Delete Job Order"
-                                    style={{ padding: '2px 4px', fontSize: '13px', border: 'none', background: 'transparent', cursor: 'pointer', opacity: 0.8 }}
-                                  >
-                                    <i className="ph ph-trash"></i>
-                                  </button>
-                                </div>
-                              </div>
-                              <div className="kanban-card-title">{order.orderTitle}</div>
-                              <div className="kanban-card-client"><i className="ph ph-user" style={{ color: 'var(--color-primary)' }}></i> {order.clientName}</div>
-                              <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <i className="ph ph-t-shirt" style={{ color: 'var(--color-primary)' }}></i> {order.quantity ? order.quantity.toLocaleString() + ' Pcs' : '2,500 Pcs'}
-                              </div>
-                              <div className="kanban-card-footer">
-                                <span style={{ fontWeight: 700, color: 'var(--color-primary)' }}><i className="ph ph-currency-inr" style={{ fontSize: '12px' }}></i> {formatCurrency(order.estimatedValue)}</span>
-                                <span className="badge badge-purple" style={{ fontSize: '10px', display: 'flex', alignItems: 'center', gap: '3px' }}><i className="ph ph-factory"></i> {order.productionUnit || 'Stitching Floor'}</span>
-                              </div>
-                              <div style={{ fontSize: '10.5px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                                <i className="ph ph-user-gear" style={{ fontSize: '11px', color: '#5E6AD2' }}></i> {order.assignedWorker || 'Kartick (Master Lead)'}
-                              </div>
-                            </div>
-                          );
-                        })}
-                    </div>
-                  </div>
-
-                  {/* Column 3: QC Inspection */}
-                  <div className="linear-kanban-column">
-                    <div className="kanban-column-header">
-                      <div className="kanban-column-title">
-                        <i className="ph ph-check-square-offset" style={{ color: '#3B82F6', fontSize: '16px' }}></i>
-                        <span>QC Inspection</span>
-                      </div>
-                      <span className="kanban-column-count">
-                        {upcomingOrders.filter(o => {
-                          const matchesStage = o.stage === 'QC Inspection' || (!o.stage && (o.status === 'QC Inspection' || o.status === 'Quality Check'));
-                          const matchesSearch = !kanbanSearchQuery || (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) || (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
-                          const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
-                          return matchesStage && matchesSearch && matchesPriority;
-                        }).length}
-                      </span>
-                    </div>
-
-                    <div className="kanban-cards-container">
-                      {upcomingOrders
-                        .filter(o => {
-                          const matchesStage = o.stage === 'QC Inspection' || (!o.stage && (o.status === 'QC Inspection' || o.status === 'Quality Check'));
-                          const matchesSearch = !kanbanSearchQuery || (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) || (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
-                          const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
-                          return matchesStage && matchesSearch && matchesPriority;
-                        })
-                        .map(order => (
-                          <div key={order._id} className="kanban-card" onClick={() => setSelectedJobModal(order)}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span className={`priority-badge ${order.priority?.toLowerCase() || 'medium'}`}>
-                                {order.priority === 'Urgent' ? <><i className="ph ph-warning"></i> Urgent</> : order.priority === 'High' ? <><i className="ph ph-fire"></i> High</> : order.priority === 'Medium' ? <><i className="ph ph-circle-dashed"></i> Medium</> : <><i className="ph ph-check-circle"></i> Low</>}
-                              </span>
-                              <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                                <i className="ph ph-calendar-blank"></i> {formatDate(order.deliveryDate)}
-                              </span>
-                            </div>
-                            <div className="kanban-card-title">{order.orderTitle}</div>
-                            <div className="kanban-card-client"><i className="ph ph-user" style={{ color: 'var(--color-primary)' }}></i> {order.clientName}</div>
-                            <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <i className="ph ph-t-shirt" style={{ color: 'var(--color-primary)' }}></i> {order.quantity ? order.quantity.toLocaleString() + ' Pcs' : '2,500 Pcs'}
-                            </div>
-                            <div className="kanban-card-footer">
-                              <span style={{ fontWeight: 700, color: 'var(--color-primary)' }}><i className="ph ph-currency-inr" style={{ fontSize: '12px' }}></i> {formatCurrency(order.estimatedValue)}</span>
-                              <span className="badge" style={{ fontSize: '10px', display: 'flex', alignItems: 'center', gap: '3px' }}><i className="ph ph-check-square-offset"></i> Quality Audit</span>
-                            </div>
-                            <div style={{ fontSize: '10.5px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                              <i className="ph ph-user-gear" style={{ fontSize: '11px', color: '#5E6AD2' }}></i> {order.assignedWorker || 'Srimathi (QC Lead)'}
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-
-                  {/* Column 4: Packing & Ready */}
-                  <div className="linear-kanban-column">
-                    <div className="kanban-column-header">
-                      <div className="kanban-column-title">
-                        <i className="ph ph-package" style={{ color: '#10B981', fontSize: '16px' }}></i>
-                        <span>Packing & Ready</span>
-                      </div>
-                      <span className="kanban-column-count">
-                        {upcomingOrders.filter(o => {
-                          const matchesStage = o.stage === 'Packing & Ready' || (!o.stage && (o.status === 'Ready' || o.status === 'Packing'));
-                          const matchesSearch = !kanbanSearchQuery || (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) || (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
-                          const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
-                          return matchesStage && matchesSearch && matchesPriority;
-                        }).length}
-                      </span>
-                    </div>
-
-                    <div className="kanban-cards-container">
-                      {upcomingOrders
-                        .filter(o => {
-                          const matchesStage = o.stage === 'Packing & Ready' || (!o.stage && (o.status === 'Ready' || o.status === 'Packing'));
-                          const matchesSearch = !kanbanSearchQuery || (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) || (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
-                          const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
-                          return matchesStage && matchesSearch && matchesPriority;
-                        })
-                        .map(order => (
-                          <div key={order._id} className="kanban-card" onClick={() => setSelectedJobModal(order)}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span className={`priority-badge ${order.priority?.toLowerCase() || 'low'}`}>
-                                {order.priority === 'Urgent' ? <><i className="ph ph-warning"></i> Urgent</> : order.priority === 'High' ? <><i className="ph ph-fire"></i> High</> : order.priority === 'Medium' ? <><i className="ph ph-circle-dashed"></i> Medium</> : <><i className="ph ph-check-circle"></i> Low</>}
-                              </span>
-                              <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                                <i className="ph ph-calendar-blank"></i> {formatDate(order.deliveryDate)}
-                              </span>
-                            </div>
-                            <div className="kanban-card-title">{order.orderTitle}</div>
-                            <div className="kanban-card-client"><i className="ph ph-user" style={{ color: 'var(--color-primary)' }}></i> {order.clientName}</div>
-                            <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <i className="ph ph-t-shirt" style={{ color: 'var(--color-primary)' }}></i> {order.quantity ? order.quantity.toLocaleString() + ' Pcs' : '2,500 Pcs'}
-                            </div>
-                            <div className="kanban-card-footer">
-                              <span style={{ fontWeight: 700, color: 'var(--color-primary)' }}><i className="ph ph-currency-inr" style={{ fontSize: '12px' }}></i> {formatCurrency(order.estimatedValue)}</span>
-                              <span className="badge badge-success" style={{ fontSize: '10px', display: 'flex', alignItems: 'center', gap: '3px' }}><i className="ph ph-package"></i> Packed</span>
-                            </div>
-                            <div style={{ fontSize: '10.5px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                              <i className="ph ph-user-gear" style={{ fontSize: '11px', color: '#5E6AD2' }}></i> {order.assignedWorker || 'Packing Supervisor'}
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-
-                  {/* Column 5: Invoiced & Completed */}
-                  <div className="linear-kanban-column">
-                    <div className="kanban-column-header">
-                      <div className="kanban-column-title">
-                        <i className="ph ph-truck" style={{ color: '#10B981', fontSize: '16px' }}></i>
-                        <span>Invoiced & Delivered</span>
-                      </div>
-                      <span className="kanban-column-count">
-                        {upcomingOrders.filter(o => {
-                          const matchesStage = o.stage === 'Completed / Delivered' || (!o.stage && (o.status === 'Delivered' || o.status === 'Completed'));
-                          const matchesSearch = !kanbanSearchQuery || (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) || (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
-                          const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
-                          return matchesStage && matchesSearch && matchesPriority;
-                        }).length}
-                      </span>
-                    </div>
-
-                    <div className="kanban-cards-container">
-                      {upcomingOrders
-                        .filter(o => {
-                          const matchesStage = o.stage === 'Completed / Delivered' || (!o.stage && (o.status === 'Delivered' || o.status === 'Completed'));
-                          const matchesSearch = !kanbanSearchQuery || (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) || (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
-                          const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
-                          return matchesStage && matchesSearch && matchesPriority;
-                        })
-                        .map(order => (
-                          <div key={order._id} className="kanban-card" onClick={() => setSelectedJobModal(order)}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span className="priority-badge low"><i className="ph ph-check-circle"></i> Completed</span>
-                              <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                                <i className="ph ph-calendar-blank"></i> {formatDate(order.deliveryDate)}
-                              </span>
-                            </div>
-                            <div className="kanban-card-title">{order.orderTitle}</div>
-                            <div className="kanban-card-client"><i className="ph ph-user" style={{ color: 'var(--color-primary)' }}></i> {order.clientName}</div>
-                            <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <i className="ph ph-t-shirt" style={{ color: 'var(--color-primary)' }}></i> {order.quantity ? order.quantity.toLocaleString() + ' Pcs' : '2,500 Pcs'}
-                            </div>
-                            <div className="kanban-card-footer">
-                              <span style={{ fontWeight: 700, color: 'var(--color-success)' }}><i className="ph ph-currency-inr" style={{ fontSize: '12px' }}></i> {formatCurrency(order.estimatedValue)}</span>
-                              <span className="badge badge-success" style={{ fontSize: '10px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}><i className="ph ph-truck"></i> Dispatched</span>
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* Search & Filter Controls */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+                <div className="search-input-wrapper" style={{ flex: 1, minWidth: '280px' }}>
+                  <i className="ph ph-magnifying-glass"></i>
+                  <input 
+                    type="text" 
+                    placeholder="Search job orders by title, style #, buyer client, or garment product..." 
+                    value={kanbanSearchQuery} 
+                    onChange={(e) => setKanbanSearchQuery(e.target.value)} 
+                  />
                 </div>
               </div>
+
+              {/* Data Table / Empty State */}
+              {upcomingOrders.length === 0 ? (
+                <LinearEmptyState 
+                  icon="ph-briefcase"
+                  title="No production job orders created"
+                  description="Create export garment manufacturing job orders to track cutting, stitching, QC, and dispatch."
+                  actionLabel="Create New Job Order"
+                  onAction={openCreateJobModal}
+                  hasBorder={true}
+                />
+              ) : (
+                <div className="table-card bg-surface border" style={{ padding: '20px', borderRadius: '16px' }}>
+                  <div className="table-responsive">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Job Title & Style #</th>
+                          <th>Buyer / Client</th>
+                          <th>Garment / Product</th>
+                          <th>Order Qty</th>
+                          <th>Delivery Due Date</th>
+                          <th>Production Stage</th>
+                          <th className="text-right">Estimated Value (₹)</th>
+                          <th className="text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {upcomingOrders
+                          .filter(o => {
+                            const matchesSearch = !kanbanSearchQuery || 
+                              (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) ||
+                              (o.styleNumber && o.styleNumber.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) ||
+                              (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) ||
+                              (o.product && o.product.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
+                            return matchesSearch;
+                          })
+                          .map((order) => (
+                            <tr key={order._id || order.id} style={{ cursor: 'pointer' }} onClick={() => openViewEditJobModal(order)}>
+                              <td>
+                                <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '14px' }}>{order.orderTitle}</div>
+                                {order.styleNumber && (
+                                  <span className="badge badge-purple" style={{ fontSize: '11px', fontWeight: 700, fontFamily: 'var(--font-mono)', marginTop: '2px', display: 'inline-block' }}>
+                                    {order.styleNumber}
+                                  </span>
+                                )}
+                              </td>
+                              <td>
+                                <span style={{ fontWeight: 600, color: '#4F46E5', fontSize: '13px' }}>🏢 {order.clientName}</span>
+                              </td>
+                              <td>
+                                <span style={{ fontSize: '13px', color: '#334155' }}>👕 {order.product || 'Knitwear / Apparel'}</span>
+                              </td>
+                              <td>
+                                <span className="badge badge-purple" style={{ fontSize: '12px', fontWeight: 700 }}>
+                                  {order.quantity ? order.quantity.toLocaleString() : (order.orderQty || 2500).toLocaleString()} Pcs
+                                </span>
+                              </td>
+                              <td>
+                                <span style={{ fontSize: '13px', fontWeight: 600, color: '#1E293B', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                  📅 {formatDate(order.deliveryDate)}
+                                </span>
+                              </td>
+                              <td>
+                                <span className={`badge ${
+                                  order.stage === 'Completed / Delivered' || order.status === 'Delivered' ? 'badge-success' :
+                                  order.stage === 'Packing & Ready' || order.status === 'Ready' ? 'badge-purple' :
+                                  order.stage === 'QC Inspection' ? 'badge-info' :
+                                  order.stage === 'Stitching Assembly' || order.status === 'In Production' ? 'badge-warning' : 'badge-neutral'
+                                }`} style={{ fontSize: '11px', fontWeight: 700 }}>
+                                  {order.stage || order.status || 'Backlog & Cutting'}
+                                </span>
+                              </td>
+                              <td className="text-right font-semibold" style={{ color: '#059669', fontSize: '14px', fontFamily: 'var(--font-mono)' }}>
+                                {formatCurrency(order.estimatedValue)}
+                              </td>
+                              <td className="text-right" onClick={(e) => e.stopPropagation()}>
+                                <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                  <button 
+                                    type="button"
+                                    className="btn btn-secondary btn-sm" 
+                                    onClick={(e) => { e.stopPropagation(); openViewEditJobModal(order); }}
+                                    title="View / Edit Job Order"
+                                    style={{ padding: '5px 12px', fontSize: '12px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '5px', borderRadius: '8px' }}
+                                  >
+                                    <i className="ph ph-eye" style={{ fontSize: '14px' }}></i> View
+                                  </button>
+                                  <button 
+                                    className="btn-icon text-red" 
+                                    onClick={() => deleteUpcomingOrder(order._id || order.id, order)}
+                                    title="Delete Job Order"
+                                    style={{ padding: '4px 6px', fontSize: '15px' }}
+                                  >
+                                    <i className="ph ph-trash"></i>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
           </section>
         )}
 
