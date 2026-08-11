@@ -4813,44 +4813,7 @@ export default function App() {
                   {/* RIGHT SIDEBAR (30%) */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     
-                    {/* 1. Quick Actions Card */}
-                    <div style={{
-                      backgroundColor: '#FFFFFF',
-                      borderRadius: '16px',
-                      border: '1px solid #E5E7EB',
-                      padding: '20px',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
-                    }}>
-                      <h4 style={{ margin: '0 0 14px 0', fontSize: '15px', fontWeight: 800, color: '#111827', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <i className="ph ph-lightning" style={{ color: '#4F46E5' }}></i> Quick Actions
-                      </h4>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        <button onClick={() => { setEditingBill(null); setIsBillModalOpen(true); }} style={{ padding: '12px 10px', borderRadius: '10px', border: '1px solid #E5E7EB', backgroundColor: '#FAFAFC', color: '#111827', fontSize: '12.5px', fontWeight: 700, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.15s ease' }}>
-                          <i className="ph ph-receipt" style={{ fontSize: '20px', color: '#4F46E5' }}></i>
-                          <span>+ New Invoice</span>
-                        </button>
-                        <button onClick={() => { setEditingClient(null); setIsClientModalOpen(true); }} style={{ padding: '12px 10px', borderRadius: '10px', border: '1px solid #E5E7EB', backgroundColor: '#FAFAFC', color: '#111827', fontSize: '12.5px', fontWeight: 700, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.15s ease' }}>
-                          <i className="ph ph-user-plus" style={{ fontSize: '20px', color: '#10B981' }}></i>
-                          <span>+ Add Customer</span>
-                        </button>
-                        <button onClick={() => { setEditingFabric(null); setIsFabricModalOpen(true); }} style={{ padding: '12px 10px', borderRadius: '10px', border: '1px solid #E5E7EB', backgroundColor: '#FAFAFC', color: '#111827', fontSize: '12.5px', fontWeight: 700, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.15s ease' }}>
-                          <i className="ph ph-package" style={{ fontSize: '20px', color: '#9333EA' }}></i>
-                          <span>+ Purchase / Fabric</span>
-                        </button>
-                        <button onClick={openCreateJobModal} style={{ padding: '12px 10px', borderRadius: '10px', border: '1px solid #E5E7EB', backgroundColor: '#FAFAFC', color: '#111827', fontSize: '12.5px', fontWeight: 700, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.15s ease' }}>
-                          <i className="ph ph-gear-six" style={{ fontSize: '20px', color: '#F59E0B' }}></i>
-                          <span>+ Add Product Job</span>
-                        </button>
-                        <button onClick={() => { setEditingExpense(null); setIsExpenseModalOpen(true); }} style={{ padding: '12px 10px', borderRadius: '10px', border: '1px solid #E5E7EB', backgroundColor: '#FAFAFC', color: '#111827', fontSize: '12.5px', fontWeight: 700, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.15s ease' }}>
-                          <i className="ph ph-wallet" style={{ fontSize: '20px', color: '#EF4444' }}></i>
-                          <span>+ Record Expense</span>
-                        </button>
-                        <button onClick={() => setIsInvestmentModalOpen(true)} style={{ padding: '12px 10px', borderRadius: '10px', border: '1px solid #E5E7EB', backgroundColor: '#FAFAFC', color: '#111827', fontSize: '12.5px', fontWeight: 700, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.15s ease' }}>
-                          <i className="ph ph-bank" style={{ fontSize: '20px', color: '#2563EB' }}></i>
-                          <span>+ Log Capital</span>
-                        </button>
-                      </div>
-                    </div>
+
 
                     {/* 2. Outstanding Payments Card */}
                     <div style={{
