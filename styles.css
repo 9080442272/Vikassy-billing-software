@@ -457,8 +457,8 @@ button, input, select, textarea {
   color: #4F46E5 !important;
   background-color: #EEF2FF !important;
   font-weight: 600 !important;
-  border-color: #C7D2FE !important;
-  box-shadow: 0 1px 2px 0 rgba(79, 70, 229, 0.05);
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
 }
 
 .nav-item.active i {
