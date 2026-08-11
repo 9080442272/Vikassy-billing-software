@@ -1668,6 +1668,16 @@ export default function App() {
   useEffect(() => {
     if (!chartCanvasRef.current || typeof Chart === 'undefined') return;
 
+    const totalRev = bills ? bills.reduce((sum, b) => sum + (parseFloat(b.totalAmount) || parseFloat(b.grandTotal) || parseFloat(b.subtotal) || 0), 0) : 0;
+    
+    if (!bills || bills.length === 0 || totalRev === 0) {
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.destroy();
+        chartInstanceRef.current = null;
+      }
+      return;
+    }
+
     const ctx = chartCanvasRef.current.getContext('2d');
 
     if (chartInstanceRef.current) {
@@ -1680,43 +1690,59 @@ export default function App() {
 
     let labels = [];
     let dataPoints = [];
+    const dateMap = {};
 
     if (billingTrendRange === 'this-month') {
-      const dateMap = {};
-      const defaultDays = ['Jul 24', 'Jul 25', 'Jul 26', 'Jul 27', 'Jul 28', 'Jul 29'];
-      defaultDays.forEach(d => { dateMap[d] = 0; });
-
-      if (bills && bills.length > 0) {
-        bills.forEach(bill => {
-          let dayLabel = 'Jul 29';
-          if (bill.date) {
-            try {
-              const d = new Date(bill.date);
-              if (!isNaN(d.getTime())) {
-                const monthStr = d.toLocaleString('en-US', { month: 'short' });
-                const dayNum = d.getDate();
-                dayLabel = `${monthStr} ${dayNum}`;
-              }
-            } catch (e) {}
+      bills.forEach(bill => {
+        if (!bill.date) return;
+        try {
+          const d = new Date(bill.date);
+          if (!isNaN(d.getTime())) {
+            const dayLabel = d.toLocaleString('en-US', { month: 'short', day: 'numeric' });
+            const amt = parseFloat(bill.totalAmount) || parseFloat(bill.grandTotal) || parseFloat(bill.subtotal) || 0;
+            dateMap[dayLabel] = (dateMap[dayLabel] || 0) + amt;
           }
-          dateMap[dayLabel] = (dateMap[dayLabel] || 0) + (bill.totalAmount || 0);
-        });
-      }
-
+        } catch (e) {}
+      });
       labels = Object.keys(dateMap);
       dataPoints = Object.values(dateMap);
-
-      if (dataPoints.every(v => v === 0)) {
-        labels = ['Jul 24', 'Jul 25', 'Jul 26', 'Jul 27', 'Jul 28', 'Jul 29 (Today)'];
-        dataPoints = [45000, 68000, 92000, 115000, 142000, 185000];
-      }
     } else if (billingTrendRange === 'last-month') {
-      labels = ['Jun W1', 'Jun W2', 'Jun W3', 'Jun W4'];
-      dataPoints = [98000, 145000, 210000, 265000];
+      bills.forEach(bill => {
+        if (!bill.date) return;
+        try {
+          const d = new Date(bill.date);
+          if (!isNaN(d.getTime())) {
+            const weekNum = Math.ceil(d.getDate() / 7);
+            const weekLabel = `W${weekNum} (${d.toLocaleString('en-US', { month: 'short' })})`;
+            const amt = parseFloat(bill.totalAmount) || parseFloat(bill.grandTotal) || parseFloat(bill.subtotal) || 0;
+            dateMap[weekLabel] = (dateMap[weekLabel] || 0) + amt;
+          }
+        } catch (e) {}
+      });
+      labels = Object.keys(dateMap);
+      dataPoints = Object.values(dateMap);
     } else if (billingTrendRange === 'q3') {
-      labels = ['May 2026', 'June 2026', 'July 2026'];
-      const realTotal = bills.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
-      dataPoints = [520000, 718000, realTotal > 0 ? realTotal : 845846];
+      bills.forEach(bill => {
+        if (!bill.date) return;
+        try {
+          const d = new Date(bill.date);
+          if (!isNaN(d.getTime())) {
+            const monthLabel = d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+            const amt = parseFloat(bill.totalAmount) || parseFloat(bill.grandTotal) || parseFloat(bill.subtotal) || 0;
+            dateMap[monthLabel] = (dateMap[monthLabel] || 0) + amt;
+          }
+        } catch (e) {}
+      });
+      labels = Object.keys(dateMap);
+      dataPoints = Object.values(dateMap);
+    }
+
+    if (labels.length === 0) {
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.destroy();
+        chartInstanceRef.current = null;
+      }
+      return;
     }
 
     chartInstanceRef.current = new Chart(ctx, {
@@ -1741,18 +1767,9 @@ export default function App() {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        interaction: {
-          mode: 'index',
-          intersect: false,
-        },
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: '#18181B',
-            titleColor: '#FFFFFF',
-            bodyColor: '#A1A1AA',
-            borderColor: 'rgba(110, 86, 207, 0.4)',
-            borderWidth: 1,
             padding: 10,
             displayColors: false,
             callbacks: {
@@ -4478,45 +4495,65 @@ export default function App() {
 
         {/* ==================== DASHBOARD VIEW (Textile ERP System) ==================== */}
         {activeTab === 'dashboard' && (() => {
-          // Live Dynamic Metrics computed across all app collections
+          // Date Helper Functions
+          const isToday = (dateStr) => {
+            if (!dateStr) return false;
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return false;
+            const today = new Date();
+            return d.getDate() === today.getDate() &&
+                   d.getMonth() === today.getMonth() &&
+                   d.getFullYear() === today.getFullYear();
+          };
+
+          const isThisMonth = (dateStr) => {
+            if (!dateStr) return false;
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return false;
+            const today = new Date();
+            return d.getMonth() === today.getMonth() &&
+                   d.getFullYear() === today.getFullYear();
+          };
+
+          // 1. Live Dynamic Metrics computed across actual collections
+          const todayInvoices = bills.filter(b => isToday(b.date));
+          const todaySales = todayInvoices.reduce((sum, b) => sum + (parseFloat(b.totalAmount) || parseFloat(b.grandTotal) || parseFloat(b.subtotal) || 0), 0);
+
+          const monthInvoices = bills.filter(b => isThisMonth(b.date));
+          const monthlyRevenue = monthInvoices.reduce((sum, b) => sum + (parseFloat(b.totalAmount) || parseFloat(b.grandTotal) || parseFloat(b.subtotal) || 0), 0);
+
           const totalInvoicedRevenue = bills.reduce((sum, b) => sum + (parseFloat(b.totalAmount) || parseFloat(b.grandTotal) || parseFloat(b.subtotal) || 0), 0);
+
           const pendingInvoices = bills.filter(b => b.paymentStatus !== 'Paid' && b.status !== 'Paid');
           const totalPendingAmount = pendingInvoices.reduce((sum, b) => sum + (parseFloat(b.totalAmount) || parseFloat(b.grandTotal) || parseFloat(b.subtotal) || 0), 0);
-          const paidInvoices = bills.filter(b => b.paymentStatus === 'Paid' || b.status === 'Paid');
-          const totalPaidAmount = paidInvoices.reduce((sum, b) => sum + (parseFloat(b.totalAmount) || parseFloat(b.grandTotal) || parseFloat(b.subtotal) || 0), 0);
 
           const totalExpensesSum = expenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
-          const totalCapitalSourced = investmentRecords.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
 
-          const lowStockFabrics = fabrics.filter(f => (parseFloat(f.quantityReceived) || 0) < 500 || f.status === 'Low Stock');
-          const totalFabricMeters = fabrics.reduce((sum, f) => sum + (parseFloat(f.quantityReceived) || 0), 0);
+          const activeJobsList = upcomingOrders.filter(o => o.stage !== 'Completed / Delivered' && o.status !== 'Delivered' && o.status !== 'Completed');
+          const activeJobsCount = activeJobsList.length;
 
-          const totalJobsCount = upcomingOrders.length;
-          const activeJobsList = upcomingOrders.filter(o => o.status === 'In Production' || o.status === 'In Progress' || o.stage !== 'Completed');
-          const completedJobsList = upcomingOrders.filter(o => o.status === 'Delivered' || o.status === 'Completed' || o.stage === 'Completed');
-          const pendingJobsList = upcomingOrders.filter(o => o.status === 'Pending' || o.stage === 'Backlog & Cutting');
+          // 2. Profit Calculations
+          const netProfitVal = totalInvoicedRevenue - totalExpensesSum;
+          const hasRevenue = totalInvoicedRevenue > 0;
+          const netProfitMarginPct = hasRevenue ? (((totalInvoicedRevenue - totalExpensesSum) / totalInvoicedRevenue) * 100).toFixed(1) : null;
 
-          const totalEmployeesCount = employees.length;
-          const totalClientsCount = clients.length;
-
-          const collectionRate = totalInvoicedRevenue > 0 ? Math.round((totalPaidAmount / totalInvoicedRevenue) * 100) : 100;
-          const profitMarginVal = totalInvoicedRevenue - totalExpensesSum;
-
-          // Compute Client Revenue Share
-          const clientRevMap = {};
-          clients.forEach(c => { if (c.name) clientRevMap[c.name] = 0; });
+          // 3. Top Customer Rankings
+          const customerBilledMap = {};
           bills.forEach(b => {
-            const cName = b.clientName || b.client;
-            if (cName) clientRevMap[cName] = (clientRevMap[cName] || 0) + (parseFloat(b.totalAmount) || 0);
-          });
-          upcomingOrders.forEach(j => {
-            if (j.clientName && (!clientRevMap[j.clientName] || clientRevMap[j.clientName] === 0)) {
-              clientRevMap[j.clientName] = j.estimatedValue || 0;
+            const cName = b.clientName || (clients.find(c => c._id === b.clientId)?.companyName) || (clients.find(c => c._id === b.clientId)?.name) || b.client || 'Client';
+            const amount = parseFloat(b.totalAmount) || parseFloat(b.grandTotal) || parseFloat(b.subtotal) || 0;
+            if (cName) {
+              customerBilledMap[cName] = (customerBilledMap[cName] || 0) + amount;
             }
           });
 
-          const clientRevList = Object.entries(clientRevMap).map(([name, val]) => ({ name, val }));
-          const totalClientRevSum = clientRevList.reduce((s, c) => s + c.val, 0) || 1;
+          const customerBilledList = Object.entries(customerBilledMap)
+            .map(([name, totalBilled]) => ({
+              name,
+              totalBilled,
+              percent: totalInvoicedRevenue > 0 ? Math.round((totalBilled / totalInvoicedRevenue) * 100) : 0
+            }))
+            .sort((a, b) => b.totalBilled - a.totalBilled);
 
           return (
             <>
@@ -4525,29 +4562,28 @@ export default function App() {
                 {/* ==================== 1. TOP NAVIGATION HEADER ==================== */}
                 <div style={{
                   display: 'flex',
-                  justify: 'space-between',
+                  justifyContent: 'space-between',
                   alignItems: 'center',
                   flexWrap: 'wrap',
                   gap: '16px',
-                  marginBottom: '24px',
+                  marginBottom: '20px',
                   padding: '16px 20px',
                   backgroundColor: '#FFFFFF',
                   borderRadius: '16px',
                   border: '1px solid #E5E7EB',
                   boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
                 }}>
-                  {/* Left: Welcome & Business Switcher */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                     <div style={{
-                      width: '44px',
-                      height: '44px',
+                      width: '42px',
+                      height: '42px',
                       borderRadius: '12px',
                       backgroundColor: '#EEF2FF',
                       color: '#4F46E5',
                       display: 'flex',
                       alignItems: 'center',
                       justify: 'center',
-                      fontSize: '22px',
+                      fontSize: '20px',
                       fontWeight: 800
                     }}>
                       🏢
@@ -4567,35 +4603,37 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Right: Empty */}
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={() => { setEditingBill(null); setIsBillModalOpen(true); }}
+                    style={{ padding: '9px 18px', fontSize: '13px', fontWeight: 700, borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <i className="ph ph-plus" style={{ fontSize: '16px' }}></i> Create Invoice
+                  </button>
                 </div>
 
                 {/* ==================== 2. HERO KPI SECTION (4 Cards Grid) ==================== */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px' }}>
                   
                   {/* KPI 1: Today's Sales */}
                   <div style={{
                     backgroundColor: '#FFFFFF',
                     borderRadius: '14px',
                     border: '1px solid #E5E7EB',
-                    padding: '20px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-                    transition: 'all 0.2s ease'
+                    padding: '18px 20px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
                   }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                       <span style={{ fontSize: '13px', fontWeight: 600, color: '#6B7280' }}>Today's Sales</span>
-                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#ECFDF5', color: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                      <div style={{ width: '34px', height: '34px', borderRadius: '9px', backgroundColor: '#ECFDF5', color: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '17px' }}>
                         <i className="ph ph-trend-up"></i>
                       </div>
                     </div>
-                    <div style={{ fontSize: '24px', fontWeight: 800, color: '#111827', fontFamily: 'var(--font-mono)', marginBottom: '8px' }}>
-                      <AnimatedCounter isCurrency value={Math.round(totalInvoicedRevenue / 28 || 185000)} />
+                    <div style={{ fontSize: '22px', fontWeight: 800, color: '#111827', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>
+                      <AnimatedCounter isCurrency value={todaySales} />
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
-                      <span style={{ color: '#10B981', fontWeight: 700, backgroundColor: '#ECFDF5', padding: '2px 8px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
-                        <i className="ph ph-arrow-up-right"></i> +12.4%
-                      </span>
-                      <span style={{ color: '#9CA3AF' }}>vs yesterday</span>
+                    <div style={{ fontSize: '12px', color: '#6B7280' }}>
+                      {todayInvoices.length} invoice{todayInvoices.length === 1 ? '' : 's'} today
                     </div>
                   </div>
 
@@ -4604,25 +4642,21 @@ export default function App() {
                     backgroundColor: '#FFFFFF',
                     borderRadius: '14px',
                     border: '1px solid #E5E7EB',
-                    padding: '20px',
+                    padding: '18px 20px',
                     boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
+                    cursor: 'pointer'
                   }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                       <span style={{ fontSize: '13px', fontWeight: 600, color: '#6B7280' }}>Monthly Revenue</span>
-                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#EEF2FF', color: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                      <div style={{ width: '34px', height: '34px', borderRadius: '9px', backgroundColor: '#EEF2FF', color: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '17px' }}>
                         <i className="ph ph-receipt"></i>
                       </div>
                     </div>
-                    <div style={{ fontSize: '24px', fontWeight: 800, color: '#111827', fontFamily: 'var(--font-mono)', marginBottom: '8px' }}>
-                      <AnimatedCounter isCurrency value={totalInvoicedRevenue} />
+                    <div style={{ fontSize: '22px', fontWeight: 800, color: '#111827', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>
+                      <AnimatedCounter isCurrency value={monthlyRevenue} />
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
-                      <span style={{ color: '#4F46E5', fontWeight: 700, backgroundColor: '#EEF2FF', padding: '2px 8px', borderRadius: '6px' }}>
-                        +18.6% vs last month
-                      </span>
-                      <span style={{ color: '#9CA3AF' }}>(<AnimatedCounter value={bills.length} /> Bills)</span>
+                    <div style={{ fontSize: '12px', color: '#6B7280' }}>
+                      {monthInvoices.length} invoice{monthInvoices.length === 1 ? '' : 's'} this month
                     </div>
                   </div>
 
@@ -4631,25 +4665,44 @@ export default function App() {
                     backgroundColor: '#FFFFFF',
                     borderRadius: '14px',
                     border: '1px solid #E5E7EB',
-                    padding: '20px',
+                    padding: '18px 20px',
                     boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
+                    cursor: 'pointer'
                   }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                       <span style={{ fontSize: '13px', fontWeight: 600, color: '#6B7280' }}>Pending Payments</span>
-                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#FEF3C7', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                      <div style={{ width: '34px', height: '34px', borderRadius: '9px', backgroundColor: '#FEF3C7', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '17px' }}>
                         <i className="ph ph-clock-countdown"></i>
                       </div>
                     </div>
-                    <div style={{ fontSize: '24px', fontWeight: 800, color: '#111827', fontFamily: 'var(--font-mono)', marginBottom: '8px' }}>
+                    <div style={{ fontSize: '22px', fontWeight: 800, color: '#111827', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>
                       <AnimatedCounter isCurrency value={totalPendingAmount} />
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
-                      <span style={{ color: '#D97706', fontWeight: 700, backgroundColor: '#FEF3C7', padding: '2px 8px', borderRadius: '6px' }}>
-                        <AnimatedCounter value={pendingInvoices.length} /> Unpaid Invoices
-                      </span>
-                      <span style={{ color: '#9CA3AF' }}>Overdue</span>
+                    <div style={{ fontSize: '12px', color: '#D97706', fontWeight: 600 }}>
+                      {pendingInvoices.length} unpaid invoice{pendingInvoices.length === 1 ? '' : 's'}
+                    </div>
+                  </div>
+
+                  {/* KPI 4: Active Jobs */}
+                  <div onClick={() => setActiveTab('jobs')} style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '14px',
+                    border: '1px solid #E5E7EB',
+                    padding: '18px 20px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                    cursor: 'pointer'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#6B7280' }}>Active Jobs</span>
+                      <div style={{ width: '34px', height: '34px', borderRadius: '9px', backgroundColor: '#F3E8FF', color: '#9333EA', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '17px' }}>
+                        <i className="ph ph-briefcase"></i>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '22px', fontWeight: 800, color: '#111827', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>
+                      <AnimatedCounter value={activeJobsCount} /> Jobs
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#6B7280' }}>
+                      {upcomingOrders.length} total job orders
                     </div>
                   </div>
 
@@ -4666,127 +4719,159 @@ export default function App() {
                       backgroundColor: '#FFFFFF',
                       borderRadius: '16px',
                       border: '1px solid #E5E7EB',
-                      padding: '24px',
+                      padding: '20px 24px',
                       boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
                     }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
                         <div>
-                          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#111827' }}>Revenue Analytics & Financial Growth</h3>
-                          <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6B7280' }}>Real-time line chart tracking revenue, expenses, and net margins.</p>
+                          <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#111827' }}>Revenue Analytics & Financial Growth</h3>
+                          <p style={{ margin: '3px 0 0 0', fontSize: '12.5px', color: '#6B7280' }}>Data-driven financial trend tracking based on actual invoices.</p>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#F3F4F6', padding: '4px', borderRadius: '10px' }}>
-                          <button 
-                            type="button" 
-                            onClick={() => setBillingTrendRange('this-month')} 
-                            style={{
-                              padding: '6px 14px',
-                              borderRadius: '8px',
-                              fontSize: '12px',
-                              fontWeight: 700,
-                              border: 'none',
-                              backgroundColor: billingTrendRange === 'this-month' ? '#FFFFFF' : 'transparent',
-                              color: billingTrendRange === 'this-month' ? '#4F46E5' : '#4B5563',
-                              boxShadow: billingTrendRange === 'this-month' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            Daily
-                          </button>
-                          <button 
-                            type="button" 
-                            onClick={() => setBillingTrendRange('last-month')} 
-                            style={{
-                              padding: '6px 14px',
-                              borderRadius: '8px',
-                              fontSize: '12px',
-                              fontWeight: 700,
-                              border: 'none',
-                              backgroundColor: billingTrendRange === 'last-month' ? '#FFFFFF' : 'transparent',
-                              color: billingTrendRange === 'last-month' ? '#4F46E5' : '#4B5563',
-                              boxShadow: billingTrendRange === 'last-month' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            Weekly
-                          </button>
-                          <button 
-                            type="button" 
-                            onClick={() => setBillingTrendRange('q3')} 
-                            style={{
-                              padding: '6px 14px',
-                              borderRadius: '8px',
-                              fontSize: '12px',
-                              fontWeight: 700,
-                              border: 'none',
-                              backgroundColor: billingTrendRange === 'q3' ? '#FFFFFF' : 'transparent',
-                              color: billingTrendRange === 'q3' ? '#4F46E5' : '#4B5563',
-                              boxShadow: billingTrendRange === 'q3' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            Monthly
-                          </button>
-                        </div>
+                        {totalInvoicedRevenue > 0 && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: '#F3F4F6', padding: '3px', borderRadius: '9px' }}>
+                            <button 
+                              type="button" 
+                              onClick={() => setBillingTrendRange('this-month')} 
+                              style={{
+                                padding: '5px 12px',
+                                borderRadius: '7px',
+                                fontSize: '11.5px',
+                                fontWeight: 700,
+                                border: 'none',
+                                backgroundColor: billingTrendRange === 'this-month' ? '#FFFFFF' : 'transparent',
+                                color: billingTrendRange === 'this-month' ? '#4F46E5' : '#4B5563',
+                                boxShadow: billingTrendRange === 'this-month' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Daily
+                            </button>
+                            <button 
+                              type="button" 
+                              onClick={() => setBillingTrendRange('last-month')} 
+                              style={{
+                                padding: '5px 12px',
+                                borderRadius: '7px',
+                                fontSize: '11.5px',
+                                fontWeight: 700,
+                                border: 'none',
+                                backgroundColor: billingTrendRange === 'last-month' ? '#FFFFFF' : 'transparent',
+                                color: billingTrendRange === 'last-month' ? '#4F46E5' : '#4B5563',
+                                boxShadow: billingTrendRange === 'last-month' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Weekly
+                            </button>
+                            <button 
+                              type="button" 
+                              onClick={() => setBillingTrendRange('q3')} 
+                              style={{
+                                padding: '5px 12px',
+                                borderRadius: '7px',
+                                fontSize: '11.5px',
+                                fontWeight: 700,
+                                border: 'none',
+                                backgroundColor: billingTrendRange === 'q3' ? '#FFFFFF' : 'transparent',
+                                color: billingTrendRange === 'q3' ? '#4F46E5' : '#4B5563',
+                                boxShadow: billingTrendRange === 'q3' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Monthly
+                            </button>
+                          </div>
+                        )}
                       </div>
 
-                      {/* Quick Metrics Badges Bar */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '20px', padding: '14px', backgroundColor: '#F9FAFB', borderRadius: '12px', border: '1px solid #F3F4F6' }}>
+                      {/* Quick Financial Summary Bar */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '16px', padding: '12px 16px', backgroundColor: '#F9FAFB', borderRadius: '12px', border: '1px solid #F3F4F6' }}>
                         <div>
                           <span style={{ fontSize: '11px', color: '#6B7280', textTransform: 'uppercase', fontWeight: 700, display: 'block', marginBottom: '2px' }}>Total Invoiced Revenue</span>
-                          <span style={{ fontSize: '16px', fontWeight: 800, color: '#4F46E5', fontFamily: 'var(--font-mono)' }}>{formatCurrency(totalInvoicedRevenue)}</span>
+                          <span style={{ fontSize: '15px', fontWeight: 800, color: '#4F46E5', fontFamily: 'var(--font-mono)' }}>{formatCurrency(totalInvoicedRevenue)}</span>
                         </div>
                         <div>
                           <span style={{ fontSize: '11px', color: '#6B7280', textTransform: 'uppercase', fontWeight: 700, display: 'block', marginBottom: '2px' }}>Operational Expenses</span>
-                          <span style={{ fontSize: '16px', fontWeight: 800, color: '#EF4444', fontFamily: 'var(--font-mono)' }}>{formatCurrency(totalExpensesSum)}</span>
+                          <span style={{ fontSize: '15px', fontWeight: 800, color: '#EF4444', fontFamily: 'var(--font-mono)' }}>{formatCurrency(totalExpensesSum)}</span>
                         </div>
                         <div>
-                          <span style={{ fontSize: '11px', color: '#6B7280', textTransform: 'uppercase', fontWeight: 700, display: 'block', marginBottom: '2px' }}>Net Profit Margin</span>
-                          <span style={{ fontSize: '16px', fontWeight: 800, color: '#10B981', fontFamily: 'var(--font-mono)' }}>{formatCurrency(profitMarginVal)}</span>
+                          <span style={{ fontSize: '11px', color: '#6B7280', textTransform: 'uppercase', fontWeight: 700, display: 'block', marginBottom: '2px' }}>
+                            {hasRevenue ? `Net Profit Margin (${netProfitMarginPct}%)` : 'Net Profit'}
+                          </span>
+                          <span style={{ fontSize: '15px', fontWeight: 800, color: netProfitVal >= 0 ? '#10B981' : '#EF4444', fontFamily: 'var(--font-mono)' }}>
+                            {formatCurrency(netProfitVal)}
+                          </span>
                         </div>
                       </div>
 
-                      {/* Canvas Line Chart */}
-                      <div style={{ width: '100%', height: '240px', position: 'relative' }}>
-                        <canvas ref={chartCanvasRef}></canvas>
-                      </div>
+                      {/* Canvas Line Chart OR Empty State */}
+                      {totalInvoicedRevenue > 0 && bills.length > 0 ? (
+                        <div style={{ width: '100%', height: '220px', position: 'relative' }}>
+                          <canvas ref={chartCanvasRef}></canvas>
+                        </div>
+                      ) : (
+                        <div style={{ padding: '36px 20px', textAlign: 'center', backgroundColor: '#FAFAFA', borderRadius: '12px', border: '1px dashed #E2E8F0' }}>
+                          <div style={{ width: '44px', height: '44px', borderRadius: '12px', backgroundColor: '#EEF2FF', color: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', margin: '0 auto 12px auto' }}>
+                            <i className="ph ph-chart-line-up"></i>
+                          </div>
+                          <h4 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>No revenue trend available yet</h4>
+                          <p style={{ margin: '0 0 14px 0', fontSize: '12.5px', color: '#64748B' }}>Create your first invoice to start tracking revenue.</p>
+                          <button 
+                            className="btn btn-primary btn-sm" 
+                            onClick={() => { setEditingBill(null); setIsBillModalOpen(true); }}
+                            style={{ padding: '7px 16px', borderRadius: '9px', fontWeight: 700, fontSize: '12.5px' }}
+                          >
+                            <i className="ph ph-plus"></i> Create Invoice
+                          </button>
+                        </div>
+                      )}
                     </div>
 
-                    {/* 2. Sales & Buyer Performance Overview */}
+                    {/* 2. Top Customers Section */}
                     <div style={{
                       backgroundColor: '#FFFFFF',
                       borderRadius: '16px',
                       border: '1px solid #E5E7EB',
-                      padding: '24px',
+                      padding: '20px 24px',
                       boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
                     }}>
                       <div style={{ marginBottom: '16px' }}>
-                        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#111827' }}>Sales Overview & Top Buyer Performance</h3>
-                        <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6B7280' }}>Revenue distribution across registered corporate clients & buyers.</p>
+                        <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#111827' }}>Top Customers</h3>
+                        <p style={{ margin: '3px 0 0 0', fontSize: '12.5px', color: '#6B7280' }}>Ranked by total billed amount and billing volume.</p>
                       </div>
 
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                        {clientRevList.slice(0, 4).map((c, idx) => {
-                          const percent = Math.min(100, Math.round((c.val / totalClientRevSum) * 100)) || 25;
-                          const palette = ['#4F46E5', '#10B981', '#F59E0B', '#6366F1'];
-                          return (
-                            <div key={idx} onClick={() => setActiveTab('clients')} style={{ backgroundColor: '#F9FAFB', padding: '14px 16px', borderRadius: '12px', border: '1px solid #F3F4F6', cursor: 'pointer' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                <span style={{ fontWeight: 700, fontSize: '14px', color: '#111827' }}>{c.name}</span>
-                                <span style={{ fontSize: '13px', fontWeight: 800, color: palette[idx % palette.length], fontFamily: 'var(--font-mono)' }}>
-                                  {c.val > 0 ? formatCurrency(c.val) : 'Active Buyer'}
-                                </span>
+                      {customerBilledList.length === 0 ? (
+                        <div style={{ padding: '32px 20px', textAlign: 'center', backgroundColor: '#FAFAFA', borderRadius: '12px', border: '1px dashed #E2E8F0' }}>
+                          <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: '#EEF2FF', color: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', margin: '0 auto 10px auto' }}>
+                            <i className="ph ph-users-three"></i>
+                          </div>
+                          <h4 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 800, color: '#0F172A' }}>No customer sales data yet</h4>
+                          <p style={{ margin: '0', fontSize: '12px', color: '#64748B' }}>Create an invoice to start tracking customer performance.</p>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: customerBilledList.length === 1 ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+                          {customerBilledList.slice(0, 4).map((c, idx) => {
+                            const palette = ['#4F46E5', '#10B981', '#F59E0B', '#6366F1'];
+                            return (
+                              <div key={idx} onClick={() => setActiveTab('clients')} style={{ backgroundColor: '#F9FAFB', padding: '14px 16px', borderRadius: '12px', border: '1px solid #F3F4F6', cursor: 'pointer' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                  <span style={{ fontWeight: 700, fontSize: '14px', color: '#111827' }}>{c.name}</span>
+                                  <span style={{ fontSize: '13px', fontWeight: 800, color: palette[idx % palette.length], fontFamily: 'var(--font-mono)' }}>
+                                    {formatCurrency(c.totalBilled)}
+                                  </span>
+                                </div>
+                                <div style={{ height: '7px', width: '100%', backgroundColor: '#E5E7EB', borderRadius: '4px', overflow: 'hidden' }}>
+                                  <div style={{ width: `${c.percent}%`, height: '100%', backgroundColor: palette[idx % palette.length], borderRadius: '4px' }}></div>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', color: '#6B7280', marginTop: '6px' }}>
+                                  <span>Share of Total Billing</span>
+                                  <span style={{ fontWeight: 700 }}>{c.percent}%</span>
+                                </div>
                               </div>
-                              <div style={{ height: '8px', width: '100%', backgroundColor: '#E5E7EB', borderRadius: '4px', overflow: 'hidden' }}>
-                                <div style={{ width: `${percent}%`, height: '100%', backgroundColor: palette[idx % palette.length], borderRadius: '4px' }}></div>
-                              </div>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', color: '#6B7280', marginTop: '6px' }}>
-                                <span>Share of Total Billing</span>
-                                <span style={{ fontWeight: 700 }}>{percent}%</span>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
 
                   </div>
@@ -4794,9 +4879,7 @@ export default function App() {
                   {/* RIGHT SIDEBAR (30%) */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     
-
-
-                    {/* 2. Outstanding Payments Card */}
+                    {/* 1. Outstanding Payments Card */}
                     <div style={{
                       backgroundColor: '#FFFFFF',
                       borderRadius: '16px',
@@ -4807,20 +4890,69 @@ export default function App() {
                       <h4 style={{ margin: '0 0 12px 0', fontSize: '15px', fontWeight: 800, color: '#111827', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <i className="ph ph-clock-countdown" style={{ color: '#D97706' }}></i> Outstanding Payments
                       </h4>
-                      <div style={{ backgroundColor: '#FEF3C7', padding: '14px', borderRadius: '12px', border: '1px solid #FDE68A', marginBottom: '12px' }}>
-                        <div style={{ fontSize: '12px', color: '#B45309', fontWeight: 700, textTransform: 'uppercase' }}>Total Uncollected Receivables</div>
-                        <div style={{ fontSize: '22px', fontWeight: 800, color: '#92400E', fontFamily: 'var(--font-mono)', marginTop: '4px' }}>
+                      <div style={{ backgroundColor: '#FEF3C7', padding: '12px 14px', borderRadius: '12px', border: '1px solid #FDE68A', marginBottom: '12px' }}>
+                        <div style={{ fontSize: '11.5px', color: '#B45309', fontWeight: 700, textTransform: 'uppercase' }}>Total Pending Receivables</div>
+                        <div style={{ fontSize: '20px', fontWeight: 800, color: '#92400E', fontFamily: 'var(--font-mono)', marginTop: '3px' }}>
                           <AnimatedCounter isCurrency value={totalPendingAmount} />
                         </div>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', color: '#4B5563', padding: '6px 0', borderBottom: '1px solid #F3F4F6' }}>
-                        <span>Due Today</span>
-                        <strong style={{ color: '#111827' }}><AnimatedCounter isCurrency value={Math.round(totalPendingAmount * 0.4)} /></strong>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', color: '#4B5563', padding: '6px 0' }}>
-                        <span>Overdue (30+ Days)</span>
-                        <strong style={{ color: '#EF4444' }}><AnimatedCounter isCurrency value={Math.round(totalPendingAmount * 0.6)} /></strong>
-                      </div>
+
+                      {pendingInvoices.length === 0 ? (
+                        <div style={{ padding: '12px', textAlign: 'center', color: '#059669', fontSize: '12px', backgroundColor: '#ECFDF5', borderRadius: '10px', fontWeight: 600 }}>
+                          ✓ All invoices are fully settled! No pending receivables.
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {pendingInvoices.slice(0, 3).map(inv => (
+                            <div key={inv._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid #F1F5F9' }}>
+                              <div>
+                                <div style={{ fontSize: '12px', fontWeight: 700, color: '#1E293B' }}>{inv.billNumber}</div>
+                                <div style={{ fontSize: '11px', color: '#64748B' }}>{inv.clientName || 'Buyer Client'}</div>
+                              </div>
+                              <div style={{ textAlign: 'right' }}>
+                                <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#D97706', fontFamily: 'var(--font-mono)' }}>{formatCurrency(inv.totalAmount)}</div>
+                                <div style={{ fontSize: '10px', color: '#94A3B8' }}>{formatDate(inv.date)}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 2. Active Jobs Summary Card */}
+                    <div style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: '16px',
+                      border: '1px solid #E5E7EB',
+                      padding: '20px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                    }}>
+                      <h4 style={{ margin: '0 0 12px 0', fontSize: '15px', fontWeight: 800, color: '#111827', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <i className="ph ph-briefcase" style={{ color: '#4F46E5' }}></i> Active Production Jobs
+                      </h4>
+                      
+                      {activeJobsList.length === 0 ? (
+                        <div style={{ padding: '16px', textAlign: 'center', color: '#64748B', fontSize: '12px', backgroundColor: '#F8FAFC', borderRadius: '10px' }}>
+                          No active job orders in production.
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {activeJobsList.slice(0, 3).map(job => (
+                            <div key={job._id || job.id} onClick={() => setActiveTab('jobs')} style={{ padding: '10px 12px', backgroundColor: '#F8FAFC', borderRadius: '10px', border: '1px solid #F1F5F9', cursor: 'pointer' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#1E293B' }}>{job.orderTitle}</span>
+                                <span className="badge badge-purple" style={{ fontSize: '10px', fontWeight: 700 }}>
+                                  {job.stage || job.status || 'In Progress'}
+                                </span>
+                              </div>
+                              <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                                <span>🏢 {job.clientName || 'Client'}</span>
+                                <span>📅 Due: {formatDate(job.deliveryDate)}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                   </div>
@@ -4834,78 +4966,88 @@ export default function App() {
                   border: '1px solid #E5E7EB',
                   padding: '24px',
                   boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-                  marginTop: '24px',
+                  marginTop: '20px',
                   width: '100%'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
                     <div>
-                      <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#111827' }}>Recent Tax Invoices & Sales Billing</h3>
-                      <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6B7280' }}>Latest GST billing entries and quick payment settlement actions.</p>
+                      <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#111827' }}>Recent Tax Invoices & Sales Billing</h3>
+                      <p style={{ margin: '3px 0 0 0', fontSize: '12.5px', color: '#6B7280' }}>Latest GST billing entries and payment statuses.</p>
                     </div>
-                    <button className="btn btn-primary btn-sm" style={{ padding: '8px 16px', borderRadius: '10px', fontWeight: 700 }} onClick={() => { setEditingBill(null); setIsBillModalOpen(true); }}>
+                    <button className="btn btn-primary btn-sm" style={{ padding: '7px 16px', borderRadius: '9px', fontWeight: 700, fontSize: '12.5px' }} onClick={() => { setEditingBill(null); setIsBillModalOpen(true); }}>
                       <i className="ph ph-plus"></i> New Invoice
                     </button>
                   </div>
 
-                  <div className="table-responsive" style={{ width: '100%' }}>
-                    <table className="data-table" style={{ width: '100%' }}>
-                      <thead>
-                        <tr>
-                          <th>Invoice No</th>
-                          <th>Company / Buyer</th>
-                          <th>Date</th>
-                          <th className="text-right">Shipment Qty</th>
-                          <th className="text-right">Grand Total (₹)</th>
-                          <th className="text-center">Status</th>
-                          <th className="text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {bills.slice(0, 5).map(b => {
-                          const c = clients.find(cl => cl._id === b.clientId);
-                          const isPaid = (b.paymentStatus === 'Paid' || b.status === 'Paid');
-                          return (
-                            <tr key={b._id}>
-                              <td className="font-semibold text-primary">{b.billNumber}</td>
-                              <td className="font-medium">🏢 {c ? (c.companyName || c.name) : 'Corporate Client'}</td>
-                              <td className="text-muted">{formatDate(b.date)}</td>
-                              <td className="text-right font-medium">{(b.shipmentQty || b.items?.[0]?.qty || 2500).toLocaleString()} Pcs</td>
-                              <td className="text-right font-bold text-green" style={{ fontFamily: 'var(--font-mono)' }}>{formatCurrency(b.totalAmount)}</td>
-                              <td className="text-center">
-                                <span 
-                                  onClick={() => toggleBillPaymentStatus(b)} 
-                                  style={{ 
-                                    padding: '4px 10px', 
-                                    borderRadius: '12px', 
-                                    fontSize: '11px', 
-                                    fontWeight: 700, 
-                                    cursor: 'pointer',
-                                    backgroundColor: isPaid ? '#ECFDF5' : '#FEF3C7',
-                                    color: isPaid ? '#059669' : '#D97706',
-                                    border: isPaid ? '1px solid #A7F3D0' : '1px solid #FDE68A'
-                                  }}
-                                >
-                                  {isPaid ? '✓ Paid' : '⏳ Pending'}
-                                </span>
-                              </td>
-                              <td className="text-right" onClick={(e) => e.stopPropagation()}>
-                                <button className="btn btn-secondary btn-sm" onClick={() => { setViewingInvoice(b); setIsInvoiceViewOpen(true); }} style={{ padding: '4px 10px', fontSize: '12px', borderRadius: '8px' }}>
-                                  <i className="ph ph-eye"></i> View
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                        {bills.length === 0 && (
+                  {bills.length === 0 ? (
+                    <div style={{ padding: '36px 20px', textAlign: 'center', backgroundColor: '#FAFAFA', borderRadius: '12px', border: '1px dashed #E2E8F0' }}>
+                      <div style={{ width: '44px', height: '44px', borderRadius: '12px', backgroundColor: '#EEF2FF', color: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', margin: '0 auto 12px auto' }}>
+                        <i className="ph ph-receipt"></i>
+                      </div>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>No invoices yet</h4>
+                      <p style={{ margin: '0 0 14px 0', fontSize: '12.5px', color: '#64748B' }}>Create your first invoice to start tracking sales and payments.</p>
+                      <button 
+                        className="btn btn-primary btn-sm" 
+                        onClick={() => { setEditingBill(null); setIsBillModalOpen(true); }}
+                        style={{ padding: '7px 16px', borderRadius: '9px', fontWeight: 700, fontSize: '12.5px' }}
+                      >
+                        <i className="ph ph-plus"></i> Create Invoice
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="table-responsive" style={{ width: '100%' }}>
+                      <table className="data-table" style={{ width: '100%' }}>
+                        <thead>
                           <tr>
-                            <td colSpan="7" className="text-center text-muted" style={{ padding: '24px' }}>
-                              No invoices generated yet. Click "+ New Invoice" to record sales billing.
-                            </td>
+                            <th>Invoice No</th>
+                            <th>Company / Buyer</th>
+                            <th>Date</th>
+                            <th className="text-right">Shipment Qty</th>
+                            <th className="text-right">Grand Total (₹)</th>
+                            <th className="text-center">Status</th>
+                            <th className="text-right">Actions</th>
                           </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
+                        </thead>
+                        <tbody>
+                          {bills.slice(0, 5).map(b => {
+                            const c = clients.find(cl => cl._id === b.clientId);
+                            const isPaid = (b.paymentStatus === 'Paid' || b.status === 'Paid');
+                            return (
+                              <tr key={b._id}>
+                                <td className="font-semibold text-primary">{b.billNumber}</td>
+                                <td className="font-medium">{c ? (c.companyName || c.name) : (b.clientName || 'Corporate Client')}</td>
+                                <td className="text-muted">{formatDate(b.date)}</td>
+                                <td className="text-right font-medium">{(b.shipmentQty || b.items?.[0]?.qty || 2500).toLocaleString()} Pcs</td>
+                                <td className="text-right font-bold text-green" style={{ fontFamily: 'var(--font-mono)' }}>{formatCurrency(b.totalAmount)}</td>
+                                <td className="text-center">
+                                  <span 
+                                    onClick={() => toggleBillPaymentStatus(b)} 
+                                    style={{ 
+                                      padding: '4px 10px', 
+                                      borderRadius: '12px', 
+                                      fontSize: '11px', 
+                                      fontWeight: 700, 
+                                      cursor: 'pointer',
+                                      backgroundColor: isPaid ? '#ECFDF5' : '#FEF3C7',
+                                      color: isPaid ? '#059669' : '#D97706',
+                                      border: isPaid ? '1px solid #A7F3D0' : '1px solid #FDE68A'
+                                    }}
+                                  >
+                                    {isPaid ? '✓ Paid' : '⏳ Pending'}
+                                  </span>
+                                </td>
+                                <td className="text-right" onClick={(e) => e.stopPropagation()}>
+                                  <button className="btn btn-secondary btn-sm" onClick={() => { setViewingInvoice(b); setIsInvoiceViewOpen(true); }} style={{ padding: '4px 10px', fontSize: '12px', borderRadius: '8px' }}>
+                                    <i className="ph ph-eye"></i> View
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               </section>
             </>
