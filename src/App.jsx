@@ -5805,10 +5805,6 @@ export default function App() {
                 <p className="subtitle">Log transactional bills, print tax compliance layouts, and track scanned receipts.</p>
               </div>
               <div className="header-actions">
-                <button className="siri-btn-gradient" onClick={startVoiceAssistant} title="Siri Voice Assistant">
-                  <div className="siri-orb-icon"></div>
-                  <span>Ask Siri</span>
-                </button>
                 <button className="btn btn-primary" onClick={() => setIsBillModalOpen(true)}>
                   <i className="ph ph-plus-circle"></i> Record Invoice
                 </button>
@@ -9318,41 +9314,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Siri Floating Orb Trigger Button */}
-      <div 
-        className="no-print"
-        onClick={startVoiceAssistant}
-        title="Open Siri Voice AI Assistant"
-        style={{
-          position: 'fixed',
-          bottom: '88px',
-          right: '24px',
-          zIndex: 999,
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          padding: '10px 16px',
-          borderRadius: '30px',
-          background: 'linear-gradient(135deg, #7C3AED 0%, #EC4899 50%, #3B82F6 100%)',
-          boxShadow: '0 8px 24px rgba(124, 58, 237, 0.4)',
-          color: '#ffffff',
-          fontWeight: 700,
-          fontSize: '13px',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-        }}
-      >
-        <div style={{
-          width: '10px',
-          height: '10px',
-          borderRadius: '50%',
-          backgroundColor: '#ffffff',
-          boxShadow: '0 0 10px #ffffff',
-          animation: 'pulse 1.5s infinite'
-        }} />
-        <i className="ph-fill ph-microphone" style={{ fontSize: '16px' }}></i>
-        <span>Siri Voice</span>
-      </div>
+
 
       {/* Log Upcoming Order Modal */}
       {isOrderModalOpen && (
@@ -10282,142 +10244,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Persistent Ambient Floating Siri Bottom Bar (Modal-Free & Perfectly Aligned) */}
-      {isSiriFloatingBarOpen && (
-        <div className="floating-siri-bar shadow-2xl no-print" style={{
-          position: 'fixed',
-          bottom: '24px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 99999,
-          backgroundColor: 'rgba(18, 18, 20, 0.96)',
-          backdropFilter: 'blur(20px)',
-          color: '#ffffff',
-          borderRadius: '24px',
-          padding: '12px 18px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '10px',
-          border: '1px solid rgba(124, 58, 237, 0.45)',
-          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(124, 58, 237, 0.35)',
-          width: '92%',
-          maxWidth: '580px',
-          boxSizing: 'border-box'
-        }}>
-          {/* Main Siri Status & Action Row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
-            {/* Animated Apple Siri Glowing Orb */}
-            <div
-              onClick={startVoiceAssistant}
-              style={{ cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              title="Click to Speak to Siri"
-            >
-              <div className="siri-orb-icon siri-orb-icon-lg"></div>
-            </div>
 
-            {/* Transcript & Status Text */}
-            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span className="pulse-dot" style={{ width: '8px', height: '8px', backgroundColor: isVoiceListening ? '#10B981' : '#F59E0B', borderRadius: '50%', display: 'inline-block', flexShrink: 0 }}></span>
-                <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)' }}>
-                  {isVoiceListening ? 'Siri Listening Live...' : voiceStatus === 'success' ? 'Live Action Completed' : 'Siri Ambient Voice AI'}
-                </span>
-              </div>
-              <div style={{ fontSize: '12.5px', fontWeight: 600, color: '#F4F4F5', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {voiceTranscript ? `"${voiceTranscript}"` : voiceMessage || 'Say e.g. "create job" or "mark attendance"'}
-              </div>
-            </div>
-
-            {/* Execute Speech Button */}
-            {voiceTranscript && (
-              <button
-                onClick={() => processVoiceCommand(voiceTranscript)}
-                style={{ backgroundColor: '#6E56CF', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}
-              >
-                Run
-              </button>
-            )}
-
-            {/* Close Button */}
-            <button
-              onClick={() => { setIsSiriFloatingBarOpen(false); stopVoiceAssistant(); }}
-              style={{ background: 'none', border: 'none', color: '#A1A1AA', cursor: 'pointer', padding: '4px', fontSize: '18px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              title="Close Siri"
-            >
-              <i className="ph ph-x"></i>
-            </button>
-          </div>
-
-          {/* ElevenLabs Siri AI Voice Engine Control Row */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 12px', backgroundColor: 'rgba(124, 58, 237, 0.15)', borderRadius: '16px', border: '1px solid rgba(124, 58, 237, 0.3)', gap: '8px', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 700, color: '#D8B4FE' }}>
-              <i className="ph ph-microphone-stage" style={{ fontSize: '14px', color: '#A78BFA' }}></i>
-              <span>ElevenLabs Siri AI Voice:</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <select
-                value={elevenVoiceId}
-                onChange={(e) => {
-                  const newVoice = e.target.value;
-                  setElevenVoiceId(newVoice);
-                  localStorage.setItem('varahi_eleven_voice', newVoice);
-                  speakText("Switched ElevenLabs Siri voice model.");
-                }}
-                style={{ backgroundColor: 'rgba(0,0,0,0.6)', color: '#F4F4F5', border: '1px solid rgba(167, 139, 250, 0.4)', borderRadius: '8px', fontSize: '11px', padding: '3px 8px', fontWeight: 600, outline: 'none' }}
-              >
-                <option value="21m00Tcm4TlvDq8ikWAM">👩 Rachel (Siri Female HD)</option>
-                <option value="pNInz6obpgDQGcFmaJgB">👨 Adam (Siri Male HD)</option>
-                <option value="EXAVITQu4vr4xnSDxMaL">👩 Bella (Siri Expressive HD)</option>
-                <option value="TxGEqnHWrfWFTfGW9XjX">👨 Josh (Siri Narrative HD)</option>
-                <option value="AZnzlk1XvdvUeBnXmlld">👩 Domi (Siri Confident HD)</option>
-              </select>
-
-              {!elevenApiKey.trim() ? (
-                <input
-                  type="password"
-                  placeholder="Paste ElevenLabs Key for HD Voice"
-                  value={elevenApiKey}
-                  onChange={(e) => {
-                    setElevenApiKey(e.target.value);
-                    localStorage.setItem('varahi_eleven_key', e.target.value);
-                  }}
-                  style={{ backgroundColor: 'rgba(0,0,0,0.6)', color: '#fff', border: '1px solid rgba(167, 139, 250, 0.5)', borderRadius: '8px', fontSize: '10.5px', padding: '3px 8px', width: '170px' }}
-                />
-              ) : (
-                <span style={{ fontSize: '10.5px', color: '#34D399', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  ✓ ElevenLabs HD Siri Active
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Quick Voice Command Chips Bar - EXACTLY 2 EXAMPLES */}
-          <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-            <button
-              type="button"
-              onClick={() => {
-                const cmd = "open employee tab";
-                setVoiceInputManual(cmd);
-                processVoiceCommand(cmd);
-              }}
-              style={{ flex: 1, fontSize: '11px', padding: '6px 10px', borderRadius: '12px', backgroundColor: 'rgba(124, 58, 237, 0.2)', color: '#D8B4FE', border: '1px solid rgba(124, 58, 237, 0.4)', fontWeight: 600, cursor: 'pointer', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-            >
-              🎙️ "open employee tab"
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const cmd = "enter srimathi as a new employee";
-                setVoiceInputManual(cmd);
-                processVoiceCommand(cmd);
-              }}
-              style={{ flex: 1, fontSize: '11px', padding: '6px 10px', borderRadius: '12px', backgroundColor: 'rgba(236, 72, 153, 0.2)', color: '#FBCFE8', border: '1px solid rgba(236, 72, 153, 0.4)', fontWeight: 600, cursor: 'pointer', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-            >
-              🎙️ "enter srimathi as a new employee"
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* UNIVERSAL LINEAR-STYLED DELETE CONFIRMATION MODAL */}
       {deleteConfirmState.isOpen && (
