@@ -4073,13 +4073,18 @@ export default function App() {
             <i className="ph ph-users-three" aria-hidden="true"></i>
             <span>Clients</span>
           </button>
-          <button className={`nav-item ${activeTab === 'jobs' ? 'active' : ''}`} aria-current={activeTab === 'jobs' ? 'page' : undefined} aria-label="Navigate to Jobs" onClick={() => handleTabChange('jobs')}>
-            <i className="ph ph-briefcase" aria-hidden="true"></i>
-            <span>Jobs</span>
-          </button>
           <button className={`nav-item ${activeTab === 'bills' ? 'active' : ''}`} aria-current={activeTab === 'bills' ? 'page' : undefined} aria-label="Navigate to Invoices" onClick={() => handleTabChange('bills')}>
             <i className="ph ph-receipt" aria-hidden="true"></i>
             <span>Invoice</span>
+          </button>
+
+          {/* Operations Group */}
+          <div style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '14px 8px 4px 8px' }}>
+            Operations ▾
+          </div>
+          <button className={`nav-item ${activeTab === 'jobs' ? 'active' : ''}`} aria-current={activeTab === 'jobs' ? 'page' : undefined} aria-label="Navigate to Jobs" onClick={() => handleTabChange('jobs')}>
+            <i className="ph ph-briefcase" aria-hidden="true"></i>
+            <span>Jobs</span>
           </button>
 
           {/* Workforce Group */}
