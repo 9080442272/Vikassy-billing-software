@@ -5158,100 +5158,13 @@ export default function App() {
                             </div>
                             <div className="kanban-card-footer">
                               <span style={{ fontWeight: 700, color: 'var(--color-success)' }}><i className="ph ph-currency-inr" style={{ fontSize: '12px' }}></i> {formatCurrency(order.estimatedValue)}</span>
-                              <span className="badge badge-success" style={{ fontSize: '10px', display: 'flex', alignItems: 'center', gap: '3px' }}><i className="ph ph-truck"></i> Dispatched</span>
+                              <span className="badge badge-success" style={{ fontSize: '10px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}><i className="ph ph-truck"></i> Dispatched</span>
                             </div>
                           </div>
                         ))}
                     </div>
                   </div>
 
-                </div>
-
-              </div>
-            ) : upcomingOrders.length === 0 ? (
-              <LinearEmptyState 
-                icon="ph-briefcase"
-                title="No production job orders assigned to you"
-                description="Get started by creating your first garment production job order to track cutting, stitching, QC, and dispatch."
-                actionLabel="Create new job order"
-                onAction={openCreateJobModal}
-                hasBorder={true}
-              />
-            ) : (
-              <div className="table-card bg-surface border desktop-table-container" style={{ marginTop: '10px' }}>
-                <div className="table-responsive">
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>Job Title / Order Description</th>
-                        <th>Style #</th>
-                        <th>Client Name</th>
-                        <th>Order & Shipment Qty</th>
-                        <th>Delivery Due Date</th>
-                        <th>Estimated Value</th>
-                        <th>Status</th>
-                        <th className="text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {upcomingOrders
-                        .filter(o => {
-                          const matchesSearch = !kanbanSearchQuery || 
-                            (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) ||
-                            (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) ||
-                            (o.product && o.product.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
-                          const matchesPriority = kanbanPriorityFilter === 'All' || o.priority === kanbanPriorityFilter;
-                          return matchesSearch && matchesPriority;
-                        })
-                        .map(order => (
-                          <tr key={order._id} style={{ cursor: 'pointer' }} onClick={() => openViewEditJobModal(order)}>
-                            <td className="font-semibold">{order.orderTitle}</td>
-                            <td>
-                              <span className="badge badge-purple" style={{ fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
-                                {order.styleNumber || 'ST-2026-01'}
-                              </span>
-                            </td>
-                            <td>{order.clientName}</td>
-                            <td>
-                              <div style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
-                                {order.orderQty ? order.orderQty.toLocaleString() : (order.quantity || 2500).toLocaleString()} Pcs
-                              </div>
-                              <div style={{ fontSize: '10.5px', color: 'var(--color-text-secondary)' }}>
-                                Ship Qty: {order.shipmentQty ? order.shipmentQty.toLocaleString() : (order.quantity || 2500).toLocaleString()} Pcs
-                              </div>
-                            </td>
-                            <td>{formatDate(order.deliveryDate)}</td>
-                            <td className="font-bold text-primary" style={{ fontFamily: 'var(--font-mono)' }}>{formatCurrency(order.estimatedValue)}</td>
-                            <td>
-                              <span className={`badge ${order.status === 'In Production' ? 'badge-warning' : order.status === 'Delivered' ? 'badge-success' : 'badge-info'}`}>
-                                {order.status}
-                              </span>
-                            </td>
-                            <td className="text-right" onClick={(e) => e.stopPropagation()}>
-                              <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
-                                <button 
-                                  type="button"
-                                  className="btn btn-secondary btn-sm" 
-                                  onClick={(e) => { e.stopPropagation(); openViewEditJobModal(order); }}
-                                  title="View Job Order Details"
-                                  style={{ padding: '5px 12px', fontSize: '12px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '5px', borderRadius: '8px' }}
-                                >
-                                  <i className="ph ph-eye" style={{ fontSize: '14px' }}></i> View
-                                </button>
-                                <button 
-                                  className="btn-icon text-red" 
-                                  onClick={() => deleteUpcomingOrder(order._id, order)}
-                                  title="Delete Job Order"
-                                  style={{ padding: '4px 6px', fontSize: '15px' }}
-                                >
-                                  <i className="ph ph-trash"></i>
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
                 </div>
               </div>
           </section>
