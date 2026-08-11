@@ -4098,7 +4098,7 @@ export default function App() {
           </div>
           <button className={`nav-item ${activeTab === 'notifications' ? 'active' : ''}`} onClick={() => handleTabChange('notifications')}>
             <i className="ph ph-bell"></i>
-            <span>Notifications</span>
+            <span>Global Notification Center</span>
           </button>
           <button className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => handleTabChange('settings')}>
             <i className="ph ph-gear"></i>
@@ -5266,8 +5266,8 @@ export default function App() {
           <section id="notifications-view" className="tab-view active">
             <header className="view-header">
               <div>
-                <h1>System Notifications & Alerts</h1>
-                <p className="subtitle">Real-time alerts for job dispatches, attendance anomalies, and salary payouts.</p>
+                <h1>Global Notification Center</h1>
+                <p className="subtitle">Real-time activity audit stream, system alerts, job dispatches, and salary payout events across all branches.</p>
               </div>
               <button className="btn btn-secondary" onClick={() => alert("All notifications marked as read!")}>
                 <i className="ph ph-checks"></i> Mark All as Read
