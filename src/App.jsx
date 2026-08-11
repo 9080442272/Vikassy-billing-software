@@ -496,13 +496,9 @@ export default function App() {
   const [localAttendance, setLocalAttendance] = useState(() => {
     try {
       const saved = localStorage.getItem('varahi_local_attendance');
-      return saved ? JSON.parse(saved) : [
-        { _id: 'att_1', empName: "Balasubramainan", role: "CEO", shift: "Morning Shift (08:00 - 17:00)", checkIn: "08:00 AM", status: "Present", date: new Date().toISOString().split('T')[0] }
-      ];
+      return saved ? JSON.parse(saved) : [];
     } catch(e) {
-      return [
-        { _id: 'att_1', empName: "Balasubramainan", role: "CEO", shift: "Morning Shift (08:00 - 17:00)", checkIn: "08:00 AM", status: "Present", date: new Date().toISOString().split('T')[0] }
-      ];
+      return [];
     }
   });
   const [customLocalJobs, setCustomLocalJobs] = useState(() => {
@@ -990,12 +986,7 @@ export default function App() {
   };
 
   // Linear Audit Stream & Event Logs
-  const [activityAuditLogs, setActivityAuditLogs] = useState([
-    { id: 1, user: "Vikashini Balasubramanian", action: "Created GST Invoice", target: "#VE-2026-084 (₹1,85,000)", time: "10 mins ago", icon: "ph-receipt", color: "#5E6AD2" },
-    { id: 2, user: "Kartick (Master Tailor)", action: "Moved Production Job", target: "#JOB-102 to QC Inspection", time: "25 mins ago", icon: "ph-scissors", color: "#10B981" },
-    { id: 3, user: "Billing Accountant", action: "Registered Buyer Profile", target: "Apex Denim Exports Ltd.", time: "1 hour ago", icon: "ph-user-plus", color: "#F59E0B" },
-    { id: 4, user: "System Auto-Runner", action: "Triggered Webhook Delivery", target: "GST Portal E-Way Sync (200 OK)", time: "2 hours ago", icon: "ph-lightning", color: "#8B5CF6" }
-  ]);
+  const [activityAuditLogs, setActivityAuditLogs] = useState([]);
 
   const [clientsSubTab, setClientsSubTab] = useState('list'); // 'list' | 'details' | 'active-jobs' | 'completed-jobs' | 'documents'
   const [selectedClientDetail, setSelectedClientDetail] = useState(null);
@@ -1022,27 +1013,17 @@ export default function App() {
   const [advSelectedClient, setAdvSelectedClient] = useState('');
   const [isDisbursePayrollModalOpen, setIsDisbursePayrollModalOpen] = useState(false);
 
-  const [advanceRecords, setAdvanceRecords] = useState([
-    { id: 1, empName: "Balasubramainan", date: new Date().toISOString().split('T')[0], type: "Executive Advance", amount: 5000, mode: "Bank Transfer", notes: "Executive travel allowance" }
-  ]);
+  const [advanceRecords, setAdvanceRecords] = useState([]);
 
-  const [payrollRecords, setPayrollRecords] = useState([
-    { id: 1, empName: "Balasubramainan", month: "July 2026", baseSalary: 75000, bonus: 10000, deductions: 0, netPayable: 85000, status: "Disbursed & Paid", date: new Date().toISOString().split('T')[0] }
-  ]);
+  const [payrollRecords, setPayrollRecords] = useState([]);
 
   // Capital Sourcing & Order Investment States
   const [investmentRecords, setInvestmentRecords] = useState(() => {
     try {
       const saved = localStorage.getItem('varahi_investment_records');
-      return saved ? JSON.parse(saved) : [
-        { id: 1, date: new Date().toISOString().split('T')[0], type: "CEO brought amount from MD to run order", amount: 300000, linkedOrder: "Style #ST-2026-01 (Apex Denim Exports)" },
-        { id: 2, date: new Date().toISOString().split('T')[0], type: "CEO brought loan for working capital", amount: 250000, linkedOrder: "General Factory Operational Fund" }
-      ];
+      return saved ? JSON.parse(saved) : [];
     } catch (e) {
-      return [
-        { id: 1, date: new Date().toISOString().split('T')[0], type: "CEO brought amount from MD to run order", amount: 300000, linkedOrder: "Style #ST-2026-01 (Apex Denim Exports)" },
-        { id: 2, date: new Date().toISOString().split('T')[0], type: "CEO brought loan for working capital", amount: 250000, linkedOrder: "General Factory Operational Fund" }
-      ];
+      return [];
     }
   });
 
@@ -1056,12 +1037,7 @@ export default function App() {
   const [operationalExpenses, setOperationalExpenses] = useState(() => {
     try {
       const saved = localStorage.getItem('varahi_operational_expenses');
-      return saved ? JSON.parse(saved) : [
-        { id: 1, date: new Date().toISOString().split('T')[0], category: "Company Rent / Factory Lease", amount: 25000, mode: "Bank Transfer", voucherNo: "RENT-AUG-2026", fundedByCapitalSource: "CEO brought loan for working capital", notes: "Monthly Factory Rent for Main Unit" },
-        { id: 2, date: new Date().toISOString().split('T')[0], category: "EB Electricity Bill", amount: 8450, mode: "UPI / GPay", voucherNo: "EB-987452", fundedByCapitalSource: "CEO brought amount from MD to run order", notes: "Electricity bill for Stitching & Cutting Floor" },
-        { id: 3, date: new Date().toISOString().split('T')[0], category: "Auto & Freight Charges", amount: 1200, mode: "Cash", voucherNo: "AUTO-441", fundedByCapitalSource: "CEO brought loan for working capital", notes: "Fabric transport auto charges to dyeing unit" },
-        { id: 4, date: new Date().toISOString().split('T')[0], category: "Petrol & Diesel Fuel", amount: 1500, mode: "UPI / GPay", voucherNo: "PETROL-09", fundedByCapitalSource: "", notes: "Company vehicle fuel for delivery dispatch" }
-      ];
+      return saved ? JSON.parse(saved) : [];
     } catch (e) {
       return [];
     }
@@ -1109,17 +1085,15 @@ export default function App() {
 
   // Settings Modules Data States
   const [systemUsers, setSystemUsers] = useState([
-    { id: 1, name: "Vikashini Balasubramanian", email: "vikashini@varahiexport.com", role: "Administrator (Full Access)", status: "Active" },
-    { id: 2, name: "Production Auditor", email: "auditor@varahiexport.com", role: "Production Supervisor", status: "Active" },
-    { id: 3, name: "Billing Accountant", email: "billing@varahiexport.com", role: "Billing Accountant", status: "Active" }
+    { id: 1, name: "Vikashini Balasubramanian", email: "varahi.export@gmail.com", role: "Administrator (Full Access)", status: "Active" }
   ]);
 
   const [systemDepartments, setSystemDepartments] = useState([
-    { id: 1, name: "Stitching & Sewing", head: "Kartick", staffCount: "24 Members", location: "Unit 1 - Main Floor" },
-    { id: 2, name: "Cutting & Master Unit", head: "Ramesh Kumar", staffCount: "8 Members", location: "Unit 1 - Ground Floor" },
-    { id: 3, name: "Quality Control (QC)", head: "Srimathi", staffCount: "6 Members", location: "Unit 2 - Inspection" },
-    { id: 4, name: "Packing & Dispatch", head: "Anitha Devi", staffCount: "10 Members", location: "Unit 2 - Warehouse" },
-    { id: 5, name: "Finance & Accounts", head: "Vikashini B.", staffCount: "3 Members", location: "Executive Suite" }
+    { id: 1, name: "Stitching & Sewing", head: "Production Lead", staffCount: "0 Members", location: "Unit 1 - Main Floor" },
+    { id: 2, name: "Cutting & Master Unit", head: "Cutting Master", staffCount: "0 Members", location: "Unit 1 - Ground Floor" },
+    { id: 3, name: "Quality Control (QC)", head: "QC Inspector", staffCount: "0 Members", location: "Unit 2 - Inspection" },
+    { id: 4, name: "Packing & Dispatch", head: "Packing Lead", staffCount: "0 Members", location: "Unit 2 - Warehouse" },
+    { id: 5, name: "Finance & Accounts", head: "Accounts Lead", staffCount: "0 Members", location: "Executive Suite" }
   ]);
 
   const [jobCategoriesList, setJobCategoriesList] = useState([
@@ -8954,7 +8928,7 @@ export default function App() {
                     {employees.map(e => (
                       <option key={e._id} value={e.name}>{e.name} ({e.role})</option>
                     ))}
-                    {employees.length === 0 && <option value="Balasubramainan">Balasubramainan (CEO)</option>}
+                    {employees.length === 0 && <option value="">-- No Employees Found --</option>}
                   </select>
                 </div>
                 <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -9050,7 +9024,7 @@ export default function App() {
                     {employees.map(e => (
                       <option key={e._id} value={e.name}>{e.name} ({e.role})</option>
                     ))}
-                    {employees.length === 0 && <option value="Balasubramainan">Balasubramainan (CEO)</option>}
+                    {employees.length === 0 && <option value="">-- No Employees Found --</option>}
                   </select>
                 </div>
 
@@ -9128,7 +9102,7 @@ export default function App() {
 
       {/* Disburse Weekly Payout Modal */}
       {isDisbursePayrollModalOpen && (() => {
-        const targetEmpName = selectedDisburseEmp || (employees[0]?.name || "Balasubramainan");
+        const targetEmpName = selectedDisburseEmp || (employees[0]?.name || "");
         const empAdvanceList = advanceRecords.filter(a => a.empName === targetEmpName);
         const totalAdvanceTaken = empAdvanceList.reduce((sum, a) => sum + (parseFloat(a.amount) || 0), 0);
         const totalAdvanceDeducted = payrollRecords.filter(p => p.empName === targetEmpName).reduce((sum, p) => sum + (parseFloat(p.deductions) || 0), 0);
@@ -9206,7 +9180,7 @@ export default function App() {
                         </option>
                       );
                     })}
-                    {employees.length === 0 && <option value="Balasubramainan">Balasubramainan (CEO)</option>}
+                    {employees.length === 0 && <option value="">-- No Employees Found --</option>}
                   </select>
                 </div>
 
@@ -10044,7 +10018,7 @@ export default function App() {
                 <div style={{ backgroundColor: 'var(--color-surface)', padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
                   <span style={{ fontSize: '10px', color: 'var(--color-text-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>2. Staff Assignment</span>
                   <div style={{ fontSize: '12px', fontWeight: 700, color: '#3B82F6', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <i className="ph ph-user"></i> {selectedJobModal.assignedWorker || 'Kartick (Master Lead)'}
+                    <i className="ph ph-user"></i> {selectedJobModal.assignedWorker || 'Production Lead'}
                   </div>
                 </div>
                 <div style={{ backgroundColor: 'var(--color-surface)', padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
@@ -10113,7 +10087,7 @@ export default function App() {
                         </div>
                         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
                           <span style={{ color: '#F59E0B', fontWeight: 800, flexShrink: 0 }}>• Floor & Worker Dispatch:</span>
-                          <span>Stitching floor lead <strong>{selectedJobModal.assignedWorker || 'Kartick'}</strong> is operating at peak capacity. Allocating 2 helper stitchers during assembly will speed up throughput by +18%.</span>
+                          <span>Stitching floor lead <strong>{selectedJobModal.assignedWorker || 'Production Lead'}</strong> is operating at peak capacity. Allocating 2 helper stitchers during assembly will speed up throughput by +18%.</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
                           <span style={{ color: '#5E6AD2', fontWeight: 800, flexShrink: 0 }}>• Margin Target Optimization:</span>
