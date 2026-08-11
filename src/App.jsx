@@ -4976,15 +4976,17 @@ export default function App() {
                 <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 800 }}>Jobs & Production Orders</h1>
                 <p className="subtitle" style={{ margin: '4px 0 0 0', color: 'var(--color-text-secondary)' }}>Track export manufacturing jobs, daily progress, staff assignments, and delays.</p>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <button 
-                  className="btn btn-primary" 
-                  onClick={openCreateJobModal}
-                  style={{ padding: '10px 20px', fontSize: '13.5px', fontWeight: 800, borderRadius: '12px', boxShadow: '0 4px 14px rgba(94, 106, 210, 0.35)', display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
-                >
-                  <i className="ph ph-plus-circle" style={{ fontSize: '18px' }}></i> Create New Job Order
-                </button>
-              </div>
+              {upcomingOrders.length > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={openCreateJobModal}
+                    style={{ padding: '10px 20px', fontSize: '13.5px', fontWeight: 800, borderRadius: '12px', boxShadow: '0 4px 14px rgba(94, 106, 210, 0.35)', display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+                  >
+                    <i className="ph ph-plus-circle" style={{ fontSize: '18px' }}></i> Create New Job Order
+                  </button>
+                </div>
+              )}
             </header>
 
             {jobsViewMode === 'board' ? (
@@ -5685,9 +5687,11 @@ export default function App() {
                 <h1>Clients Registry</h1>
                 <p className="subtitle">Manage external buyer profiles, registered addresses, and buyer GSTIN details.</p>
               </div>
-              <button className="btn btn-primary" onClick={() => setIsClientModalOpen(true)}>
-                <i className="ph ph-plus-circle"></i> Register Client
-              </button>
+              {clients.length > 0 && (
+                <button className="btn btn-primary" onClick={() => setIsClientModalOpen(true)}>
+                  <i className="ph ph-plus-circle"></i> Register Client
+                </button>
+              )}
             </header>
 
             <div className="search-filter-row" style={{ marginBottom: '20px' }}>
@@ -5804,11 +5808,13 @@ export default function App() {
                 <h1>Invoices & Billings</h1>
                 <p className="subtitle">Log transactional bills, print tax compliance layouts, and track scanned receipts.</p>
               </div>
-              <div className="header-actions">
-                <button className="btn btn-primary" onClick={() => setIsBillModalOpen(true)}>
-                  <i className="ph ph-plus-circle"></i> Record Invoice
-                </button>
-              </div>
+              {bills.length > 0 && (
+                <div className="header-actions">
+                  <button className="btn btn-primary" onClick={() => setIsBillModalOpen(true)}>
+                    <i className="ph ph-plus-circle"></i> Record Invoice
+                  </button>
+                </div>
+              )}
             </header>
 
             <div className="search-filter-row" style={{ marginBottom: '20px', display: 'flex', gap: '12px' }}>
@@ -5996,11 +6002,13 @@ export default function App() {
                 <h1>Stitching Crew Management</h1>
                 <p className="subtitle">Register stitching staff, log daily attendance, manage advances & disburse weekly payouts.</p>
               </div>
-              <div className="header-actions">
-                <button className="btn btn-primary" onClick={() => setIsEmployeeModalOpen(true)}>
-                  <i className="ph ph-user-plus"></i> Register Employee
-                </button>
-              </div>
+              {employees.length > 0 && (
+                <div className="header-actions">
+                  <button className="btn btn-primary" onClick={() => setIsEmployeeModalOpen(true)}>
+                    <i className="ph ph-user-plus"></i> Register Employee
+                  </button>
+                </div>
+              )}
             </header>
 
             <div className="sub-tab-bar">
