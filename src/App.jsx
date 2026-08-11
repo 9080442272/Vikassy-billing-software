@@ -4872,64 +4872,39 @@ export default function App() {
                             return matchesSearch;
                           })
                           .map((order) => (
-                            <tr key={order._id || order.id} style={{ cursor: 'pointer' }} onClick={() => openViewEditJobModal(order)}>
-                              <td>
-                                <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '14px' }}>{order.orderTitle}</div>
+                            <tr key={order._id || order.id}>
+                              <td className="font-semibold">
+                                {order.orderTitle}
                                 {order.styleNumber && (
-                                  <span className="badge badge-purple" style={{ fontSize: '11px', fontWeight: 700, fontFamily: 'var(--font-mono)', marginTop: '2px', display: 'inline-block' }}>
-                                    {order.styleNumber}
-                                  </span>
+                                  <div style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', fontWeight: 500, marginTop: '2px' }}>
+                                    Style #{order.styleNumber}
+                                  </div>
                                 )}
                               </td>
-                              <td>
-                                <span style={{ fontWeight: 600, color: '#4F46E5', fontSize: '13px' }}>🏢 {order.clientName}</span>
-                              </td>
-                              <td>
-                                <span style={{ fontSize: '13px', color: '#334155' }}>👕 {order.product || 'Knitwear / Apparel'}</span>
-                              </td>
-                              <td>
-                                <span className="badge badge-purple" style={{ fontSize: '12px', fontWeight: 700 }}>
-                                  {order.quantity ? order.quantity.toLocaleString() : (order.orderQty || 2500).toLocaleString()} Pcs
-                                </span>
-                              </td>
-                              <td>
-                                <span style={{ fontSize: '13px', fontWeight: 600, color: '#1E293B', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                                  📅 {formatDate(order.deliveryDate)}
-                                </span>
-                              </td>
+                              <td>{order.clientName || '-'}</td>
+                              <td>{order.product || 'Knitwear / Apparel'}</td>
+                              <td>{order.quantity ? order.quantity.toLocaleString() + ' Pcs' : (order.orderQty || 2500).toLocaleString() + ' Pcs'}</td>
+                              <td>{formatDate(order.deliveryDate)}</td>
                               <td>
                                 <span className={`badge ${
                                   order.stage === 'Completed / Delivered' || order.status === 'Delivered' ? 'badge-success' :
                                   order.stage === 'Packing & Ready' || order.status === 'Ready' ? 'badge-purple' :
                                   order.stage === 'QC Inspection' ? 'badge-info' :
                                   order.stage === 'Stitching Assembly' || order.status === 'In Production' ? 'badge-warning' : 'badge-neutral'
-                                }`} style={{ fontSize: '11px', fontWeight: 700 }}>
+                                }`}>
                                   {order.stage || order.status || 'Backlog & Cutting'}
                                 </span>
                               </td>
-                              <td className="text-right font-semibold" style={{ color: '#059669', fontSize: '14px', fontFamily: 'var(--font-mono)' }}>
+                              <td className="text-right font-medium" style={{ fontFamily: 'var(--font-mono)' }}>
                                 {formatCurrency(order.estimatedValue)}
                               </td>
-                              <td className="text-right" onClick={(e) => e.stopPropagation()}>
-                                <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
-                                  <button 
-                                    type="button"
-                                    className="btn btn-secondary btn-sm" 
-                                    onClick={(e) => { e.stopPropagation(); openViewEditJobModal(order); }}
-                                    title="View / Edit Job Order"
-                                    style={{ padding: '5px 12px', fontSize: '12px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '5px', borderRadius: '8px' }}
-                                  >
-                                    <i className="ph ph-eye" style={{ fontSize: '14px' }}></i> View
-                                  </button>
-                                  <button 
-                                    className="btn-icon text-red" 
-                                    onClick={() => deleteUpcomingOrder(order._id || order.id, order)}
-                                    title="Delete Job Order"
-                                    style={{ padding: '4px 6px', fontSize: '15px' }}
-                                  >
-                                    <i className="ph ph-trash"></i>
-                                  </button>
-                                </div>
+                              <td className="text-right">
+                                <button className="btn-icon" onClick={() => openViewEditJobModal(order)} title="Edit Job Order">
+                                  <i className="ph ph-pencil-simple"></i>
+                                </button>
+                                <button className="btn-icon text-red" onClick={() => deleteUpcomingOrder(order._id || order.id, order)} title="Delete Job Order">
+                                  <i className="ph ph-trash"></i>
+                                </button>
                               </td>
                             </tr>
                           ))}
@@ -5119,7 +5094,7 @@ export default function App() {
                       {clients.filter(c => (c.companyName || c.name || '').toLowerCase().includes(clientSearch.toLowerCase())).map(c => (
                         <tr key={c._id}>
                           <td className="font-semibold" style={{ color: 'var(--color-primary)', fontSize: '14.5px' }}>
-                            🏢 {c.companyName || c.name}
+                            {c.companyName || c.name}
                           </td>
                           <td>{c.email || '-'}</td>
                           <td>{c.phone || '-'}</td>
