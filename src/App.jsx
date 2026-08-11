@@ -4955,6 +4955,47 @@ export default function App() {
                       )}
                     </div>
 
+                    {/* 3. Operational Expenses Card */}
+                    <div style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: '16px',
+                      border: '1px solid #E5E7EB',
+                      padding: '20px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                    }}>
+                      <h4 style={{ margin: '0 0 12px 0', fontSize: '15px', fontWeight: 800, color: '#111827', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <i className="ph ph-building-office" style={{ color: '#EF4444' }}></i> Operational Expenses
+                      </h4>
+
+                      <div style={{ backgroundColor: '#FEF2F2', padding: '12px 14px', borderRadius: '12px', border: '1px solid #FECACA', marginBottom: '12px' }}>
+                        <div style={{ fontSize: '11.5px', color: '#991B1B', fontWeight: 700, textTransform: 'uppercase' }}>Total Factory Overhead</div>
+                        <div style={{ fontSize: '20px', fontWeight: 800, color: '#991B1B', fontFamily: 'var(--font-mono)', marginTop: '3px' }}>
+                          <AnimatedCounter isCurrency value={totalExpensesSum} />
+                        </div>
+                      </div>
+                      
+                      {expenses.length === 0 ? (
+                        <div style={{ padding: '14px', textAlign: 'center', color: '#64748B', fontSize: '12px', backgroundColor: '#F8FAFC', borderRadius: '10px' }}>
+                          No recorded factory operational expenses.
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {expenses.slice(0, 3).map(exp => (
+                            <div key={exp._id || exp.id} onClick={() => setActiveTab('operational-expenses')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid #F1F5F9', cursor: 'pointer' }}>
+                              <div>
+                                <div style={{ fontSize: '12px', fontWeight: 700, color: '#1E293B' }}>{exp.category || 'Factory Overhead'}</div>
+                                <div style={{ fontSize: '11px', color: '#64748B' }}>{exp.description || 'General Expense'}</div>
+                              </div>
+                              <div style={{ textAlign: 'right' }}>
+                                <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#EF4444', fontFamily: 'var(--font-mono)' }}>-{formatCurrency(exp.amount)}</div>
+                                <div style={{ fontSize: '10px', color: '#94A3B8' }}>{formatDate(exp.date)}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
                   </div>
 
                 </div>
