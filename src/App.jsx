@@ -25,29 +25,9 @@ class SafeConvexErrorBoundary extends React.Component {
   }
 }
 
-function TwilioDataFetcher({ onData }) {
-  const data = useQuery(api.twilio?.getSettings);
-  useEffect(() => {
-    if (data && onData) onData(data);
-  }, [data]);
-  return null;
-}
 
-function ElevenLabsDataFetcher({ onData }) {
-  const data = useQuery(api.elevenlabs?.getSettings);
-  useEffect(() => {
-    if (data && onData) onData(data);
-  }, [data]);
-  return null;
-}
 
-function GoogleWorkspaceDataFetcher({ onData }) {
-  const data = useQuery(api.googleWorkspace?.getSettings);
-  useEffect(() => {
-    if (data && onData) onData(data);
-  }, [data]);
-  return null;
-}
+
 
 // --- Format currency in INR (Top-level Global Helper) ---
 function formatCurrency(val) {
@@ -950,21 +930,7 @@ export default function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
 
-  // Voice AI Assistant States
-  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
-  const [isVoiceListening, setIsVoiceListening] = useState(false);
-  const [voiceTranscript, setVoiceTranscript] = useState('');
-  const [voiceStatus, setVoiceStatus] = useState('idle'); // 'idle' | 'listening' | 'processing' | 'success' | 'error'
-  const [voiceMessage, setVoiceMessage] = useState('');
-  const [voiceParsedData, setVoiceParsedData] = useState(null);
-  const [voiceInputManual, setVoiceInputManual] = useState('');
-  const [speechRecognitionRef, setSpeechRecognitionRef] = useState(null);
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
-  const [isSiriFloatingBarOpen, setIsSiriFloatingBarOpen] = useState(false);
-  const isSiriFloatingBarOpenRef = useRef(false);
-  useEffect(() => {
-    isSiriFloatingBarOpenRef.current = isSiriFloatingBarOpen;
-  }, [isSiriFloatingBarOpen]);
 
   // Linear Cmd + K Keyboard Shortcut Listener
   useEffect(() => {
@@ -2553,106 +2519,6 @@ export default function App() {
     }
   };
 
-  const startVoiceAssistant = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    setIsSiriFloatingBarOpen(true);
-    setIsVoiceModalOpen(false);
-    setVoiceTranscript('');
-    latestTranscriptRef.current = '';
-    setVoiceInputManual('');
-    setVoiceParsedData(null);
-
-    if (!SpeechRecognition) {
-      setVoiceStatus('idle');
-      setVoiceMessage("Web Speech API is not supported in this browser. Type your voice command below:");
-      return;
-    }
-
-    if ('speechSynthesis' in window) {
-      try {
-        window.speechSynthesis.cancel();
-        if (window.speechSynthesis.paused) {
-          window.speechSynthesis.resume();
-        }
-        window.speechSynthesis.getVoices();
-      } catch (e) {}
-    }
-
-    setVoiceStatus('listening');
-    setVoiceMessage("Listening... Speak now (e.g. 'open bills tab' or 'create job')");
-
-    try {
-      if (speechRecognitionRef) {
-        try { 
-          speechRecognitionRef.onend = null;
-          speechRecognitionRef.stop(); 
-        } catch (e) {}
-      }
-
-      const recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = 'en-IN'; // Optimized for Indian English pronunciations
-
-      let pauseTimer = null;
-
-      recognition.onresult = (event) => {
-        let fullTranscript = '';
-        for (let i = 0; i < event.results.length; i++) {
-          fullTranscript += event.results[i][0].transcript + ' ';
-        }
-        fullTranscript = fullTranscript.trim();
-        setVoiceTranscript(fullTranscript);
-        latestTranscriptRef.current = fullTranscript;
-
-        // Auto-process command when user stops speaking for 850ms
-        if (pauseTimer) clearTimeout(pauseTimer);
-        pauseTimer = setTimeout(() => {
-          if (fullTranscript && fullTranscript.trim().length > 1) {
-            try { recognition.stop(); } catch(e){}
-            processVoiceCommand(fullTranscript);
-          }
-        }, 850);
-      };
-
-      recognition.onerror = (event) => {
-        console.warn("Speech recognition status:", event.error);
-        if (event.error === 'aborted' || event.error === 'no-speech') {
-          // Suppress benign browser abort/pause events seamlessly
-          return;
-        }
-        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-          setVoiceStatus('error');
-          setVoiceMessage("Microphone permission blocked. Please enable microphone access in browser address bar.");
-        } else {
-          setVoiceStatus('idle');
-        }
-      };
-
-      recognition.onend = () => {
-        setIsVoiceListening(false);
-        const finalTranscript = latestTranscriptRef.current;
-        if (finalTranscript && finalTranscript.trim().length > 2) {
-          processVoiceCommand(finalTranscript);
-        } else if (isSiriFloatingBarOpenRef.current) {
-          setTimeout(() => {
-            if (isSiriFloatingBarOpenRef.current) {
-              startVoiceAssistant(true);
-            }
-          }, 800);
-        }
-      };
-
-      recognition.start();
-      setIsVoiceListening(true);
-      setSpeechRecognitionRef(recognition);
-    } catch (err) {
-      console.error("Speech recognition error:", err);
-      setVoiceStatus('idle');
-      setVoiceMessage("Press the microphone button or type below to enter command.");
-    }
-  };
-
   const stopVoiceAssistant = () => {
     if (speechRecognitionRef) {
       try { speechRecognitionRef.stop(); } catch (e) {}
@@ -4023,36 +3889,7 @@ export default function App() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', width: '100%' }}>
-      <SafeConvexErrorBoundary>
-        <TwilioDataFetcher onData={(data) => {
-          if (data?.accountSid) setTwilioAccountSid(data.accountSid);
-          if (data?.authToken) setTwilioAuthToken(data.authToken);
-          if (data?.fromPhone) setTwilioFromPhone(data.fromPhone);
-          if (data?.whatsappPhone) setTwilioWhatsappPhone(data.whatsappPhone);
-          if (data?.isEnabled !== undefined) setIsTwilioEnabled(data.isEnabled);
-        }} />
-      </SafeConvexErrorBoundary>
 
-      <SafeConvexErrorBoundary>
-        <ElevenLabsDataFetcher onData={(data) => {
-          if (data?.apiKey) setElevenApiKey(data.apiKey);
-          if (data?.voiceId) setElevenVoiceId(data.voiceId);
-          if (data?.modelId) setElevenModelId(data.modelId);
-          if (data?.isEnabled !== undefined) setIsElevenEnabled(data.isEnabled);
-        }} />
-      </SafeConvexErrorBoundary>
-
-      <SafeConvexErrorBoundary>
-        <GoogleWorkspaceDataFetcher onData={(data) => {
-          if (data?.googleClientId) setGoogleClientId(data.googleClientId);
-          if (data?.googleClientSecret) setGoogleClientSecret(data.googleClientSecret);
-          if (data?.googleWorkspaceDomain) setGoogleDomain(data.googleWorkspaceDomain);
-          if (data?.autoSyncDrive !== undefined) setAutoSyncDrive(data.autoSyncDrive);
-          if (data?.autoSyncSheets !== undefined) setAutoSyncSheets(data.autoSyncSheets);
-          if (data?.isDomainRestricted !== undefined) setIsDomainRestricted(data.isDomainRestricted);
-          if (data?.isEnabled !== undefined) setIsGoogleEnabled(data.isEnabled);
-        }} />
-      </SafeConvexErrorBoundary>
 
       {/* Sidebar Navigation */}
       <aside className="sidebar">
@@ -4934,25 +4771,225 @@ export default function App() {
         {/* ==================== JOBS VIEW ==================== */}
         {activeTab === 'jobs' && (
           <section id="jobs-view" className="tab-view active">
-            <header className="view-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
+            <header className="view-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
               <div>
                 <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 800 }}>Jobs & Production Orders</h1>
-                <p className="subtitle" style={{ margin: '4px 0 0 0', color: 'var(--color-text-secondary)' }}>Track export manufacturing jobs, daily progress, staff assignments, and delays.</p>
+                <p className="subtitle" style={{ margin: '4px 0 0 0', color: 'var(--color-text-secondary)' }}>Track export manufacturing jobs, daily progress, staff assignments, and upcoming production bookings.</p>
               </div>
-              {upcomingOrders.length > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <button 
-                    className="btn btn-primary" 
-                    onClick={openCreateJobModal}
-                    style={{ padding: '10px 20px', fontSize: '13.5px', fontWeight: 800, borderRadius: '12px', boxShadow: '0 4px 14px rgba(94, 106, 210, 0.35)', display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
-                  >
-                    <i className="ph ph-plus-circle" style={{ fontSize: '18px' }}></i> Create New Job Order
-                  </button>
-                </div>
-              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <button 
+                  className="btn btn-primary" 
+                  onClick={() => setIsOrderModalOpen(true)}
+                  style={{ padding: '10px 20px', fontSize: '13.5px', fontWeight: 800, borderRadius: '12px', boxShadow: '0 4px 14px rgba(94, 106, 210, 0.35)', display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+                >
+                  <i className="ph ph-plus-circle" style={{ fontSize: '18px' }}></i> Log Upcoming Order
+                </button>
+              </div>
             </header>
 
-            {jobsViewMode === 'board' ? (
+            {/* Sub-Tab Navigation Bar */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px', borderBottom: '1px solid #E2E8F0', paddingBottom: '12px' }}>
+              <button 
+                type="button"
+                className={`btn ${jobsSubTab !== 'upcoming' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setJobsSubTab('kanban')}
+                style={{ borderRadius: '10px', fontSize: '13px', fontWeight: 700, padding: '8px 16px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              >
+                <i className="ph ph-kanban" style={{ fontSize: '16px' }}></i> Production Board & Kanban
+              </button>
+              <button 
+                type="button"
+                className={`btn ${jobsSubTab === 'upcoming' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setJobsSubTab('upcoming')}
+                style={{ borderRadius: '10px', fontSize: '13px', fontWeight: 700, padding: '8px 16px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              >
+                <i className="ph ph-calendar-check" style={{ fontSize: '16px' }}></i> Upcoming Orders ({upcomingOrders.length})
+              </button>
+            </div>
+
+            {jobsSubTab === 'upcoming' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {/* KPI Metrics Summary Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+                  <div className="metric-card" style={{ borderLeft: '4px solid #4F46E5', backgroundColor: '#EEF2FF' }}>
+                    <div className="metric-card-header">
+                      <span className="metric-label" style={{ color: '#3730A3', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        📦 Upcoming Orders
+                      </span>
+                      <div className="metric-icon" style={{ color: '#4F46E5', backgroundColor: '#C7D2FE' }}>
+                        <i className="ph ph-calendar-check"></i>
+                      </div>
+                    </div>
+                    <div className="metric-value" style={{ color: '#312E81', fontWeight: 800 }}>{upcomingOrders.length}</div>
+                    <div className="metric-footer">
+                      <span style={{ color: '#3730A3', fontWeight: 600 }}>Scheduled export bookings</span>
+                    </div>
+                  </div>
+
+                  <div className="metric-card" style={{ borderLeft: '4px solid #F59E0B', backgroundColor: '#FFFBEB' }}>
+                    <div className="metric-card-header">
+                      <span className="metric-label" style={{ color: '#92400E', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        ⏳ Planned / Backlog
+                      </span>
+                      <div className="metric-icon" style={{ color: '#F59E0B', backgroundColor: '#FDE68A' }}>
+                        <i className="ph ph-clock"></i>
+                      </div>
+                    </div>
+                    <div className="metric-value" style={{ color: '#78350F', fontWeight: 800 }}>
+                      {upcomingOrders.filter(o => o.status === 'Planned' || o.status === 'Pending' || o.stage === 'Backlog & Cutting').length}
+                    </div>
+                    <div className="metric-footer">
+                      <span style={{ color: '#92400E', fontWeight: 600 }}>Awaiting fabric cutting</span>
+                    </div>
+                  </div>
+
+                  <div className="metric-card" style={{ borderLeft: '4px solid #10B981', backgroundColor: '#F0FDF4' }}>
+                    <div className="metric-card-header">
+                      <span className="metric-label" style={{ color: '#047857', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        ⚡ Active Production
+                      </span>
+                      <div className="metric-icon" style={{ color: '#10B981', backgroundColor: '#D1FAE5' }}>
+                        <i className="ph ph-lightning"></i>
+                      </div>
+                    </div>
+                    <div className="metric-value" style={{ color: '#065F46', fontWeight: 800 }}>
+                      {upcomingOrders.filter(o => o.status === 'In Production' || o.stage === 'Stitching Assembly').length}
+                    </div>
+                    <div className="metric-footer">
+                      <span style={{ color: '#047857', fontWeight: 600 }}>Currently in stitching lines</span>
+                    </div>
+                  </div>
+
+                  <div className="metric-card" style={{ borderLeft: '4px solid #6E56CF', backgroundColor: '#F5F3FF' }}>
+                    <div className="metric-card-header">
+                      <span className="metric-label" style={{ color: '#5B21B6', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        💰 Pipeline Order Value
+                      </span>
+                      <div className="metric-icon" style={{ color: '#6E56CF', backgroundColor: '#DDD6FE' }}>
+                        <i className="ph ph-currency-inr"></i>
+                      </div>
+                    </div>
+                    <div className="metric-value" style={{ color: '#4C1D95', fontWeight: 800 }}>
+                      {formatCurrency(upcomingOrders.reduce((sum, o) => sum + (parseFloat(o.estimatedValue) || 0), 0))}
+                    </div>
+                    <div className="metric-footer">
+                      <span style={{ color: '#5B21B6', fontWeight: 600 }}>Combined order revenue value</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Search & Filter Controls */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+                  <div className="search-input-wrapper" style={{ flex: 1, minWidth: '280px' }}>
+                    <i className="ph ph-magnifying-glass"></i>
+                    <input 
+                      type="text" 
+                      placeholder="Search upcoming orders by title, buyer client, or garment style..." 
+                      value={kanbanSearchQuery} 
+                      onChange={(e) => setKanbanSearchQuery(e.target.value)} 
+                    />
+                  </div>
+                </div>
+
+                {/* Main Upcoming Orders Table Card */}
+                {upcomingOrders.length === 0 ? (
+                  <LinearEmptyState 
+                    icon="ph-calendar-check"
+                    title="No upcoming production orders booked"
+                    description="Schedule export garment orders, track delivery target dates, fabric requirements, and order values."
+                    actionLabel="Log Upcoming Order"
+                    onAction={() => setIsOrderModalOpen(true)}
+                    hasBorder={true}
+                  />
+                ) : (
+                  <div className="table-card bg-surface border" style={{ padding: '20px', borderRadius: '16px' }}>
+                    <div className="table-responsive">
+                      <table className="data-table">
+                        <thead>
+                          <tr>
+                            <th>Order Title & Style</th>
+                            <th>Buyer / Client</th>
+                            <th>Garment / Product</th>
+                            <th>Order Qty</th>
+                            <th>Delivery Target Date</th>
+                            <th className="text-right">Estimated Value (₹)</th>
+                            <th className="text-center">Status</th>
+                            <th className="text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {upcomingOrders
+                            .filter(o => {
+                              const matchesSearch = !kanbanSearchQuery || 
+                                (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) ||
+                                (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) ||
+                                (o.product && o.product.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
+                              return matchesSearch;
+                            })
+                            .map((order) => (
+                              <tr key={order._id || order.id}>
+                                <td>
+                                  <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '14px' }}>{order.orderTitle}</div>
+                                  <div style={{ fontSize: '12px', color: '#64748B' }}>{order.notes || 'Export Production Batch'}</div>
+                                </td>
+                                <td>
+                                  <span style={{ fontWeight: 600, color: '#4F46E5', fontSize: '13px' }}>🏢 {order.clientName}</span>
+                                </td>
+                                <td>
+                                  <span style={{ fontSize: '13px', color: '#334155' }}>👕 {order.product || 'Knitwear'}</span>
+                                </td>
+                                <td>
+                                  <span className="badge badge-purple" style={{ fontSize: '12px', fontWeight: 700 }}>
+                                    {order.quantity ? order.quantity.toLocaleString() : '2,500'} Pcs
+                                  </span>
+                                </td>
+                                <td>
+                                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#1E293B', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                    📅 {formatDate(order.deliveryDate)}
+                                  </span>
+                                </td>
+                                <td className="text-right font-semibold" style={{ color: '#059669', fontSize: '14px', fontFamily: 'var(--font-mono)' }}>
+                                  {formatCurrency(order.estimatedValue)}
+                                </td>
+                                <td className="text-center">
+                                  <span className={`badge ${
+                                    order.status === 'In Production' || order.stage === 'Stitching Assembly' ? 'badge-success' :
+                                    order.status === 'Ready' ? 'badge-purple' :
+                                    order.status === 'Delivered' ? 'badge-neutral' : 'badge-warning'
+                                  }`} style={{ fontSize: '11px', fontWeight: 700 }}>
+                                    {order.status || 'Planned'}
+                                  </span>
+                                </td>
+                                <td className="text-right">
+                                  <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                                    <button 
+                                      className="btn-icon text-primary" 
+                                      onClick={() => {
+                                        setEditingJob(order);
+                                        setIsJobModalOpen(true);
+                                      }}
+                                      title="Edit Order"
+                                    >
+                                      <i className="ph ph-pencil-simple"></i>
+                                    </button>
+                                    <button 
+                                      className="btn-icon text-red" 
+                                      onClick={() => deleteUpcomingOrder(order._id || order.id, order)}
+                                      title="Delete Order"
+                                    >
+                                      <i className="ph ph-trash"></i>
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : jobsViewMode === 'board' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {/* Weekly Production Cycle Sprint Card */}
 
