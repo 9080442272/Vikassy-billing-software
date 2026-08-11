@@ -4060,13 +4060,15 @@ export default function App() {
         </div>
 
         <nav className="nav-menu" role="navigation" aria-label="Main Navigation">
-          <div style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '8px 8px 4px 8px' }}>
-            Main Menu ▾
-          </div>
           <button className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} aria-current={activeTab === 'dashboard' ? 'page' : undefined} aria-label="Navigate to Dashboard" onClick={() => handleTabChange('dashboard')}>
             <i className="ph ph-layout" aria-hidden="true"></i>
             <span>Dashboard</span>
           </button>
+
+          {/* Sales & Billing Group */}
+          <div style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '14px 8px 4px 8px' }}>
+            Sales & Billing ▾
+          </div>
           <button className={`nav-item ${activeTab === 'clients' ? 'active' : ''}`} aria-current={activeTab === 'clients' ? 'page' : undefined} aria-label="Navigate to Clients" onClick={() => handleTabChange('clients')}>
             <i className="ph ph-users-three" aria-hidden="true"></i>
             <span>Clients</span>
@@ -4075,17 +4077,23 @@ export default function App() {
             <i className="ph ph-briefcase" aria-hidden="true"></i>
             <span>Jobs</span>
           </button>
-          <button className={`nav-item ${activeTab === 'employees' ? 'active' : ''}`} aria-current={activeTab === 'employees' ? 'page' : undefined} aria-label="Navigate to Employees" onClick={() => handleTabChange('employees')}>
-            <i className="ph ph-user-list" aria-hidden="true"></i>
-            <span>Employees</span>
-          </button>
           <button className={`nav-item ${activeTab === 'bills' ? 'active' : ''}`} aria-current={activeTab === 'bills' ? 'page' : undefined} aria-label="Navigate to Invoices" onClick={() => handleTabChange('bills')}>
             <i className="ph ph-receipt" aria-hidden="true"></i>
             <span>Invoice</span>
           </button>
 
+          {/* Workforce Group */}
           <div style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '14px 8px 4px 8px' }}>
-            Operations & Financials ▾
+            Workforce ▾
+          </div>
+          <button className={`nav-item ${activeTab === 'employees' ? 'active' : ''}`} aria-current={activeTab === 'employees' ? 'page' : undefined} aria-label="Navigate to Employees" onClick={() => handleTabChange('employees')}>
+            <i className="ph ph-user-list" aria-hidden="true"></i>
+            <span>Employees</span>
+          </button>
+
+          {/* Finance Group */}
+          <div style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '14px 8px 4px 8px' }}>
+            Finance ▾
           </div>
           <button className={`nav-item ${activeTab === 'expenses' ? 'active' : ''}`} aria-current={activeTab === 'expenses' ? 'page' : undefined} aria-label="Navigate to Capital & Investment" onClick={() => handleTabChange('expenses')}>
             <i className="ph ph-coins" aria-hidden="true"></i>
@@ -4096,7 +4104,7 @@ export default function App() {
             <span>Factory Expenses & Bills</span>
           </button>
 
-
+          {/* System Group */}
           <div style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '14px 8px 4px 8px' }}>
             System ▾
           </div>
