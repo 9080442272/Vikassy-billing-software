@@ -4771,225 +4771,23 @@ export default function App() {
         {/* ==================== JOBS VIEW ==================== */}
         {activeTab === 'jobs' && (
           <section id="jobs-view" className="tab-view active">
-            <header className="view-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
+            <header className="view-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
               <div>
                 <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 800 }}>Jobs & Production Orders</h1>
-                <p className="subtitle" style={{ margin: '4px 0 0 0', color: 'var(--color-text-secondary)' }}>Track export manufacturing jobs, daily progress, staff assignments, and upcoming production bookings.</p>
+                <p className="subtitle" style={{ margin: '4px 0 0 0', color: 'var(--color-text-secondary)' }}>Track export manufacturing jobs, daily progress, staff assignments, and delays.</p>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <button 
-                  className="btn btn-primary" 
-                  onClick={() => setIsOrderModalOpen(true)}
-                  style={{ padding: '10px 20px', fontSize: '13.5px', fontWeight: 800, borderRadius: '12px', boxShadow: '0 4px 14px rgba(94, 106, 210, 0.35)', display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
-                >
-                  <i className="ph ph-plus-circle" style={{ fontSize: '18px' }}></i> Log Upcoming Order
-                </button>
-              </div>
+              {upcomingOrders.length > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={openCreateJobModal}
+                    style={{ padding: '10px 20px', fontSize: '13.5px', fontWeight: 800, borderRadius: '12px', boxShadow: '0 4px 14px rgba(94, 106, 210, 0.35)', display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+                  >
+                    <i className="ph ph-plus-circle" style={{ fontSize: '18px' }}></i> Create New Job Order
+                  </button>
+                </div>
+              )}
             </header>
-
-            {/* Sub-Tab Navigation Bar */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px', borderBottom: '1px solid #E2E8F0', paddingBottom: '12px' }}>
-              <button 
-                type="button"
-                className={`btn ${jobsSubTab !== 'upcoming' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => setJobsSubTab('kanban')}
-                style={{ borderRadius: '10px', fontSize: '13px', fontWeight: 700, padding: '8px 16px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-              >
-                <i className="ph ph-kanban" style={{ fontSize: '16px' }}></i> Production Board & Kanban
-              </button>
-              <button 
-                type="button"
-                className={`btn ${jobsSubTab === 'upcoming' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => setJobsSubTab('upcoming')}
-                style={{ borderRadius: '10px', fontSize: '13px', fontWeight: 700, padding: '8px 16px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-              >
-                <i className="ph ph-calendar-check" style={{ fontSize: '16px' }}></i> Upcoming Orders ({upcomingOrders.length})
-              </button>
-            </div>
-
-            {jobsSubTab === 'upcoming' ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                {/* KPI Metrics Summary Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
-                  <div className="metric-card" style={{ borderLeft: '4px solid #4F46E5', backgroundColor: '#EEF2FF' }}>
-                    <div className="metric-card-header">
-                      <span className="metric-label" style={{ color: '#3730A3', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                        📦 Upcoming Orders
-                      </span>
-                      <div className="metric-icon" style={{ color: '#4F46E5', backgroundColor: '#C7D2FE' }}>
-                        <i className="ph ph-calendar-check"></i>
-                      </div>
-                    </div>
-                    <div className="metric-value" style={{ color: '#312E81', fontWeight: 800 }}>{upcomingOrders.length}</div>
-                    <div className="metric-footer">
-                      <span style={{ color: '#3730A3', fontWeight: 600 }}>Scheduled export bookings</span>
-                    </div>
-                  </div>
-
-                  <div className="metric-card" style={{ borderLeft: '4px solid #F59E0B', backgroundColor: '#FFFBEB' }}>
-                    <div className="metric-card-header">
-                      <span className="metric-label" style={{ color: '#92400E', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                        ⏳ Planned / Backlog
-                      </span>
-                      <div className="metric-icon" style={{ color: '#F59E0B', backgroundColor: '#FDE68A' }}>
-                        <i className="ph ph-clock"></i>
-                      </div>
-                    </div>
-                    <div className="metric-value" style={{ color: '#78350F', fontWeight: 800 }}>
-                      {upcomingOrders.filter(o => o.status === 'Planned' || o.status === 'Pending' || o.stage === 'Backlog & Cutting').length}
-                    </div>
-                    <div className="metric-footer">
-                      <span style={{ color: '#92400E', fontWeight: 600 }}>Awaiting fabric cutting</span>
-                    </div>
-                  </div>
-
-                  <div className="metric-card" style={{ borderLeft: '4px solid #10B981', backgroundColor: '#F0FDF4' }}>
-                    <div className="metric-card-header">
-                      <span className="metric-label" style={{ color: '#047857', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                        ⚡ Active Production
-                      </span>
-                      <div className="metric-icon" style={{ color: '#10B981', backgroundColor: '#D1FAE5' }}>
-                        <i className="ph ph-lightning"></i>
-                      </div>
-                    </div>
-                    <div className="metric-value" style={{ color: '#065F46', fontWeight: 800 }}>
-                      {upcomingOrders.filter(o => o.status === 'In Production' || o.stage === 'Stitching Assembly').length}
-                    </div>
-                    <div className="metric-footer">
-                      <span style={{ color: '#047857', fontWeight: 600 }}>Currently in stitching lines</span>
-                    </div>
-                  </div>
-
-                  <div className="metric-card" style={{ borderLeft: '4px solid #6E56CF', backgroundColor: '#F5F3FF' }}>
-                    <div className="metric-card-header">
-                      <span className="metric-label" style={{ color: '#5B21B6', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                        💰 Pipeline Order Value
-                      </span>
-                      <div className="metric-icon" style={{ color: '#6E56CF', backgroundColor: '#DDD6FE' }}>
-                        <i className="ph ph-currency-inr"></i>
-                      </div>
-                    </div>
-                    <div className="metric-value" style={{ color: '#4C1D95', fontWeight: 800 }}>
-                      {formatCurrency(upcomingOrders.reduce((sum, o) => sum + (parseFloat(o.estimatedValue) || 0), 0))}
-                    </div>
-                    <div className="metric-footer">
-                      <span style={{ color: '#5B21B6', fontWeight: 600 }}>Combined order revenue value</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Search & Filter Controls */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
-                  <div className="search-input-wrapper" style={{ flex: 1, minWidth: '280px' }}>
-                    <i className="ph ph-magnifying-glass"></i>
-                    <input 
-                      type="text" 
-                      placeholder="Search upcoming orders by title, buyer client, or garment style..." 
-                      value={kanbanSearchQuery} 
-                      onChange={(e) => setKanbanSearchQuery(e.target.value)} 
-                    />
-                  </div>
-                </div>
-
-                {/* Main Upcoming Orders Table Card */}
-                {upcomingOrders.length === 0 ? (
-                  <LinearEmptyState 
-                    icon="ph-calendar-check"
-                    title="No upcoming production orders booked"
-                    description="Schedule export garment orders, track delivery target dates, fabric requirements, and order values."
-                    actionLabel="Log Upcoming Order"
-                    onAction={() => setIsOrderModalOpen(true)}
-                    hasBorder={true}
-                  />
-                ) : (
-                  <div className="table-card bg-surface border" style={{ padding: '20px', borderRadius: '16px' }}>
-                    <div className="table-responsive">
-                      <table className="data-table">
-                        <thead>
-                          <tr>
-                            <th>Order Title & Style</th>
-                            <th>Buyer / Client</th>
-                            <th>Garment / Product</th>
-                            <th>Order Qty</th>
-                            <th>Delivery Target Date</th>
-                            <th className="text-right">Estimated Value (₹)</th>
-                            <th className="text-center">Status</th>
-                            <th className="text-right">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {upcomingOrders
-                            .filter(o => {
-                              const matchesSearch = !kanbanSearchQuery || 
-                                (o.orderTitle && o.orderTitle.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) ||
-                                (o.clientName && o.clientName.toLowerCase().includes(kanbanSearchQuery.toLowerCase())) ||
-                                (o.product && o.product.toLowerCase().includes(kanbanSearchQuery.toLowerCase()));
-                              return matchesSearch;
-                            })
-                            .map((order) => (
-                              <tr key={order._id || order.id}>
-                                <td>
-                                  <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '14px' }}>{order.orderTitle}</div>
-                                  <div style={{ fontSize: '12px', color: '#64748B' }}>{order.notes || 'Export Production Batch'}</div>
-                                </td>
-                                <td>
-                                  <span style={{ fontWeight: 600, color: '#4F46E5', fontSize: '13px' }}>🏢 {order.clientName}</span>
-                                </td>
-                                <td>
-                                  <span style={{ fontSize: '13px', color: '#334155' }}>👕 {order.product || 'Knitwear'}</span>
-                                </td>
-                                <td>
-                                  <span className="badge badge-purple" style={{ fontSize: '12px', fontWeight: 700 }}>
-                                    {order.quantity ? order.quantity.toLocaleString() : '2,500'} Pcs
-                                  </span>
-                                </td>
-                                <td>
-                                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#1E293B', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                                    📅 {formatDate(order.deliveryDate)}
-                                  </span>
-                                </td>
-                                <td className="text-right font-semibold" style={{ color: '#059669', fontSize: '14px', fontFamily: 'var(--font-mono)' }}>
-                                  {formatCurrency(order.estimatedValue)}
-                                </td>
-                                <td className="text-center">
-                                  <span className={`badge ${
-                                    order.status === 'In Production' || order.stage === 'Stitching Assembly' ? 'badge-success' :
-                                    order.status === 'Ready' ? 'badge-purple' :
-                                    order.status === 'Delivered' ? 'badge-neutral' : 'badge-warning'
-                                  }`} style={{ fontSize: '11px', fontWeight: 700 }}>
-                                    {order.status || 'Planned'}
-                                  </span>
-                                </td>
-                                <td className="text-right">
-                                  <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                                    <button 
-                                      className="btn-icon text-primary" 
-                                      onClick={() => {
-                                        setEditingJob(order);
-                                        setIsJobModalOpen(true);
-                                      }}
-                                      title="Edit Order"
-                                    >
-                                      <i className="ph ph-pencil-simple"></i>
-                                    </button>
-                                    <button 
-                                      className="btn-icon text-red" 
-                                      onClick={() => deleteUpcomingOrder(order._id || order.id, order)}
-                                      title="Delete Order"
-                                    >
-                                      <i className="ph ph-trash"></i>
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : jobsViewMode === 'board' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {/* Weekly Production Cycle Sprint Card */}
 
@@ -5456,7 +5254,6 @@ export default function App() {
                   </table>
                 </div>
               </div>
-            )}
           </section>
         )}
 
@@ -8311,57 +8108,7 @@ export default function App() {
         </div>
       )}
 
-      {/* ==================== FABRIC ROLL MODAL ==================== */}
-      {isFabricModalOpen && (
-        <div id="fabric-modal" className="modal-overlay active">
-          <div className="modal-card">
-            <div className="modal-header">
-              <h3>{editingFabric ? 'Edit Fabric Roll Details' : 'Log Fabric Roll Stock'}</h3>
-              <button className="btn-close" onClick={closeFabricModal}><i className="ph ph-x"></i></button>
-            </div>
-            <form id="fabric-form" onSubmit={handleFabricSubmit}>
-              <div className="modal-body" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="fabric-type">Fabric Type/Material *</label>
-                    <input type="text" id="fabric-type" required placeholder="e.g. Cotton Fleece / Polyester" />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="fabric-qty">Quantity Received (Pcs/Rolls) *</label>
-                    <input type="number" id="fabric-qty" min="0" step="any" required placeholder="0" />
-                  </div>
-                </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="fabric-color">Color/Design Code *</label>
-                    <input type="text" id="fabric-color" required placeholder="e.g. Navy Blue / Pink Tint" />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="fabric-date">Received Date *</label>
-                    <input type="date" id="fabric-date" required defaultValue={new Date().toISOString().split('T')[0]} />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label htmlFor="fabric-supplier">Supplier Business Name *</label>
-                  <input type="text" id="fabric-supplier" required placeholder="e.g. Vardhman Textiles" />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="fabric-status">Stock Status *</label>
-                  <select id="fabric-status" required style={{ fontSize: '15px', padding: '12px 14px' }}>
-                    <option value="Stored">Stored in Warehouse</option>
-                    <option value="Stitching">Allocated to Stitching</option>
-                    <option value="Completed">Completed Production</option>
-                  </select>
-                </div>
-              </div>
-              <div className="modal-footer" style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                <button type="button" className="btn btn-secondary" onClick={closeFabricModal}>Cancel</button>
-                <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 600 }}>Save Stock record</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+
 
       {/* ==================== STITCHING ASSIGNMENT MODAL ==================== */}
       {isStitchingModalOpen && (
@@ -8447,124 +8194,7 @@ export default function App() {
         </div>
       )}
 
-      {/* ==================== CEO ACTIVITY LOG MODAL ==================== */}
-      {isCeoModalOpen && (
-        <div id="ceo-modal" className="modal-overlay active">
-          <div className="modal-card">
-            <div className="modal-header">
-              <h3>{editingCeo ? 'Edit CEO Activity' : 'Log CEO daily workflows'}</h3>
-              <button className="btn-close" onClick={closeCeoModal}><i className="ph ph-x"></i></button>
-            </div>
-            <form id="ceo-form" onSubmit={handleCeoSubmit}>
-              <div className="modal-body" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="ceo-date">Workday Date *</label>
-                    <input type="date" id="ceo-date" required defaultValue={new Date().toISOString().split('T')[0]} />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="ceo-focus">Focus Core Area *</label>
-                    <select id="ceo-focus" required style={{ fontSize: '15px', padding: '12px 14px' }}>
-                      <option value="Operations">Operations Management</option>
-                      <option value="Finance">Finance & Cash Flows</option>
-                      <option value="Sales">Sales & Client Relations</option>
-                      <option value="Production">Production & Stitching Audit</option>
-                      <option value="Strategy">Business Growth Strategy</option>
-                    </select>
-                  </div>
-                </div>
 
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="ceo-hours">Hours Logged *</label>
-                    <input type="number" id="ceo-hours" min="0" step="any" required placeholder="e.g. 4.5" />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="ceo-productivity">Productivity Index *</label>
-                    <select id="ceo-productivity" required style={{ fontSize: '15px', padding: '12px 14px' }}>
-                      <option value="High">High output</option>
-                      <option value="Medium">Medium output</option>
-                      <option value="Low">Low output</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="ceo-desc">Accomplishment description *</label>
-                  <textarea id="ceo-desc" rows="4" required placeholder="Detail key achievements and milestones reached..."></textarea>
-                </div>
-
-                <div className="form-group" style={{ flexDirection: 'row', gap: '10px', alignItems: 'center', backgroundColor: 'var(--color-muted)', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
-                  <input type="checkbox" id="ceo-critical" style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
-                  <label htmlFor="ceo-critical" style={{ marginBottom: 0, fontWeight: 700, fontSize: '13px', color: 'var(--color-primary)', cursor: 'pointer' }}>Mark as Critical Accomplishment ⭐</label>
-                </div>
-              </div>
-              <div className="modal-footer" style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                <button type="button" className="btn btn-secondary" onClick={closeCeoModal}>Cancel</button>
-                <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 600 }}>Save Activity log</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ==================== CEO DETAIL POPUP DIALOG ==================== */}
-      {selectedCeoDetail && (
-        <div id="ceo-details-modal" className="modal-overlay active">
-          <div className="modal-card">
-            <div className="modal-header">
-              <h3>CEO Activity Details</h3>
-              <button className="btn-close" onClick={() => setSelectedCeoDetail(null)}><i className="ph ph-x"></i></button>
-            </div>
-            <div className="modal-body" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div className="form-row" style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '14px' }}>
-                <div>
-                  <span className="text-muted" style={{ fontSize: '11px', textTransform: 'uppercase' }}>Focus Core Area</span>
-                  <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--color-primary)', marginTop: '2px' }}>{selectedCeoDetail.focusArea}</div>
-                </div>
-                <div>
-                  <span className="text-muted" style={{ fontSize: '11px', textTransform: 'uppercase' }}>Workday Date</span>
-                  <div style={{ fontWeight: 600, fontSize: '14px', marginTop: '2px' }}>{formatDate(selectedCeoDetail.date)}</div>
-                </div>
-              </div>
-
-              <div className="grid-layout-3" style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '14px', gridTemplateColumns: 'repeat(3, 1fr)' }}>
-                <div>
-                  <span className="text-muted" style={{ fontSize: '11px', textTransform: 'uppercase' }}>Hours Logged</span>
-                  <div style={{ fontWeight: 700, fontSize: '16px', marginTop: '2px' }}>{selectedCeoDetail.hoursSpent} Hrs</div>
-                </div>
-                <div>
-                  <span className="text-muted" style={{ fontSize: '11px', textTransform: 'uppercase' }}>Productivity score</span>
-                  <div style={{ marginTop: '2px' }}>
-                    <span className={`badge ${selectedCeoDetail.productivityLevel === 'High' ? 'badge-success' : selectedCeoDetail.productivityLevel === 'Medium' ? 'badge-gst' : 'badge-neutral'}`}>
-                      {selectedCeoDetail.productivityLevel}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <span className="text-muted" style={{ fontSize: '11px', textTransform: 'uppercase' }}>Significance</span>
-                  <div style={{ marginTop: '2px' }}>
-                    {selectedCeoDetail.isCritical ? (
-                      <span className="badge" style={{ backgroundColor: 'rgba(124,58,237,0.1)', color: 'var(--color-primary)', fontWeight: 700, border: '1px solid rgba(124,58,237,0.2)' }}>Critical Accomplishment ⭐</span>
-                    ) : (
-                      <span className="text-muted" style={{ fontSize: '13px' }}>Regular Work Activity</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <span className="text-muted" style={{ fontSize: '11px', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>Accomplishment Description</span>
-                <p style={{ fontSize: '14px', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{selectedCeoDetail.description}</p>
-              </div>
-            </div>
-            <div className="modal-footer" style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-              <button type="button" className="btn btn-secondary" onClick={() => setSelectedCeoDetail(null)}>Close</button>
-              <button type="button" className="btn btn-primary" onClick={() => { const target = selectedCeoDetail; setSelectedCeoDetail(null); openEditCeo(target); }} style={{ padding: '10px 24px', fontWeight: 600 }}>Edit Activity Log</button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ==================== EXPENSE REGISTRATION MODAL ==================== */}
       {isExpenseModalOpen && (
