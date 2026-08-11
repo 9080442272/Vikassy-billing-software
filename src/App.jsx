@@ -4096,10 +4096,6 @@ export default function App() {
           <div style={{ fontSize: '11px', fontWeight: 600, color: '#8C8D96', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '14px 8px 4px 8px' }}>
             System ▾
           </div>
-          <button className={`nav-item ${activeTab === 'notifications' ? 'active' : ''}`} onClick={() => handleTabChange('notifications')}>
-            <i className="ph ph-bell"></i>
-            <span>Global Notification Center</span>
-          </button>
           <button className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => handleTabChange('settings')}>
             <i className="ph ph-gear"></i>
             <span>Settings</span>
@@ -4328,7 +4324,43 @@ export default function App() {
             </button>
           </div>
 
-          <div className="linear-header-right">
+          <div className="linear-header-right" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button 
+              type="button"
+              className="btn-icon" 
+              onClick={() => handleTabChange('notifications')}
+              title="Global Notification Center"
+              aria-label="Global Notification Center"
+              style={{
+                position: 'relative',
+                width: '38px',
+                height: '38px',
+                borderRadius: '10px',
+                backgroundColor: activeTab === 'notifications' ? 'var(--color-accent-light)' : '#F8FAFC',
+                color: activeTab === 'notifications' ? 'var(--color-primary)' : '#475569',
+                border: activeTab === 'notifications' ? '1px solid var(--color-primary)' : '1px solid #E2E8F0',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)'
+              }}
+            >
+              <i className="ph ph-bell" style={{ fontSize: '19px' }}></i>
+              {activityAuditLogs.length > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '6px',
+                  right: '6px',
+                  width: '8px',
+                  height: '8px',
+                  backgroundColor: '#EF4444',
+                  borderRadius: '50%',
+                  boxShadow: '0 0 0 2px #FFFFFF'
+                }}></span>
+              )}
+            </button>
           </div>
         </header>
 
