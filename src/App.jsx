@@ -1423,17 +1423,35 @@ export default function App() {
   // --- PWA Installation state ---
   const [pwaPrompt, setPwaPrompt] = useState(null);
 
-  // --- Multi-Company & Branch Switcher State ---
-  const [companies, setCompanies] = useState([
-    { id: 'varahi-hq', name: 'Varahi Export', branch: 'Tirupur HQ', gst: '33AAAAA0000A1Z5', phone: '+91 98765 43210', city: 'Tirupur', badge: 'HQ' },
-    { id: 'vikas-exp', name: 'Vikas Export', branch: 'Coimbatore Unit', gst: '33BBBBB1111B1Z6', phone: '+91 91234 56789', city: 'Coimbatore', badge: 'Branch' },
-    { id: 'sri-varahi', name: 'Sri Varahi Garments', branch: 'Chennai Unit', gst: '33CCCCC2222C1Z7', phone: '+91 94444 88888', city: 'Chennai', badge: 'Branch' }
-  ]);
-  const [activeCompanyId, setActiveCompanyId] = useState('varahi-hq');
-  const [isCompanyDropdownOpen, setIsCompanyDropdownOpen] = useState(false);
-  const [isAddBranchModalOpen, setIsAddBranchModalOpen] = useState(false);
+  // --- Company Profile State ---
+  const [companyProfile, setCompanyProfile] = useState(() => {
+    try {
+      const saved = localStorage.getItem('varahi_company_profile');
+      return saved ? JSON.parse(saved) : {
+        name: 'Varahi Export',
+        branch: 'Tirupur HQ',
+        gst: '33CKMPS0071D1ZC',
+        phone: '+91 99946 85525',
+        city: 'Tirupur',
+        address: '8/2933 A, Karuparayan Kovil, 3rd Street, Pandian Nagar, Tirupur - 641603'
+      };
+    } catch(e) {
+      return {
+        name: 'Varahi Export',
+        branch: 'Tirupur HQ',
+        gst: '33CKMPS0071D1ZC',
+        phone: '+91 99946 85525',
+        city: 'Tirupur',
+        address: '8/2933 A, Karuparayan Kovil, 3rd Street, Pandian Nagar, Tirupur - 641603'
+      };
+    }
+  });
 
-  const activeCompany = companies.find(c => c.id === activeCompanyId) || companies[0];
+  useEffect(() => {
+    localStorage.setItem('varahi_company_profile', JSON.stringify(companyProfile));
+  }, [companyProfile]);
+
+  const activeCompany = companyProfile;
 
   // --- Settings Custom Modals State ---
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
@@ -3888,166 +3906,31 @@ export default function App() {
 
       {/* Sidebar Navigation */}
       <aside className="sidebar">
-        {/* HRFusion Style Modern Workspace Switcher Header */}
-        <div className="brand" style={{ position: 'relative', width: '100%', marginBottom: '16px' }}>
-          <div 
-            onClick={() => setIsCompanyDropdownOpen(!isCompanyDropdownOpen)}
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'space-between',
-              gap: '10px', 
-              width: '100%', 
-              cursor: 'pointer',
-              padding: '8px 12px',
-              borderRadius: '12px',
-              backgroundColor: '#FFFFFF',
-              border: '1px solid #E2E8F0',
-              boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
-              transition: 'all 150ms ease'
-            }}
-            title="Click to Switch Workspace"
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
-              <div style={{ 
-                width: '32px', 
-                height: '32px', 
-                borderRadius: '10px', 
-                background: activeCompany.id === 'varahi-hq' 
-                  ? 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)' 
-                  : activeCompany.id === 'vikas-exp' 
-                  ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)' 
-                  : 'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)', 
-                color: '#FFFFFF', 
-                fontSize: '15px', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                fontWeight: 800, 
-                flexShrink: 0
-              }}>
-                <i className="ph ph-shapes" style={{ fontSize: '18px' }}></i>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                <span className="brand-name" style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {activeCompany.name}
-                </span>
-                <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 500 }}>
-                  {activeCompany.branch}
-                </span>
-              </div>
-            </div>
-            <i className="ph ph-caret-double-up-down" style={{ fontSize: '14px', color: '#94A3B8' }}></i>
+        {/* Sidebar Brand Header */}
+        <div className="brand" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', marginBottom: '16px', backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)' }}>
+          <div style={{ 
+            width: '36px', 
+            height: '36px', 
+            borderRadius: '10px', 
+            background: 'linear-gradient(135deg, #4F46E5 0%, #3730A3 100%)', 
+            color: '#FFFFFF', 
+            fontSize: '18px', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justify: 'center', 
+            fontWeight: 800, 
+            flexShrink: 0
+          }}>
+            <i className="ph ph-shapes"></i>
           </div>
-
-          {/* HRFusion Style Switcher Popover Card */}
-          {isCompanyDropdownOpen && (
-            <>
-              {/* Backdrop Listener */}
-              <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9998 }} onClick={() => setIsCompanyDropdownOpen(false)}></div>
-              
-              <div style={{
-                position: 'absolute',
-                top: 'calc(100% + 8px)',
-                left: '0',
-                zIndex: 9999,
-                width: '270px',
-                backgroundColor: '#FFFFFF',
-                borderRadius: '16px',
-                padding: '12px',
-                border: '1px solid rgba(0, 0, 0, 0.08)',
-                boxShadow: '0 16px 40px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15, 23, 42, 0.04)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '10px'
-              }}>
-
-                {/* Workspace Items List */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  {companies.map((comp) => {
-                    const isSelected = comp.id === activeCompanyId;
-                    const iconBg = comp.id === 'varahi-hq' 
-                      ? 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)' 
-                      : comp.id === 'vikas-exp' 
-                      ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)' 
-                      : 'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)';
-
-                    return (
-                      <div
-                        key={comp.id}
-                        onClick={() => {
-                          setActiveCompanyId(comp.id);
-                          setIsCompanyDropdownOpen(false);
-                        }}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '8px 10px',
-                          borderRadius: '12px',
-                          cursor: 'pointer',
-                          backgroundColor: isSelected ? '#F8FAFC' : 'transparent',
-                          transition: 'all 120ms ease'
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
-                          <div style={{ 
-                            width: '32px', 
-                            height: '32px', 
-                            borderRadius: '9px', 
-                            background: iconBg, 
-                            color: '#FFFFFF', 
-                            fontSize: '14px', 
-                            fontWeight: 800, 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'center',
-                            flexShrink: 0
-                          }}>
-                            {comp.id === 'varahi-hq' ? <i className="ph ph-buildings"></i> : comp.id === 'vikas-exp' ? <i className="ph ph-factory"></i> : <i className="ph ph-t-shirt"></i>}
-                          </div>
-                          <span style={{ fontSize: '13.5px', fontWeight: isSelected ? 700 : 600, color: isSelected ? '#0F172A' : '#334155' }}>
-                            {comp.name}
-                          </span>
-                        </div>
-
-                        {isSelected && (
-                          <i className="ph ph-check" style={{ color: '#64748B', fontSize: '15px', fontWeight: 800 }}></i>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* + Add new workspace Button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsCompanyDropdownOpen(false);
-                    setIsAddBranchModalOpen(true);
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '9px 12px',
-                    fontSize: '12.5px',
-                    fontWeight: 600,
-                    color: '#475569',
-                    backgroundColor: '#FFFFFF',
-                    border: '1px solid #E2E8F0',
-                    borderRadius: '10px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px',
-                    cursor: 'pointer',
-                    transition: 'all 120ms ease'
-                  }}
-                >
-                  <i className="ph ph-plus" style={{ fontSize: '14px' }}></i> Add new workspace
-                </button>
-              </div>
-            </>
-          )}
+          <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <span className="brand-name" style={{ fontSize: '14.5px', fontWeight: 800, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {activeCompany.name}
+            </span>
+            <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+              {activeCompany.branch}
+            </span>
+          </div>
         </div>
 
         <nav className="nav-menu" role="navigation" aria-label="Main Navigation">
@@ -5260,7 +5143,7 @@ export default function App() {
                 <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#EEF2FF', color: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
                   <i className="ph ph-note-pencil"></i>
                 </div>
-                Active Profile: {activeCompany.name} ({activeCompany.branch})
+                Company Profile: {companyProfile.name}
               </h3>
               <form onSubmit={(e) => {
                 e.preventDefault();
@@ -5269,40 +5152,42 @@ export default function App() {
                 const updatedGst = form.gstin.value.trim();
                 const updatedPhone = form.phone.value.trim();
                 const updatedCity = form.city.value.trim();
+                const updatedAddress = form.address.value.trim();
 
-                setCompanies(prev => prev.map(c => c.id === activeCompany.id ? {
-                  ...c,
-                  name: updatedName || c.name,
-                  gst: updatedGst || c.gst,
-                  phone: updatedPhone || c.phone,
-                  city: updatedCity || c.city
-                } : c));
+                setCompanyProfile({
+                  name: updatedName || companyProfile.name,
+                  branch: `${updatedCity || companyProfile.city} HQ`,
+                  gst: updatedGst || companyProfile.gst,
+                  phone: updatedPhone || companyProfile.phone,
+                  city: updatedCity || companyProfile.city,
+                  address: updatedAddress || companyProfile.address
+                });
 
-                alert(`🎉 ${activeCompany.name} profile updated successfully!`);
+                alert(`🎉 Company profile updated successfully!`);
               }} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div className="form-group">
                     <label style={{ fontWeight: 600 }}>Company Legal Name *</label>
-                    <input type="text" name="legalName" key={activeCompany.id + '-name'} defaultValue={activeCompany.name} style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
+                    <input type="text" name="legalName" defaultValue={companyProfile.name} style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
                   </div>
                   <div className="form-group">
                     <label style={{ fontWeight: 600 }}>GSTIN Tax Registration *</label>
-                    <input type="text" name="gstin" key={activeCompany.id + '-gst'} defaultValue={activeCompany.gst || '33CKMPS0071D1ZC'} style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
+                    <input type="text" name="gstin" defaultValue={companyProfile.gst} style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
                   </div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div className="form-group">
                     <label style={{ fontWeight: 600 }}>Primary Contact Phone *</label>
-                    <input type="text" name="phone" key={activeCompany.id + '-phone'} defaultValue={activeCompany.phone || '+91 99946 85525'} style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
+                    <input type="text" name="phone" defaultValue={companyProfile.phone} style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
                   </div>
                   <div className="form-group">
                     <label style={{ fontWeight: 600 }}>City / Branch Location *</label>
-                    <input type="text" name="city" key={activeCompany.id + '-city'} defaultValue={activeCompany.city || 'Tirupur'} style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
+                    <input type="text" name="city" defaultValue={companyProfile.city} style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
                   </div>
                 </div>
                 <div className="form-group">
                   <label style={{ fontWeight: 600 }}>Registered Factory & Office Address *</label>
-                  <input type="text" name="address" defaultValue="8/2933 A, Karuparayan Kovil, 3rd Street, Pandian Nagar, Tirupur - 641603" style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
+                  <input type="text" name="address" defaultValue={companyProfile.address} style={{ fontSize: '14px', padding: '10px 12px', borderRadius: '10px' }} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
                   <button type="submit" className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: 700, borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
@@ -9648,72 +9533,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Add New Company Branch Modal */}
-      {isAddBranchModalOpen && (
-        <div className="modal-overlay active" onClick={() => setIsAddBranchModalOpen(false)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
-            <div className="modal-header">
-              <h3>🏢 Add New Company Branch</h3>
-              <button className="btn-close" onClick={() => setIsAddBranchModalOpen(false)}><i className="ph ph-x"></i></button>
-            </div>
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              const form = e.target;
-              const name = form.compName.value.trim();
-              const branch = form.compBranch.value.trim();
-              const gst = form.compGst.value.trim();
-              const city = form.compCity.value.trim();
-              const phone = form.compPhone.value.trim();
 
-              const newCompId = 'comp-' + Date.now();
-              const newComp = {
-                id: newCompId,
-                name: name || 'Vikas Export',
-                branch: branch || `${city} Unit`,
-                gst: gst || '33BBBBB1111B1Z6',
-                phone: phone || '+91 91234 56789',
-                city: city || 'Coimbatore',
-                badge: 'Branch'
-              };
-
-              setCompanies(prev => [...prev, newComp]);
-              setActiveCompanyId(newCompId);
-              setIsAddBranchModalOpen(false);
-
-              alert(`🎉 Company Branch "${name} (${branch})" added and set as active!`);
-            }}>
-              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div className="form-group">
-                  <label>Company Name *</label>
-                  <input type="text" name="compName" required defaultValue="Vikas Export" placeholder="e.g. Vikas Export" />
-                </div>
-                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div className="form-group">
-                    <label>Branch Title *</label>
-                    <input type="text" name="compBranch" required defaultValue="Coimbatore Unit" placeholder="e.g. Coimbatore Unit" />
-                  </div>
-                  <div className="form-group">
-                    <label>City / Location *</label>
-                    <input type="text" name="compCity" required defaultValue="Coimbatore" placeholder="e.g. Coimbatore" />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label>GSTIN Tax Registration Number</label>
-                  <input type="text" name="compGst" defaultValue="33BBBBB1111B1Z6" placeholder="e.g. 33BBBBB1111B1Z6" />
-                </div>
-                <div className="form-group">
-                  <label>Branch Phone / Contact</label>
-                  <input type="text" name="compPhone" defaultValue="+91 91234 56789" placeholder="e.g. +91 91234 56789" />
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setIsAddBranchModalOpen(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary"><i className="ph ph-check"></i> Save & Switch Branch</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
 
 
