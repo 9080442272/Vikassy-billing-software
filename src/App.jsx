@@ -3909,19 +3909,17 @@ export default function App() {
         {/* Sidebar Brand Header */}
         <div className="brand" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', marginBottom: '16px', backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)' }}>
           <div style={{ 
-            width: '36px', 
-            height: '36px', 
+            width: '38px', 
+            height: '38px', 
             borderRadius: '10px', 
             background: 'linear-gradient(135deg, #4F46E5 0%, #3730A3 100%)', 
             color: '#FFFFFF', 
-            fontSize: '18px', 
             display: 'flex', 
             alignItems: 'center', 
-            justify: 'center', 
-            fontWeight: 800, 
+            justifyContent: 'center', 
             flexShrink: 0
           }}>
-            <i className="ph ph-shapes"></i>
+            <i className="ph ph-shapes" style={{ fontSize: '20px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}></i>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <span className="brand-name" style={{ fontSize: '14.5px', fontWeight: 800, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
