@@ -4565,9 +4565,6 @@ export default function App() {
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span style={{ fontSize: '18px', fontWeight: 800, color: '#111827' }}>Welcome back, Vikashini B.</span>
-                        <span style={{ fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '10px', backgroundColor: '#ECFDF5', color: '#059669', border: '1px solid #A7F3D0' }}>
-                          LIVE ONLINE
-                        </span>
                       </div>
                       <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span>{activeCompany.name}</span>
