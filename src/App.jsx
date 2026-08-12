@@ -5537,20 +5537,6 @@ export default function App() {
                                   <i className="ph ph-eye" style={{ fontSize: '14px' }}></i> Preview
                                 </button>
 
-                                <button 
-                                  type="button"
-                                  className="btn btn-primary btn-sm" 
-                                  onClick={() => { 
-                                    setViewingInvoice(b); 
-                                    setIsInvoiceViewOpen(true); 
-                                    setTimeout(() => window.print(), 350);
-                                  }}
-                                  title="Print Tax Invoice Document"
-                                  style={{ padding: '5px 12px', fontSize: '12px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px', borderRadius: '8px' }}
-                                >
-                                  <i className="ph ph-printer" style={{ fontSize: '14px' }}></i> Print
-                                </button>
-
                                 <button className="btn-icon" onClick={() => openEditBill(b)} title="Edit Invoice"><i className="ph ph-pencil-simple"></i></button>
                                 <button className="btn-icon text-red" onClick={() => deleteBill(b._id)} title="Delete Invoice"><i className="ph ph-trash"></i></button>
                               </div>
@@ -5606,9 +5592,6 @@ export default function App() {
                       )}
                       <button className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '4px' }} onClick={() => { setViewingInvoice(b); setIsInvoiceViewOpen(true); }}>
                         <i className="ph ph-eye"></i> Preview
-                      </button>
-                      <button className="btn btn-primary" style={{ padding: '6px 10px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '4px' }} onClick={() => { setViewingInvoice(b); setIsInvoiceViewOpen(true); setTimeout(() => window.print(), 350); }}>
-                        <i className="ph ph-printer"></i> Print
                       </button>
                       <button className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '11px' }} onClick={() => openEditBill(b)}>
                         <i className="ph ph-pencil-simple"></i> Edit
