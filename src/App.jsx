@@ -4892,7 +4892,6 @@ export default function App() {
                                 <th className="text-right">Shipment Qty</th>
                                 <th className="text-right">Grand Total (₹)</th>
                                 <th className="text-center">Status</th>
-                                <th className="text-right">Actions</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -4900,33 +4899,39 @@ export default function App() {
                                 const c = clients.find(cl => cl._id === b.clientId);
                                 const isPaid = (b.paymentStatus === 'Paid' || b.status === 'Paid');
                                 return (
-                                  <tr key={b._id}>
+                                  <tr 
+                                    key={b._id} 
+                                    onClick={() => { setViewingInvoice(b); setIsInvoiceViewOpen(true); }} 
+                                    style={{ cursor: 'pointer' }}
+                                    className="clickable-table-row"
+                                  >
                                     <td className="font-semibold text-primary">{b.billNumber}</td>
                                     <td className="font-medium">{c ? (c.companyName || c.name) : (b.clientName || 'Corporate Client')}</td>
                                     <td className="text-muted">{formatDate(b.date)}</td>
                                     <td className="text-right font-medium">{(b.shipmentQty || b.items?.[0]?.qty || 2500).toLocaleString()} Pcs</td>
                                     <td className="text-right font-bold text-green" style={{ fontFamily: 'var(--font-mono)' }}>{formatCurrency(b.totalAmount)}</td>
-                                    <td className="text-center">
+                                    <td className="text-center" onClick={(e) => e.stopPropagation()}>
                                       <span 
                                         onClick={() => toggleBillPaymentStatus(b)} 
+                                        title="Click to toggle payment status"
                                         style={{ 
-                                          padding: '4px 10px', 
-                                          borderRadius: '12px', 
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          justify: 'center',
+                                          gap: '4px',
+                                          padding: '4px 12px', 
+                                          borderRadius: '20px', 
                                           fontSize: '11px', 
                                           fontWeight: 700, 
                                           cursor: 'pointer',
                                           backgroundColor: isPaid ? '#ECFDF5' : '#FEF3C7',
                                           color: isPaid ? '#059669' : '#D97706',
-                                          border: isPaid ? '1px solid #A7F3D0' : '1px solid #FDE68A'
+                                          border: isPaid ? '1px solid #A7F3D0' : '1px solid #FDE68A',
+                                          lineHeight: '1.2'
                                         }}
                                       >
                                         {isPaid ? '✓ Paid' : '⏳ Pending'}
                                       </span>
-                                    </td>
-                                    <td className="text-right" onClick={(e) => e.stopPropagation()}>
-                                      <button className="btn btn-secondary btn-sm" onClick={() => { setViewingInvoice(b); setIsInvoiceViewOpen(true); }} style={{ padding: '4px 10px', fontSize: '12px', borderRadius: '8px' }}>
-                                        <i className="ph ph-eye"></i> View
-                                      </button>
                                     </td>
                                   </tr>
                                 );
@@ -5492,7 +5497,7 @@ export default function App() {
                         const c = clients.find(cl => cl._id === b.clientId);
                         const isPaid = (b.paymentStatus === 'Paid' || b.status === 'Paid');
                         return (
-                          <tr key={b._id}>
+                          <tr key={b._id} onClick={() => { setViewingInvoice(b); setIsInvoiceViewOpen(true); }} style={{ cursor: 'pointer' }} className="clickable-table-row">
                             <td className="font-semibold text-primary">{b.billNumber}</td>
                             <td className="font-medium">🏢 {c ? (c.companyName || c.name) : 'Corporate Client'}</td>
                             <td>{formatDate(b.date)}</td>
