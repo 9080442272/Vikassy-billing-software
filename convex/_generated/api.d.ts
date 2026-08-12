@@ -17,6 +17,7 @@ import type * as employees from "../employees.js";
 import type * as expenses from "../expenses.js";
 import type * as fabrics from "../fabrics.js";
 import type * as investments from "../investments.js";
+import type * as jobOrders from "../jobOrders.js";
 import type * as payroll from "../payroll.js";
 import type * as stitching from "../stitching.js";
 import type * as system from "../system.js";
@@ -39,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   expenses: typeof expenses;
   fabrics: typeof fabrics;
   investments: typeof investments;
+  jobOrders: typeof jobOrders;
   payroll: typeof payroll;
   stitching: typeof stitching;
   system: typeof system;
